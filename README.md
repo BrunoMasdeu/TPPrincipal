@@ -1,4 +1,4 @@
-# lab-construccion-software-equipo-07
+# lab-construccion-software-equipo-03
 Para ejecutar Urban Free Runer:
 1) Descargar el Build.rar de https://drive.google.com/drive/folders/1xdudA8ceGQpNaV3j7mFDSbb0aTMpofTk?usp=drive_link
 2) Darle clic derecho y tocar la opcion "Extraer aqui"

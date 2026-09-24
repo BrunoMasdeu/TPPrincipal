@@ -236,7 +236,7 @@ def main():
     cell(t[3], 1, 1, "Unity 6000.3.22f1; NGO 2.13.2; Multiplayer Services/Relay 2.3.1; Unity Test Framework 1.6.0.")
     cell(t[3], 2, 1, "Host/Client con autenticacion anonima. El Host crea una allocation de Relay y comparte un join code; el cliente usa ese codigo para incorporarse.")
     cell(t[3], 3, 1, "GameScene - Assets/Scenes/GameScene.unity, cargada desde MenuScene mediante NetworkSceneManager.")
-    cell(t[3], 4, 1, "NetworkManager, UnityTransport y LobbyPlayerSpawner en MenuScene; prefab de jugador Assets/Personajes-objetos/Jugador.prefab con NetworkObject y NetworkTransform.")
+    cell(t[3], 4, 1, "NetworkManager, UnityTransport y LobbyPlayerSpawner en MenuScene; prefab de jugador Assets/Prefabs/PlayerPrefab.prefab con NetworkObject y NetworkTransform.")
     cell(t[3], 5, 1, "Rama feat/adicion-de-elementos-en-partida; commit evaluado c33e5c4. Compilacion C# validada; build ejecutable para dos clientes pendiente.")
     cell(t[3], 6, 1, "Corte: 01/09/2026. Responsabilidad compartida por LCS Equipo 07; integracion multiplayer a cargo de Tomas Molina Varas.")
 
@@ -309,7 +309,7 @@ def main():
     cell(t[9], 2, 1, "IMPLEMENTADO mediante NetworkTransform; prueba de fluidez pendiente.")
     cell(t[9], 3, 1, "IMPLEMENTADO. PlayerNetworkSetup habilita camara y AudioListener solo para IsOwner.")
     cell(t[9], 4, 1, "IMPLEMENTADO. Move, CameraMovement, WallRun y Grappling solo se habilitan para el propietario.")
-    cell(t[9], 5, 1, "Assets/Personajes-objetos/Jugador.prefab; rama feat/adicion-de-elementos-en-partida; commit c33e5c4.")
+    cell(t[9], 5, 1, "Assets/Prefabs/PlayerPrefab.prefab; rama feat/adicion-de-elementos-en-partida; commit c33e5c4.")
 
     # 6. Sincronizacion y autoridad.
     sync_rows = [

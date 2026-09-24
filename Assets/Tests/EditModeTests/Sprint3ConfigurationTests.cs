@@ -13,7 +13,7 @@ public class Sprint3ConfigurationTests
 {
     private const string MenuScenePath = "Assets/Scenes/MenuScene.unity";
     private const string GameScenePath = "Assets/Scenes/GameScene.unity";
-    private const string NetworkPlayerPath = "Assets/Personajes-objetos/Jugador.prefab";
+    private const string NetworkPlayerPath = "Assets/Prefabs/PlayerPrefab.prefab";
 
     private readonly List<Scene> openedScenes = new List<Scene>();
     private readonly List<GameObject> instances = new List<GameObject>();

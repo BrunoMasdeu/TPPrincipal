@@ -14,7 +14,7 @@ public class PlayerPlayModeTests
     private const string RegressionScenePath =
         "Assets/Scenes/GameScene.unity";
     private const string RegressionPlayerPrefabPath =
-        "Assets/Personajes-objetos/Jugador.prefab";
+        "Assets/Prefabs/PlayerPrefab.prefab";
 
     // TST-S2-001
     [UnityTest]
