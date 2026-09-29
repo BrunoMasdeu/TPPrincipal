@@ -150,6 +150,11 @@ public class GunSystem : MonoBehaviour
         bulletsLeft--;
         bulletsShot--;
 
+        if (bulletsLeft == 0)
+        {
+            Debug.LogWarning("Cargador vacío. Presioná R para recargar.");
+        }
+
         Invoke(
             nameof(ResetShot),
             timeBetweenShooting
@@ -174,6 +179,11 @@ public class GunSystem : MonoBehaviour
     {
         reloading = true;
 
+        Debug.Log(
+            "Recargando... Munición actual: " +
+            bulletsLeft + " / " + magazineSize
+        );
+
         Invoke(
             nameof(ReloadFinished),
             reloadTime
@@ -184,6 +194,11 @@ public class GunSystem : MonoBehaviour
     {
         bulletsLeft = magazineSize;
         reloading = false;
+
+        Debug.Log(
+            "Recarga completa. Munición: " +
+            bulletsLeft + " / " + magazineSize
+        );
     }
 }
 
