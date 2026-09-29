@@ -1,13 +1,7 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:Assets/Scenes/Lyricsz Games/3D Fan/fan.fbx.meta
-guid: d11f6443e573cac4eaade5264a803af4
-ModelImporter:
-  serializedVersion: 22200
-========
-guid: 101d991a7c3929f459fb65dad135a764
+guid: 1264ea9dffbe28d4d9ec60ba19e3d752
 ModelImporter:
   serializedVersion: 24300
->>>>>>>> 3da0f6600f72933335bfb680a0fe6637b3f56881:Assets/Animations/Pistol1/pistol kneel to stand.fbx.meta
   internalIDToNameTable: []
   externalObjects: {}
   materials:
@@ -63,12 +57,9 @@ ModelImporter:
     maxBonesPerVertex: 4
     minBoneWeight: 0.001
     optimizeBones: 1
-<<<<<<<< HEAD:Assets/Scenes/Lyricsz Games/3D Fan/fan.fbx.meta
-========
     generateMeshLods: 0
     meshLodGenerationFlags: 0
     maximumMeshLod: -1
->>>>>>>> 3da0f6600f72933335bfb680a0fe6637b3f56881:Assets/Animations/Pistol1/pistol kneel to stand.fbx.meta
     meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
@@ -118,13 +109,3 @@ ModelImporter:
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-<<<<<<<< HEAD:Assets/Scenes/Lyricsz Games/3D Fan/fan.fbx.meta
-AssetOrigin:
-  serializedVersion: 1
-  productId: 337666
-  packageName: 3D Fan
-  packageVersion: 1.0.0
-  assetPath: Assets/Scenes/Lyricsz Games/3D Fan/fan.fbx
-  uploadId: 826578
-========
->>>>>>>> 3da0f6600f72933335bfb680a0fe6637b3f56881:Assets/Animations/Pistol1/pistol kneel to stand.fbx.meta
