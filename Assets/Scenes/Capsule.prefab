@@ -333,7 +333,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Grappling
   cam: {fileID: 2651288126213784630}
-  gunTip: {fileID: 5893529039838537005}
   lr: {fileID: 0}
   whatIsGrappleable:
     serializedVersion: 2
