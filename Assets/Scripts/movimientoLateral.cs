@@ -12,19 +12,19 @@ public class movimientoLateral : MonoBehaviour
 
 void Start()
     {
-        limiteIzquierdo = transform.position.z - distanciaMovimiento;
-        limiteDerecho = transform.position.z + distanciaMovimiento;
+        limiteIzquierdo = transform.position.x - distanciaMovimiento;
+        limiteDerecho = transform.position.x + distanciaMovimiento;
     }
 
     void Update()
     {
-        transform.Translate(Vector3.right * direccion * velocidad * Time.deltaTime);
+        transform.Translate(Vector3.left * direccion * velocidad * Time.deltaTime);
 
-        if (transform.position.z >= limiteDerecho)
+        if (transform.position.x >= limiteDerecho)
         {
             direccion = -1;
         }
-        else if (transform.position.z <= limiteIzquierdo)
+        else if (transform.position.x <= limiteIzquierdo)
         {
             direccion = 1;
         }
