@@ -1,8 +1,10 @@
 using UnityEngine;
 using System.Collections;
+using System;
 
 public class movimientoLateral : MonoBehaviour
 {
+    public static event Action<string> OnTargetDestroyed;
     public float velocidad = 3.0f;
     private float limiteIzquierdo = -5.0f;
     private float limiteDerecho = 5.0f;
@@ -34,14 +36,15 @@ void Start()
         health -= damage; 
         Debug.Log("Vida del enemigo: " + health); 
         if (health <= 0) 
-        { 
+        {
+            OnTargetDestroyed?.Invoke(gameObject.tag);
             Die(); 
         } 
     }
 
     private void Die() 
-    { 
-        Debug.Log("Enemigo muerto"); 
+    {
+        Debug.Log("Enemigo muerto");
         Destroy(gameObject);
     }
 }

@@ -118,6 +118,15 @@ public class GunSystem : MonoBehaviour
                     enemy.TakeDamage(damage);
                 }
             }
+            else if (rayHit.collider.CompareTag("Target"))
+            {
+                Diana target = rayHit.collider.GetComponent<Diana>();
+                if (target != null)
+                {
+                    Debug.Log("Llamada a Derribar()");
+                    target.Derribar();
+                }
+            }
 
             if (bulletHoleGraphic != null)
             {
