@@ -2520,9 +2520,9 @@ MonoBehaviour:
   - {fileID: 8300000, guid: b25225c72201cd740b16b95b86d57940, type: 3}
   - {fileID: 8300000, guid: 37cdbcb02c3324849ac457dfc5b1058e, type: 3}
   surfaceClipSets: []
-  stepIntervalWalk: 0.5
+  stepIntervalWalk: 0.6
   stepIntervalRun: 0.3
-  runSpeedThreshold: 5.5
+  runSpeedThreshold: 8
   minSpeedToStep: 0.3
   maxVerticalSpeedForStep: 4
   volumeMin: 0.85
