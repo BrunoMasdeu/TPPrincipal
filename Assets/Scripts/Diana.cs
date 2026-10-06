@@ -12,18 +12,15 @@ public class Diana : MonoBehaviour
 
     public void Derribar()
     {
-        Debug.Log("TUMBAR() fue ejecutado");
-        OnTargetDestroyed?.Invoke(gameObject.tag);
         if (!tumbada)
         {
+            OnTargetDestroyed?.Invoke(gameObject.tag);
             StartCoroutine(DerribarDiana());
         }
     }
 
     private IEnumerator DerribarDiana()
     {
-        Debug.Log("CORRUTINA iniciada");
-
         tumbada = true;
 
         Quaternion inicial = transform.rotation;
@@ -47,7 +44,5 @@ public class Diana : MonoBehaviour
         }
 
         transform.rotation = final;
-
-        Debug.Log("Diana derribada");
     }
 }

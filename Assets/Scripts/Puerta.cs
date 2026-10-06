@@ -10,8 +10,6 @@ public class Puerta : MonoBehaviour
 
     public void Abrir()
     {
-        Debug.Log("ABRIR() fue ejecutado");
-
         if (!abierta)
         {
             StartCoroutine(AbrirPuerta());
@@ -20,8 +18,6 @@ public class Puerta : MonoBehaviour
 
     private IEnumerator AbrirPuerta()
     {
-        Debug.Log("CORRUTINA iniciada");
-
         abierta = true;
 
         Quaternion inicial = transform.rotation;
@@ -45,8 +41,6 @@ public class Puerta : MonoBehaviour
         }
 
         transform.rotation = final;
-
-        Debug.Log("PUERTA ABIERTA");
     }
 }
 

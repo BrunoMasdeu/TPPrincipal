@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class TutorialChecklistManager : MonoBehaviour
 {
@@ -39,7 +40,9 @@ public class TutorialChecklistManager : MonoBehaviour
         public List<TutorialTask> tasks;
         public UnityEvent onStepCompleted; // Permite arrastrar la puerta en el Inspector para abrirla
     }
-
+    [Header("Menú de Pausa")]
+    [SerializeField] private GameObject pauseMenuPanel;
+    private bool isPaused = false;
     [Header("Referencias UI")]
     [SerializeField] private GameObject tutorialPanel;
     [SerializeField] private TextMeshProUGUI stepTitleText;
@@ -60,12 +63,14 @@ public class TutorialChecklistManager : MonoBehaviour
         WallRun.OnPlayerWallrun += HandleWallrun;      // Escucha al script WallRun
         Grappling.OnPlayerGrapple += HandleGrapple;    // Escucha al script Grappling
         Diana.OnTargetDestroyed += HandleTargetDestroyed;
+        movimientoLateral.OnTargetDestroyed += HandleTargetDestroyed;
     }
 
     private void OnDisable()
     {
         WallRun.OnPlayerWallrun -= HandleWallrun;
         Grappling.OnPlayerGrapple -= HandleGrapple;
+        Diana.OnTargetDestroyed -= HandleTargetDestroyed;
         movimientoLateral.OnTargetDestroyed -= HandleTargetDestroyed;
     }
     // ---------------------------------------------------------
@@ -80,7 +85,15 @@ public class TutorialChecklistManager : MonoBehaviour
 
     private void Update()
     {
-        if (isTransitioning || currentStepIndex >= tutorialSteps.Count) return;
+        // 1. Detectar la tecla Escape para pausar/reanudar
+        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        {
+            TogglePause();
+        }
+
+        // 2. Si el juego está pausado, o si estamos transicionando, o si ya terminó, no hacer nada más
+        if (isPaused || isTransitioning || currentStepIndex >= tutorialSteps.Count)
+            return;
 
         CheckInputs();
     }
@@ -246,6 +259,49 @@ public class TutorialChecklistManager : MonoBehaviour
             // Libera el mouse para poder hacer click en el menú final
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
+        }
+    }
+    public void ReturnToMainMenu()
+    {
+        Time.timeScale = 1f;
+
+        // --- LIMPIEZA DE RED ---
+        // Ejemplo genérico si usas Netcode for GameObjects (NGO):
+        /*
+        if (Unity.Netcode.NetworkManager.Singleton != null)
+        {
+            Unity.Netcode.NetworkManager.Singleton.Shutdown();
+            Destroy(Unity.Netcode.NetworkManager.Singleton.gameObject);
+        }
+        */
+
+        // Si tienes tu propio ConnectionManager, llama a su método de desconexión aquí
+
+        SceneManager.LoadScene("MenuScene");
+    }
+    public void PermanecerEnMapa()
+    {
+        finalMenuPanel.SetActive(false);
+    }
+    public void TogglePause()
+    {
+        isPaused = !isPaused;
+
+        if (isPaused)
+        {
+            // Pausar
+            pauseMenuPanel.SetActive(true);
+            Time.timeScale = 0f; // Congela el tiempo y las físicas
+            Cursor.lockState = CursorLockMode.None; // Libera el cursor
+            Cursor.visible = true; // Hace visible el cursor
+        }
+        else
+        {
+            // Reanudar
+            pauseMenuPanel.SetActive(false);
+            Time.timeScale = 1f; // Devuelve el tiempo a la normalidad
+            Cursor.lockState = CursorLockMode.Locked; // Bloquea el cursor al centro
+            Cursor.visible = false; // Oculta el cursor
         }
     }
 }

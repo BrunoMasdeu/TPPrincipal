@@ -194,6 +194,7 @@ public class WallRun : MonoBehaviour
         rb.useGravity = useGravity;
 
         OnPlayerWallrun?.Invoke();
+        Debug.Log("Evento disparado");
     }
 
     private void WallRunningMovement()
