@@ -1,8 +1,10 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class Grappling : MonoBehaviour
 {
+    public static event Action OnPlayerGrapple;
     private enum HookState
     {
         Idle,
@@ -176,6 +178,8 @@ public class Grappling : MonoBehaviour
             velocityBeforeGrapple = rb.linearVelocity;
 
             grappling = true;
+
+            OnPlayerGrapple?.Invoke();
 
             activeHook.transform.SetParent(null, true);
             hookState = HookState.Flying;
