@@ -147,8 +147,8 @@ Transform:
   m_GameObject: {fileID: 10946539}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0, y: 0.00000047683716, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 1.5753, y: 0, z: 0}
+  m_LocalScale: {x: 1.7875831, y: 1.21, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1600193032}
@@ -13748,7 +13748,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::TutorialChecklistManager
   pauseMenuPanel: {fileID: 1783557430}
-  playerHUD: {fileID: 4288229423693902650, guid: e3e7ea7b6d5ac454ea2c59a234c94b18, type: 3}
   tutorialPanel: {fileID: 375072288}
   stepTitleText: {fileID: 1465116071}
   taskListContainer: {fileID: 487805943}
@@ -17038,8 +17037,8 @@ Transform:
   m_GameObject: {fileID: 1363444380}
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -0, y: 0.00000047683716, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: -0.24, y: 0, z: -0.2164}
+  m_LocalScale: {x: 1.7389005, y: 1.2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1308715430}

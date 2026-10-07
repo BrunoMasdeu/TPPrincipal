@@ -258,6 +258,7 @@ public class TutorialManager : MonoBehaviour
         {
             // Finaliza el tutorial completo
             tutorialPanel.SetActive(false);
+            playerHUD.SetActive(false);
 
             if (finalMenuPanel != null)
                 finalMenuPanel.SetActive(true);
@@ -272,14 +273,11 @@ public class TutorialManager : MonoBehaviour
         Time.timeScale = 1f;
 
         // --- LIMPIEZA DE RED ---
-        // Ejemplo genérico si usas Netcode for GameObjects (NGO):
-        /*
         if (Unity.Netcode.NetworkManager.Singleton != null)
         {
             Unity.Netcode.NetworkManager.Singleton.Shutdown();
             Destroy(Unity.Netcode.NetworkManager.Singleton.gameObject);
         }
-        */
 
         // Si tienes tu propio ConnectionManager, llama a su método de desconexión aquí
 
@@ -288,6 +286,7 @@ public class TutorialManager : MonoBehaviour
     public void PermanecerEnMapa()
     {
         finalMenuPanel.SetActive(false);
+        playerHUD.SetActive(true);
     }
     public void TogglePause()
     {
