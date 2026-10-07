@@ -7,7 +7,7 @@ using UnityEngine.Events;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 
-public class TutorialChecklistManager : MonoBehaviour
+public class TutorialManager : MonoBehaviour
 {
     public enum TaskType { KeyPress, MouseClick, GameEvent }
     public enum MouseButtonType { LeftClick, RightClick }
@@ -43,6 +43,7 @@ public class TutorialChecklistManager : MonoBehaviour
     [Header("Menú de Pausa")]
     [SerializeField] private GameObject pauseMenuPanel;
     private bool isPaused = false;
+
     [Header("Referencias UI")]
     [SerializeField] private GameObject tutorialPanel;
     [SerializeField] private TextMeshProUGUI stepTitleText;
@@ -56,6 +57,11 @@ public class TutorialChecklistManager : MonoBehaviour
 
     private int currentStepIndex = 0;
     private bool isTransitioning = false;
+
+    private Move playerMoveScript;
+    private GunSystem playerGunScript;
+    private GameObject playerHUD;
+    private MonoBehaviour playerCameraScript;
 
     // --- SUSCRIPCIÓN A EVENTOS EXTERNOS (DESACOPLAMIENTO) ---
     private void OnEnable()
@@ -286,6 +292,13 @@ public class TutorialChecklistManager : MonoBehaviour
     public void TogglePause()
     {
         isPaused = !isPaused;
+        if (playerMoveScript == null)
+        {
+            playerMoveScript = FindAnyObjectByType<Move>();
+            playerCameraScript = FindAnyObjectByType<CameraMovement>();
+            playerGunScript = FindAnyObjectByType<GunSystem>();
+            playerHUD = GameObject.Find("PlayerUI");
+        }
 
         if (isPaused)
         {
@@ -294,6 +307,10 @@ public class TutorialChecklistManager : MonoBehaviour
             Time.timeScale = 0f; // Congela el tiempo y las físicas
             Cursor.lockState = CursorLockMode.None; // Libera el cursor
             Cursor.visible = true; // Hace visible el cursor
+            if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(false);
+            if (playerGunScript != null) playerMoveScript.enabled = false;
+            if (playerCameraScript != null) playerCameraScript.enabled = false;
+            playerHUD.SetActive(false);
         }
         else
         {
@@ -302,6 +319,10 @@ public class TutorialChecklistManager : MonoBehaviour
             Time.timeScale = 1f; // Devuelve el tiempo a la normalidad
             Cursor.lockState = CursorLockMode.Locked; // Bloquea el cursor al centro
             Cursor.visible = false; // Oculta el cursor
+            if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(true);
+            if (playerGunScript != null) playerMoveScript.enabled = true;
+            if (playerCameraScript != null) playerCameraScript.enabled = true;
+            playerHUD.SetActive(true);
         }
     }
 }
