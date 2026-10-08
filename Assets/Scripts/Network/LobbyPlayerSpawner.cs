@@ -7,6 +7,8 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(NetworkManager))]
 public class LobbyPlayerSpawner : MonoBehaviour
 {
+    // Puente temporal para la carrera. La sesión y el spawn por equipos
+    // pertenecen a NetworkLobbySession y NetworkPlayerSpawner.
     [SerializeField] private GameObject networkPlayerPrefab;
     [SerializeField] private string gameSceneName = "GameScene";
     [SerializeField] private string spawnPointName = "Respawn";
@@ -14,15 +16,19 @@ public class LobbyPlayerSpawner : MonoBehaviour
     [SerializeField, Min(1)] private int requiredPlayerCount = 2;
 
     private NetworkManager networkManager;
+    private NetworkSessionBootstrap sessionBootstrap;
+    private NetworkPlayerSpawner teamSpawner;
     private readonly HashSet<ulong> loadedClientIds = new();
     private bool gameSceneLoadCompletedWithoutTimeout;
 
     private void Awake()
     {
         networkManager = GetComponent<NetworkManager>();
+        sessionBootstrap = GetComponent<NetworkSessionBootstrap>();
 
         networkManager.ConnectionApprovalCallback = ApproveConnection;
         networkManager.OnServerStarted += OnServerStarted;
+        networkManager.OnServerStopped += OnServerStopped;
         networkManager.OnClientConnectedCallback += OnClientConnected;
         networkManager.OnClientDisconnectCallback += OnClientDisconnected;
     }
@@ -44,8 +50,23 @@ public class LobbyPlayerSpawner : MonoBehaviour
         NetworkManager.ConnectionApprovalRequest request,
         NetworkManager.ConnectionApprovalResponse response)
     {
+        NetworkLobbySession lobbySession = NetworkLobbySession.Instance;
+        bool modeSessionActive = lobbySession != null &&
+            lobbySession.IsSpawned &&
+            lobbySession.SelectedGameModeId != GameModeId.None;
+
+        bool modeSessionPrepared = sessionBootstrap != null &&
+            sessionBootstrap.HasPreparedSession;
+
+        int capacity = modeSessionActive
+            ? lobbySession.RequiredPlayerCount
+            : modeSessionPrepared
+                ? sessionBootstrap.PreparedPlayerCount
+                : requiredPlayerCount;
+
         response.Approved =
-            networkManager.ConnectedClientsIds.Count < requiredPlayerCount;
+            networkManager.ConnectedClientsIds.Count < capacity &&
+            (!modeSessionActive || lobbySession.Phase == SessionPhase.Lobby);
 
         // No crear al jugador mientras permanece en el lobby.
         response.CreatePlayerObject = false;
@@ -54,14 +75,43 @@ public class LobbyPlayerSpawner : MonoBehaviour
         response.Rotation = null;
         response.Reason = response.Approved
             ? string.Empty
-            : "La sala ya tiene dos jugadores.";
+            : "La sala está completa o la partida ya comenzó.";
         response.Pending = false;
     }
 
     private void OnServerStarted()
     {
+        if (sessionBootstrap != null && sessionBootstrap.HasPreparedSession)
+        {
+            NetworkLobbySession session = sessionBootstrap.CurrentSession;
+            teamSpawner = session != null
+                ? session.GetComponent<NetworkPlayerSpawner>()
+                : null;
+
+            if (session == null || teamSpawner == null)
+            {
+                Debug.LogError(
+                    "La sesión multijugador necesita NetworkLobbySession " +
+                    "y NetworkPlayerSpawner en NetworkSessionRoot."
+                );
+            }
+        }
+
         networkManager.SceneManager.OnLoadEventCompleted
             += OnLoadEventCompleted;
+    }
+
+    private void OnServerStopped(bool wasClient)
+    {
+        if (networkManager.SceneManager != null)
+        {
+            networkManager.SceneManager.OnLoadEventCompleted -=
+                OnLoadEventCompleted;
+        }
+
+        loadedClientIds.Clear();
+        gameSceneLoadCompletedWithoutTimeout = false;
+        teamSpawner = null;
     }
 
     private void OnLoadEventCompleted(
@@ -70,7 +120,10 @@ public class LobbyPlayerSpawner : MonoBehaviour
         List<ulong> clientsCompleted,
         List<ulong> clientsTimedOut)
     {
-        if (!networkManager.IsServer || sceneName != gameSceneName)
+        if (!networkManager.IsServer ||
+            (NetworkLobbySession.Instance != null &&
+             NetworkLobbySession.Instance.SelectedGameModeId != GameModeId.None) ||
+            sceneName != gameSceneName)
             return;
 
         loadedClientIds.Clear();
@@ -94,6 +147,8 @@ public class LobbyPlayerSpawner : MonoBehaviour
         // Permite generar un jugador si alguien entra cuando
         // GameScene ya se encuentra abierta.
         if (networkManager.IsServer &&
+            (NetworkLobbySession.Instance == null ||
+             NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.None) &&
             SceneManager.GetActiveScene().name == gameSceneName)
         {
             SpawnPlayer(clientId);
@@ -160,6 +215,8 @@ public class LobbyPlayerSpawner : MonoBehaviour
     private void TryStartRace()
     {
         if (!networkManager.IsServer ||
+            (NetworkLobbySession.Instance != null &&
+             NetworkLobbySession.Instance.SelectedGameModeId != GameModeId.None) ||
             !gameSceneLoadCompletedWithoutTimeout)
         {
             return;
@@ -192,7 +249,7 @@ public class LobbyPlayerSpawner : MonoBehaviour
             }
         }
 
-        if (!RaceStartReadiness.ArePlayersReady(
+        if (!PlayerSpawnReadinessRules.ArePlayersReady(
                 requiredPlayerCount,
                 connectedClientIds.Count,
                 loadedPlayerCount,
@@ -216,6 +273,7 @@ public class LobbyPlayerSpawner : MonoBehaviour
             return;
 
         networkManager.OnServerStarted -= OnServerStarted;
+        networkManager.OnServerStopped -= OnServerStopped;
         networkManager.OnClientConnectedCallback -= OnClientConnected;
         networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
 
@@ -236,10 +294,12 @@ public static class RaceStartReadiness
         int spawnedPlayerCount,
         int timedOutPlayerCount)
     {
-        return requiredPlayerCount > 0 &&
-            timedOutPlayerCount == 0 &&
-            connectedPlayerCount == requiredPlayerCount &&
-            loadedPlayerCount == requiredPlayerCount &&
-            spawnedPlayerCount == requiredPlayerCount;
+        return PlayerSpawnReadinessRules.ArePlayersReady(
+            requiredPlayerCount,
+            connectedPlayerCount,
+            loadedPlayerCount,
+            spawnedPlayerCount,
+            timedOutPlayerCount
+        );
     }
 }

@@ -98,6 +98,8 @@ public class GameManager : NetworkBehaviour
 
     public bool CarreraActiva => estadoCarrera.Value == EstadoCarrera.Activa;
 
+    private NetworkMatchManager commonMatchManager;
+
     public float TiempoRestante => Mathf.Max(
         0f,
         tiempoMaximo - tiempoActual.Value
@@ -125,6 +127,22 @@ public class GameManager : NetworkBehaviour
             return false;
         }
 
+        commonMatchManager = NetworkMatchManager.Instance;
+
+        bool commonRaceAlreadyPlaying = commonMatchManager != null &&
+            commonMatchManager.Phase == MatchPhase.Playing &&
+            NetworkLobbySession.Instance != null &&
+            NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.Race;
+
+        if (commonMatchManager != null && !commonRaceAlreadyPlaying &&
+            !commonMatchManager.TryBeginLegacyRace(tiempoMaximo))
+        {
+            Debug.LogWarning(
+                "La carrera no pudo iniciar el ciclo común de partida."
+            );
+            return false;
+        }
+
         tiempoActual.Value = 0f;
         motivoFinalizacion.Value = MotivoFinalizacionCarrera.Ninguno;
         idGanador.Value = SinGanador;
@@ -141,6 +159,12 @@ public class GameManager : NetworkBehaviour
         motivoFinalizacion.Value = MotivoFinalizacionCarrera.Llegada;
         estadoCarrera.Value = EstadoCarrera.Finalizada;
 
+        FinishCommonMatch(new MatchResultData(
+            TeamId.None,
+            MatchEndReason.RaceFinish,
+            false
+        ));
+
         Debug.Log(
             $"¡El jugador {idGanador} cruzó la meta en " +
             $"{tiempoActual.Value:F2} segundos!"
@@ -156,6 +180,12 @@ public class GameManager : NetworkBehaviour
         motivoFinalizacion.Value = MotivoFinalizacionCarrera.TiempoAgotado;
         estadoCarrera.Value = EstadoCarrera.Finalizada;
 
+        FinishCommonMatch(new MatchResultData(
+            TeamId.None,
+            MatchEndReason.TimeExpired,
+            true
+        ));
+
         Debug.Log("¡Derrota global! Se agotó el tiempo límite para ambos.");
     }
 
@@ -168,5 +198,68 @@ public class GameManager : NetworkBehaviour
         motivoFinalizacion.Value = MotivoFinalizacionCarrera.Ninguno;
         idGanador.Value = SinGanador;
         estadoCarrera.Value = EstadoCarrera.Esperando;
+        commonMatchManager = NetworkMatchManager.Instance;
+
+        if (NetworkLobbySession.Instance != null &&
+            NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.Race &&
+            commonMatchManager == null)
+        {
+            Debug.LogError(
+                "La carrera configurada no encontró NetworkMatchManager."
+            );
+        }
+
+        if (commonMatchManager != null)
+        {
+            commonMatchManager.PhaseChanged += OnCommonPhaseChanged;
+            commonMatchManager.TimeExpired += OnCommonTimeExpired;
+
+            if (commonMatchManager.Phase == MatchPhase.Playing)
+                OnCommonPhaseChanged(MatchPhase.Playing);
+        }
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (commonMatchManager != null)
+        {
+            commonMatchManager.PhaseChanged -= OnCommonPhaseChanged;
+            commonMatchManager.TimeExpired -= OnCommonTimeExpired;
+        }
+
+        commonMatchManager = null;
+    }
+
+    private void OnCommonPhaseChanged(MatchPhase phase)
+    {
+        if (phase == MatchPhase.Playing &&
+            NetworkLobbySession.Instance != null &&
+            NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.Race)
+        {
+            IniciarCarrera();
+        }
+    }
+
+    private void OnCommonTimeExpired()
+    {
+        if (NetworkLobbySession.Instance != null &&
+            NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.Race)
+        {
+            PerderJuegoPorTiempo();
+        }
+    }
+
+    private void FinishCommonMatch(MatchResultData matchResult)
+    {
+        if (commonMatchManager == null)
+            commonMatchManager = NetworkMatchManager.Instance;
+
+        if (commonMatchManager != null &&
+            !commonMatchManager.TryFinishMatch(matchResult))
+        {
+            Debug.LogWarning(
+                "La carrera terminó, pero el ciclo común no aceptó el cierre."
+            );
+        }
     }
 }

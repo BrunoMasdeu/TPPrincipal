@@ -7502,8 +7502,7 @@ MonoBehaviour:
   statusDisplay: {fileID: 1380050107}
   playerCountDisplay: {fileID: 611628260}
   startGameButton: {fileID: 1594236924}
-  gameSceneName: CentroEntrenamiento
-  requiredPlayerCount: 2
+  sessionBootstrap: {fileID: 1630400821}
 --- !u!4 &1559012517
 Transform:
   m_ObjectHideFlags: 0
@@ -8106,6 +8105,7 @@ GameObject:
   - component: {fileID: 1630400818}
   - component: {fileID: 1630400817}
   - component: {fileID: 1630400820}
+  - component: {fileID: 1630400821}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -8218,6 +8218,19 @@ MonoBehaviour:
   spawnPointName: Respawn
   playerSpacing: 1.5
   requiredPlayerCount: 2
+--- !u!114 &1630400821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1630400816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a05458b407243659f1290d85f1ba3ac, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game::NetworkSessionBootstrap
+  sessionRootPrefab: {fileID: 8400003, guid: ffe0ba8cc9a2492ab616022702b79e74, type: 3}
 --- !u!1 &1631011259
 GameObject:
   m_ObjectHideFlags: 0
@@ -10018,7 +10031,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::MenuManager
   playModesLayout: {fileID: 1631011259}
-  nombreEscenaJuego: CentroEntrenamiento
+  connectionManager: {fileID: 1559012516}
+  tdmDefinition: {fileID: 11400000, guid: 4968f3babad645ef81006ff42daa1939, type: 2}
+  ctfDefinition: {fileID: 11400000, guid: 9f38f594a1634f33baec203054483d37, type: 2}
+  raceDefinition: {fileID: 11400000, guid: f9e48267f36c4c1984070a70e79d64a4, type: 2}
+  initialGameMode: 1
+  selectedPlayerCount: 2
   cursorDefault: {fileID: 0}
   cursorHover: {fileID: 2800000, guid: a418eb152ae3ca64d904e40a67b51f18, type: 3}
   hotSpotDefault: {x: 0, y: 0}

@@ -1,14 +1,18 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
 using Unity.Netcode;
 
 public class MenuManager : MonoBehaviour
 {
     [SerializeField] private GameObject playModesLayout;
 
-    [Tooltip("Nombre exacto de la escena del juego")]
-    [SerializeField] private string nombreEscenaJuego = "GameScene";
+    [Header("Multiplayer game modes")]
+    [SerializeField] private ConnectionManager connectionManager;
+    [SerializeField] private GameModeDefinition tdmDefinition;
+    [SerializeField] private GameModeDefinition ctfDefinition;
+    [SerializeField] private GameModeDefinition raceDefinition;
+    [SerializeField] private GameModeId initialGameMode = GameModeId.TDM;
+    [SerializeField, Min(2)] private int selectedPlayerCount = 2;
 
     [Header("Texturas de Cursor")]
     [Tooltip("Cursor por defecto del juego")]
@@ -28,11 +32,18 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject panelExit;
     [SerializeField] private GameObject canvasMultiplayer;
     private bool sobreBoton = false;
+    private GameModeDefinition selectedGameModeDefinition;
+
+    public GameModeDefinition SelectedGameModeDefinition =>
+        selectedGameModeDefinition;
+
+    public int SelectedPlayerCount => selectedPlayerCount;
 
     private void Start()
     {
         // Establecer el cursor personalizado al iniciar la escena
         SetCursorDefault();
+        SelectGameMode(initialGameMode);
     }
 
     private void Update()
@@ -80,38 +91,82 @@ public class MenuManager : MonoBehaviour
         playModesLayout.SetActive(!playModesLayout.activeSelf);
     }
 
+    private void OnGUI()
+    {
+        if (canvasMultiplayer == null || !canvasMultiplayer.activeSelf ||
+            connectionManager == null ||
+            connectionManager.IsConnecting ||
+            (NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening))
+            return;
+
+        // Selector temporal para que el flujo de arquitectura se pueda usar
+        // sin editar la interfaz definitiva del equipo.
+        GUILayout.BeginArea(new Rect(Screen.width - 250, 15, 235, 145), GUI.skin.box);
+        string selectedModeLabel = selectedGameModeDefinition != null
+            ? selectedGameModeDefinition.GameModeId.ToString()
+            : "Sin elegir";
+        GUILayout.Label($"MODO: {selectedModeLabel}");
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("TDM")) SelectTdm();
+        if (GUILayout.Button("CTF")) SelectCtf();
+        GUILayout.EndHorizontal();
+
+        GUILayout.Label($"JUGADORES: {selectedPlayerCount}");
+        GUILayout.BeginHorizontal();
+        if (GUILayout.Button("2")) SelectPlayerCount(2);
+        if (GUILayout.Button("4")) SelectPlayerCount(4);
+        if (GUILayout.Button("6")) SelectPlayerCount(6);
+        if (GUILayout.Button("8")) SelectPlayerCount(8);
+        GUILayout.EndHorizontal();
+        GUILayout.EndArea();
+    }
+
+    public void SelectTdm()
+    {
+        SelectGameMode(GameModeId.TDM);
+    }
+
+    public void SelectCtf()
+    {
+        SelectGameMode(GameModeId.CTF);
+    }
+
+    public void SelectPlayerCount(int playerCount)
+    {
+        if (connectionManager != null && connectionManager.IsConnecting ||
+            NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            return;
+
+        if (selectedGameModeDefinition == null)
+        {
+            Debug.LogError(
+                "No se puede elegir la cantidad sin un modo seleccionado."
+            );
+            return;
+        }
+
+        if (!selectedGameModeDefinition.AllowsPlayerCount(playerCount))
+        {
+            Debug.LogWarning(
+                $"{selectedGameModeDefinition.GameModeId} no admite " +
+                $"{playerCount} jugadores."
+            );
+            return;
+        }
+
+        selectedPlayerCount = playerCount;
+        ApplyMultiplayerSelection();
+    }
+
     public void PlaySinglePlayer()
     {
-        NetworkManager networkManager = NetworkManager.Singleton;
-
-        if (networkManager == null)
+        if (connectionManager == null || raceDefinition == null)
         {
-            Debug.LogError("No existe un NetworkManager en MenuScene.");
+            Debug.LogError("Falta configurar la carrera individual en el menú.");
             return;
         }
 
-        LobbyPlayerSpawner playerSpawner =
-            networkManager.GetComponent<LobbyPlayerSpawner>();
-
-        if (playerSpawner == null)
-        {
-            Debug.LogError("No existe un LobbyPlayerSpawner en MenuScene.");
-            return;
-        }
-
-        playerSpawner.ConfigureRequiredPlayerCount(1);
-
-        if (!networkManager.StartHost())
-        {
-            playerSpawner.ConfigureRequiredPlayerCount(2);
-            Debug.LogError("No se pudo iniciar la partida individual.");
-            return;
-        }
-
-        networkManager.SceneManager.LoadScene(
-            nombreEscenaJuego,
-            LoadSceneMode.Single
-        );
+        connectionManager.StartLocalGame(raceDefinition);
     }
 
     public void Settings()
@@ -156,6 +211,7 @@ public class MenuManager : MonoBehaviour
 
     public void OpenMultiplayer()
     {
+        ApplyMultiplayerSelection();
         canvasMain.SetActive(false);
         canvasSettings.SetActive(false);
         canvasMultiplayer.SetActive(true);
@@ -165,5 +221,70 @@ public class MenuManager : MonoBehaviour
     {
         canvasMultiplayer.SetActive(false);
         canvasMain.SetActive(true);
+    }
+
+    private void SelectGameMode(GameModeId gameModeId)
+    {
+        if (connectionManager != null && connectionManager.IsConnecting ||
+            NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+            return;
+
+        GameModeDefinition definition = gameModeId switch
+        {
+            GameModeId.TDM => tdmDefinition,
+            GameModeId.CTF => ctfDefinition,
+            _ => null
+        };
+
+        if (definition == null)
+        {
+            Debug.LogError(
+                $"No existe una definición configurada para {gameModeId}."
+            );
+            return;
+        }
+
+        if (!definition.AllowsPlayerCount(selectedPlayerCount))
+        {
+            if (definition.AllowedPlayerCounts.Count == 0)
+            {
+                Debug.LogError(
+                    $"{gameModeId} no posee cantidades de jugadores configuradas."
+                );
+                return;
+            }
+
+            selectedPlayerCount = definition.AllowedPlayerCounts[0];
+        }
+
+        selectedGameModeDefinition = definition;
+        ApplyMultiplayerSelection();
+    }
+
+    private bool ApplyMultiplayerSelection()
+    {
+        if (connectionManager == null)
+        {
+            Debug.LogError(
+                "MenuManager no tiene ConnectionManager configurado."
+            );
+            return false;
+        }
+
+        if (selectedGameModeDefinition == null)
+            return false;
+
+        if (connectionManager.ConfigureSessionSelection(
+                selectedGameModeDefinition,
+                selectedPlayerCount,
+                out string validationError))
+        {
+            return true;
+        }
+
+        Debug.LogWarning(
+            $"No se pudo aplicar la selección multijugador: {validationError}"
+        );
+        return false;
     }
 }

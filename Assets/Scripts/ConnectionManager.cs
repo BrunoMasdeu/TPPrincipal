@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Threading.Tasks;
 using TMPro;
 using Unity.Netcode;
@@ -8,11 +9,18 @@ using Unity.Services.Core;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+/// <summary>
+/// Administra Unity Services, autenticación, Relay y la presentación de la
+/// conexión. Las decisiones de modo, cantidad e inicio pertenecen a
+/// NetworkLobbySession.
+/// </summary>
 public class ConnectionManager : MonoBehaviour
 {
+    [Header("Network session")]
+    [SerializeField] private NetworkSessionBootstrap sessionBootstrap;
+
     [Header("Connection UI")]
     [SerializeField] private InputField joinCodeInput;
     [SerializeField] private GameObject connectionPanel;
@@ -24,16 +32,32 @@ public class ConnectionManager : MonoBehaviour
     [SerializeField] private TMP_Text playerCountDisplay;
     [SerializeField] private Button startGameButton;
 
-    [Header("Game")]
-    [SerializeField] private string gameSceneName = "GameScene";
-    [SerializeField, Min(2)] private int requiredPlayerCount = 2;
-
     private Task initializationTask;
     private string currentJoinCode;
+    private GameModeDefinition pendingGameModeDefinition;
+    private int pendingPlayerCount;
+    private NetworkLobbySession lobbySession;
+    private bool servicesInitialized;
+    private bool isConnecting;
+    private int connectionOperation;
+
+    public GameModeDefinition PendingGameModeDefinition =>
+        pendingGameModeDefinition;
+
+    public int PendingPlayerCount => pendingPlayerCount;
+    public bool IsConnecting => isConnecting;
 
     private void Awake()
     {
         Debug.Log("[Relay] ConnectionManager iniciado.");
+
+        if (sessionBootstrap == null)
+        {
+            Debug.LogError(
+                "[Relay] ConnectionManager no tiene NetworkSessionBootstrap configurado."
+            );
+        }
+
         initializationTask = InitializeUnityServices();
     }
 
@@ -52,6 +76,119 @@ public class ConnectionManager : MonoBehaviour
         ShowConnectionPanel();
     }
 
+    private void Update()
+    {
+        if (lobbyPanel != null && lobbyPanel.activeSelf && lobbySession == null &&
+            NetworkManager.Singleton != null && NetworkManager.Singleton.IsListening)
+        {
+            BindLobbySession();
+            if (lobbySession != null)
+                UpdatePlayerCount();
+        }
+    }
+
+    private void OnGUI()
+    {
+        if (lobbyPanel == null || !lobbyPanel.activeSelf ||
+            lobbySession == null || !lobbySession.IsSpawned ||
+            NetworkManager.Singleton == null)
+            return;
+
+        // Controles temporales de prueba. La UI definitiva puede invocar los
+        // mismos métodos públicos desde botones uGUI sin cambiar el lobby.
+        GUILayout.BeginArea(new Rect(Screen.width - 250, 15, 235, 245), GUI.skin.box);
+        GUILayout.Label($"MODO: {lobbySession.SelectedGameModeId}");
+        GUILayout.Label($"FASE: {lobbySession.Phase}");
+
+        for (int i = 0; i < lobbySession.Players.Count; i++)
+        {
+            LobbyPlayerData player = lobbySession.Players[i];
+            GUILayout.Label($"{player.ClientId}: {player.TeamId} / " +
+                (player.IsReady ? "READY" : "WAITING"));
+        }
+
+        if (lobbySession.Phase == SessionPhase.Lobby)
+        {
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Equipo rojo")) SelectRedTeam();
+            if (GUILayout.Button("Equipo azul")) SelectBlueTeam();
+            GUILayout.EndHorizontal();
+
+            if (lobbySession.TryGetPlayerData(
+                    NetworkManager.Singleton.LocalClientId,
+                    out LobbyPlayerData localPlayer) &&
+                GUILayout.Button(localPlayer.IsReady ? "Quitar ready" : "Ready"))
+            {
+                lobbySession.RequestReadyChange(!localPlayer.IsReady);
+            }
+        }
+
+        GUILayout.EndArea();
+    }
+
+    public void SelectRedTeam() => lobbySession?.RequestTeamChange(TeamId.Red);
+    public void SelectBlueTeam() => lobbySession?.RequestTeamChange(TeamId.Blue);
+
+    public void ToggleReady()
+    {
+        if (lobbySession != null && NetworkManager.Singleton != null &&
+            lobbySession.TryGetPlayerData(NetworkManager.Singleton.LocalClientId,
+                out LobbyPlayerData player))
+        {
+            lobbySession.RequestReadyChange(!player.IsReady);
+        }
+    }
+
+    public bool ConfigureSessionSelection(
+        GameModeDefinition definition,
+        int playerCount,
+        out string validationError)
+    {
+        NetworkManager networkManager = NetworkManager.Singleton;
+
+        if (isConnecting || (networkManager != null && networkManager.IsListening))
+        {
+            validationError =
+                "No se puede cambiar el modo ni la cantidad durante la conexión.";
+            return false;
+        }
+
+        if (sessionBootstrap == null)
+        {
+            validationError =
+                "ConnectionManager no tiene NetworkSessionBootstrap configurado.";
+            return false;
+        }
+
+        if (definition == null)
+        {
+            validationError = "No se seleccionó un modo de juego.";
+            return false;
+        }
+
+        if (!definition.IsValid(out validationError))
+            return false;
+
+        if (!definition.AllowsPlayerCount(playerCount))
+        {
+            validationError =
+                $"El modo {definition.GameModeId} no admite {playerCount} jugadores.";
+            return false;
+        }
+
+        pendingGameModeDefinition = definition;
+        pendingPlayerCount = playerCount;
+        validationError = string.Empty;
+
+        Debug.Log(
+            $"[Relay] Selección preparada: {definition.GameModeId}, " +
+            $"{playerCount} jugadores."
+        );
+
+        UpdatePlayerCount();
+        return true;
+    }
+
     private async Task InitializeUnityServices()
     {
         try
@@ -63,6 +200,8 @@ public class ConnectionManager : MonoBehaviour
 
             if (!AuthenticationService.Instance.IsSignedIn)
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
+
+            servicesInitialized = true;
 
             Debug.Log(
                 $"[Relay] Autenticación completada. PlayerId: " +
@@ -79,6 +218,12 @@ public class ConnectionManager : MonoBehaviour
 
     public async void StartHostWithRelay()
     {
+        if (isConnecting || (NetworkManager.Singleton != null &&
+            NetworkManager.Singleton.IsListening))
+            return;
+
+        int operation = ++connectionOperation;
+        isConnecting = true;
         Debug.Log("[Relay][HOST] Botón CREATE GAME pulsado.");
         SetStatus("CREATING ROOM...");
 
@@ -86,22 +231,47 @@ public class ConnectionManager : MonoBehaviour
         {
             await initializationTask;
 
+            if (operation != connectionOperation)
+                return;
+
+            if (!servicesInitialized)
+                throw new InvalidOperationException("Unity Services no está disponible.");
+
             NetworkManager networkManager = NetworkManager.Singleton;
 
             if (networkManager == null)
                 throw new InvalidOperationException("NetworkManager no encontrado.");
 
-            LobbyPlayerSpawner playerSpawner =
-                networkManager.GetComponent<LobbyPlayerSpawner>();
+            if (pendingGameModeDefinition == null || pendingPlayerCount <= 0)
+            {
+                throw new InvalidOperationException(
+                    "No hay un modo y una cantidad de jugadores seleccionados."
+                );
+            }
 
-            if (playerSpawner == null)
+            if (sessionBootstrap == null)
+            {
+                throw new InvalidOperationException(
+                    "NetworkSessionBootstrap no está configurado."
+                );
+            }
+
+            if (!sessionBootstrap.PrepareSession(
+                    pendingGameModeDefinition,
+                    pendingPlayerCount,
+                    out string validationError))
+            {
+                throw new InvalidOperationException(validationError);
+            }
+
+            // El puente sólo conserva la aprobación y el flujo de carrera.
+            // La cantidad multijugador proviene de NetworkSessionBootstrap.
+            if (networkManager.GetComponent<LobbyPlayerSpawner>() == null)
             {
                 throw new InvalidOperationException(
                     "LobbyPlayerSpawner no encontrado."
                 );
             }
-
-            playerSpawner.ConfigureRequiredPlayerCount(requiredPlayerCount);
 
             UnityTransport transport =
                 networkManager.GetComponent<UnityTransport>();
@@ -111,16 +281,22 @@ public class ConnectionManager : MonoBehaviour
 
             Debug.Log(
                 $"[Relay][HOST] Creando allocation para " +
-                $"{requiredPlayerCount - 1} cliente(s) adicional(es)."
+                $"{pendingPlayerCount - 1} cliente(s) adicional(es)."
             );
 
             Allocation allocation =
                 await RelayService.Instance.CreateAllocationAsync(
-                    requiredPlayerCount - 1
+                    pendingPlayerCount - 1
                 );
+
+            if (operation != connectionOperation)
+                return;
 
             currentJoinCode =
                 await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+
+            if (operation != connectionOperation)
+                return;
 
             Debug.Log($"[Relay][HOST] JOIN CODE GENERADO: {currentJoinCode}");
 
@@ -140,6 +316,7 @@ public class ConnectionManager : MonoBehaviour
             {
                 Debug.LogError("[Relay][HOST] NetworkManager.StartHost devolvió false.");
                 SetStatus("HOST COULD NOT START");
+                sessionBootstrap.CancelPreparedSession();
                 return;
             }
 
@@ -148,6 +325,7 @@ public class ConnectionManager : MonoBehaviour
                 $"{networkManager.LocalClientId}"
             );
 
+            BindLobbySession();
             ShowLobby(true);
             UpdatePlayerCount();
 
@@ -158,14 +336,90 @@ public class ConnectionManager : MonoBehaviour
         }
         catch (Exception exception)
         {
+            if (operation != connectionOperation)
+                return;
+
             Debug.LogError($"[Relay][HOST] Error creando la sala: {exception.Message}");
             Debug.LogException(exception);
             SetStatus("ERROR CREATING ROOM");
+            sessionBootstrap?.CancelPreparedSession();
         }
+        finally
+        {
+            if (operation == connectionOperation)
+                isConnecting = false;
+        }
+    }
+
+    public void StartLocalGame(GameModeDefinition definition)
+    {
+        NetworkManager networkManager = NetworkManager.Singleton;
+
+        if (isConnecting || networkManager == null || networkManager.IsListening)
+            return;
+
+        if (!ConfigureSessionSelection(definition, 1, out string error) ||
+            !sessionBootstrap.PrepareSession(definition, 1, out error))
+        {
+            Debug.LogError($"No se pudo preparar la partida individual: {error}");
+            SetStatus("LOCAL GAME CONFIGURATION ERROR");
+            return;
+        }
+
+        UnityTransport transport = networkManager.GetComponent<UnityTransport>();
+
+        if (transport == null)
+        {
+            sessionBootstrap.CancelPreparedSession();
+            SetStatus("UNITY TRANSPORT NOT FOUND");
+            return;
+        }
+
+        ushort localPort = transport.ConnectionData.Port == 0
+            ? (ushort)7777
+            : transport.ConnectionData.Port;
+        transport.SetConnectionData("127.0.0.1", localPort, "127.0.0.1");
+
+        if (!networkManager.StartHost())
+        {
+            sessionBootstrap.CancelPreparedSession();
+            SetStatus("LOCAL HOST COULD NOT START");
+            return;
+        }
+
+        ShowLobby(true);
+        StartCoroutine(StartLocalMatchWhenReady());
+    }
+
+    private IEnumerator StartLocalMatchWhenReady()
+    {
+        float deadline = Time.realtimeSinceStartup + 5f;
+
+        while (Time.realtimeSinceStartup < deadline)
+        {
+            BindLobbySession();
+
+            if (lobbySession != null && lobbySession.IsSpawned &&
+                lobbySession.CanStartMatch())
+            {
+                StartGame();
+                yield break;
+            }
+
+            yield return null;
+        }
+
+        Debug.LogError("La sesión individual no quedó lista para empezar.");
+        SetStatus("LOCAL GAME NOT READY");
+        CancelConnection();
     }
 
     public async void StartClientWithRelay()
     {
+        if (isConnecting || (NetworkManager.Singleton != null &&
+            NetworkManager.Singleton.IsListening))
+            return;
+
         Debug.Log("[Relay][CLIENT] Botón JOIN GAME pulsado.");
 
         string joinCode = joinCodeInput != null
@@ -181,11 +435,19 @@ public class ConnectionManager : MonoBehaviour
             return;
         }
 
+        int operation = ++connectionOperation;
+        isConnecting = true;
         SetStatus("JOINING ROOM...");
 
         try
         {
             await initializationTask;
+
+            if (operation != connectionOperation)
+                return;
+
+            if (!servicesInitialized)
+                throw new InvalidOperationException("Unity Services no está disponible.");
 
             NetworkManager networkManager = NetworkManager.Singleton;
 
@@ -202,6 +464,9 @@ public class ConnectionManager : MonoBehaviour
 
             JoinAllocation joinAllocation =
                 await RelayService.Instance.JoinAllocationAsync(joinCode);
+
+            if (operation != connectionOperation)
+                return;
 
             Debug.Log(
                 $"[Relay][CLIENT] Sala encontrada. AllocationId: " +
@@ -233,11 +498,19 @@ public class ConnectionManager : MonoBehaviour
         }
         catch (Exception exception)
         {
+            if (operation != connectionOperation)
+                return;
+
             Debug.LogError($"[Relay][CLIENT] Error entrando a la sala: {exception.Message}");
             Debug.LogException(exception);
 
             ShowConnectionPanel();
             SetStatus("COULD NOT JOIN ROOM");
+        }
+        finally
+        {
+            if (operation == connectionOperation)
+                isConnecting = false;
         }
     }
 
@@ -253,27 +526,43 @@ public class ConnectionManager : MonoBehaviour
             return;
         }
 
-        int playerCount = networkManager.ConnectedClientsIds.Count;
+        BindLobbySession();
 
-        if (playerCount != requiredPlayerCount)
+        if (lobbySession == null)
+        {
+            Debug.LogError(
+                "[Relay] No existe NetworkLobbySession para iniciar la partida."
+            );
+            SetStatus("SESSION NOT AVAILABLE");
+            return;
+        }
+
+        NetworkLobbySession session = lobbySession;
+        GameModeDefinition definition = session.SelectedDefinition;
+
+        if (definition == null)
+        {
+            Debug.LogError("[Relay] La sesión no tiene una definición de modo válida.");
+            SetStatus("GAME MODE NOT AVAILABLE");
+            return;
+        }
+
+        string sceneName = definition.SceneName;
+        SetStatus("LOADING MATCH...");
+
+        if (!session.TryStartMatch())
         {
             Debug.LogWarning(
-                $"[Relay] StartGame requiere {requiredPlayerCount} jugadores; " +
-                $"actualmente hay {playerCount}."
+                "[Relay] NetworkLobbySession rechazó el inicio de la partida."
             );
-            SetStatus("WAITING FOR PLAYERS...");
+            SetStatus("PLAYERS MUST CHOOSE TEAM AND READY");
             UpdatePlayerCount();
             return;
         }
 
         Debug.Log(
-            $"[Relay][HOST] Iniciando {gameSceneName} con " +
-            $"{playerCount} jugador(es)."
-        );
-
-        networkManager.SceneManager.LoadScene(
-            gameSceneName,
-            LoadSceneMode.Single
+            $"[Relay][HOST] Carga solicitada para {sceneName} " +
+            $"mediante NetworkLobbySession."
         );
     }
 
@@ -281,11 +570,17 @@ public class ConnectionManager : MonoBehaviour
     {
         Debug.Log("[Relay] Cancelando conexión y cerrando NetworkManager.");
 
+        connectionOperation++;
+        isConnecting = false;
+        UnbindLobbySession();
+
         if (NetworkManager.Singleton != null &&
             NetworkManager.Singleton.IsListening)
         {
             NetworkManager.Singleton.Shutdown();
         }
+
+        sessionBootstrap?.CancelPreparedSession();
 
         currentJoinCode = string.Empty;
         ShowConnectionPanel();
@@ -300,6 +595,8 @@ public class ConnectionManager : MonoBehaviour
             $"[Netcode] CLIENTE CONECTADO. ClientId: {clientId}. " +
             $"Jugadores conectados: {playerCount}"
         );
+
+        BindLobbySession();
 
         if (NetworkManager.Singleton.IsHost)
         {
@@ -338,35 +635,78 @@ public class ConnectionManager : MonoBehaviour
         else if (networkManager != null &&
                  clientId == networkManager.LocalClientId)
         {
+            UnbindLobbySession();
+            ShowConnectionPanel();
             SetStatus("DISCONNECTED");
         }
     }
 
     private void UpdatePlayerCount()
     {
-        if (NetworkManager.Singleton == null)
-            return;
+        NetworkManager networkManager = NetworkManager.Singleton;
 
-        int currentPlayers =
-            NetworkManager.Singleton.ConnectedClientsIds.Count;
+        int currentPlayers = lobbySession != null && lobbySession.IsSpawned
+            ? lobbySession.Players.Count
+            : networkManager != null
+                ? networkManager.ConnectedClientsIds.Count
+                : 0;
+
+        int requiredPlayers = lobbySession != null &&
+            lobbySession.RequiredPlayerCount > 0
+                ? lobbySession.RequiredPlayerCount
+                : pendingPlayerCount;
 
         if (playerCountDisplay != null)
         {
             playerCountDisplay.text =
-                $"PLAYERS: {currentPlayers}/{requiredPlayerCount}";
+                $"PLAYERS: {currentPlayers}/{requiredPlayers}";
         }
 
         if (startGameButton != null)
         {
             startGameButton.interactable =
-                NetworkManager.Singleton.IsHost &&
-                currentPlayers == requiredPlayerCount;
+                networkManager != null &&
+                networkManager.IsHost &&
+                lobbySession != null &&
+                lobbySession.CanStartMatch();
         }
 
         Debug.Log(
             $"[Netcode] Jugadores conectados: " +
-            $"{currentPlayers}/{requiredPlayerCount}"
+            $"{currentPlayers}/{requiredPlayers}"
         );
+    }
+
+    private void BindLobbySession()
+    {
+        NetworkLobbySession session = sessionBootstrap != null
+            ? sessionBootstrap.CurrentSession
+            : null;
+
+        if (session == null)
+            session = NetworkLobbySession.Instance;
+
+        if (lobbySession == session)
+            return;
+
+        UnbindLobbySession();
+        lobbySession = session;
+
+        if (lobbySession != null)
+            lobbySession.LobbyStateChanged += OnLobbyStateChanged;
+    }
+
+    private void UnbindLobbySession()
+    {
+        if (lobbySession != null)
+            lobbySession.LobbyStateChanged -= OnLobbyStateChanged;
+
+        lobbySession = null;
+    }
+
+    private void OnLobbyStateChanged()
+    {
+        UpdatePlayerCount();
     }
 
     private void ShowConnectionPanel()
@@ -412,6 +752,9 @@ public class ConnectionManager : MonoBehaviour
 
     private void OnDestroy()
     {
+        connectionOperation++;
+        UnbindLobbySession();
+
         if (NetworkManager.Singleton == null)
             return;
 
