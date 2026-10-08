@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8400004}
   - component: {fileID: 8400005}
   - component: {fileID: 8400006}
+  - component: {fileID: 1799313206458229338}
   m_Layer: 0
   m_Name: NetworkSessionRoot
   m_TagString: Untagged
@@ -45,9 +46,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 303953985
+  GlobalObjectIdHash: 822863583
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -72,7 +73,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e63dde872f1dd240bf4ded1cb45514f, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Game::NetworkLobbySession
   ShowTopMostFoldoutHeaderGroup: 1
   tdmDefinition: {fileID: 11400000, guid: 4968f3babad645ef81006ff42daa1939, type: 2}
@@ -90,7 +91,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e6f4cd30c23d7f747b929db65adac931, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Game::NetworkPlayerSpawner
   ShowTopMostFoldoutHeaderGroup: 1
 --- !u!114 &8400006
@@ -103,7 +104,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c84ad82469dbe154f947af3dae976150, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Game::NetworkMatchManager
   ShowTopMostFoldoutHeaderGroup: 1
   countdownSeconds: 3
+--- !u!114 &1799313206458229338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8400001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3cbd2b1378e60d242ae981252b087b76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::TdmMatchManager
+  ShowTopMostFoldoutHeaderGroup: 1

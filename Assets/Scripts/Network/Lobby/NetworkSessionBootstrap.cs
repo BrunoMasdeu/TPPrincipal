@@ -65,6 +65,15 @@ public sealed class NetworkSessionBootstrap : MonoBehaviour
             return false;
         }
 
+        if (definition != null && definition.GameModeId == GameModeId.TDM &&
+            session.GetComponent<TdmMatchManager>() == null)
+        {
+            validationError =
+                "NetworkSessionRoot no tiene TdmMatchManager. Agréguelo al prefab antes de iniciar TDM.";
+            Debug.LogError($"[Session] {validationError}");
+            return false;
+        }
+
         bool configured = session.ConfigureSession(
             definition,
             playerCount,
