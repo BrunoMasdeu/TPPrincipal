@@ -91,14 +91,16 @@ public class FootstepAudio : MonoBehaviour
 
     private void Update()
     {
+        float dt = Time.deltaTime;
+        if (dt <= 0f) return;
+
         Vector3 currentPosition = transform.position;
         Vector3 delta = currentPosition - lastPosition;
         lastPosition = currentPosition;
 
-        float dt = Time.deltaTime;
-        if (dt <= 0f) return;
-
-        float horizontalSpeed = new Vector2(delta.x, delta.z).magnitude / dt;
+        // Usamos Lerp/Filtro para que la velocidad no parpadee a 0 entre frames
+        float rawHorizontalSpeed = new Vector2(delta.x, delta.z).magnitude / dt;
+        float horizontalSpeed = Mathf.Lerp(debugHorizontalSpeed, rawHorizontalSpeed, dt * 10f);
         float verticalSpeed = Mathf.Abs(delta.y) / dt;
 
         bool rawGrounded = TryGetGroundHit(out RaycastHit hit);
@@ -114,7 +116,7 @@ public class FootstepAudio : MonoBehaviour
         bool effectiveGrounded = rawGrounded || withinGrace;
         RaycastHit hitForSurface = rawGrounded ? hit : lastGroundHit;
 
-        // Guardado para el panel de diagnóstico.
+        // Variables de Debug
         debugRawGrounded = rawGrounded;
         debugGrounded = effectiveGrounded;
         debugHorizontalSpeed = horizontalSpeed;
@@ -125,25 +127,15 @@ public class FootstepAudio : MonoBehaviour
                                   && verticalSpeed <= maxVerticalSpeedForStep;
 
         if (!effectiveGrounded)
-            debugLastReason = "NO SUENA: no hay piso detectado debajo (raycast no pega en nada)";
+            debugLastReason = "NO SUENA: no hay piso detectado debajo";
         else if (horizontalSpeed < minSpeedToStep)
-            debugLastReason = "NO SUENA: velocidad horizontal muy baja (parado o casi parado)";
+            debugLastReason = "NO SUENA: velocidad horizontal muy baja";
         else if (verticalSpeed > maxVerticalSpeedForStep)
-            debugLastReason = "NO SUENA: velocidad vertical alta (salto/caída/vault)";
+            debugLastReason = "NO SUENA: velocidad vertical alta";
         else
-            debugLastReason = withinGrace && !rawGrounded
-                ? "OK (gracia): sonando gracias al margen de piso reciente"
-                : "OK: cumple condiciones para sonar";
+            debugLastReason = "OK: cumple condiciones para sonar";
 
-        // Respaldo por Console: por si el panel OnGUI queda tapado por el
-        // Canvas del HUD. Solo loguea cuando el estado CAMBIA, para no
-        // inundar la Console con un mensaje por frame.
-        if (debugOverlay && debugLastReason != debugLastLoggedReason)
-        {
-            Debug.Log($"[FootstepDebug] {debugLastReason} | piso: {debugHitName} | h: {horizontalSpeed:F2} | v: {verticalSpeed:F2}");
-            debugLastLoggedReason = debugLastReason;
-        }
-
+        // --- LÓGICA CORREGIDA DEL TIMER ---
         if (effectiveGrounded && movingLikeWalking)
         {
             stepTimer -= dt;
@@ -158,7 +150,10 @@ public class FootstepAudio : MonoBehaviour
         }
         else
         {
-            stepTimer = 0f;
+            // EN LUGAR DE CERO: Mantenemos el timer topeado en el intervalo.
+            // Así, si se frena un microsegundo, NO resetea a 0f de golpe.
+            // Y si arranca desde parado, esperará a lo sumo 0.1s o el intervalo sin ráfaga.
+            stepTimer = Mathf.Min(stepTimer, 0.1f);
         }
     }
 
