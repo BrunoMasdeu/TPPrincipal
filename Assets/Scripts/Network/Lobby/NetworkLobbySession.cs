@@ -280,13 +280,14 @@ public class NetworkLobbySession : NetworkBehaviour
         return false;
     }
 
-    /// <summary>El host regresa al menú con la misma conexión después de TDM.</summary>
+    /// <summary>El host regresa al menú con la misma conexión tras TDM o CTF.</summary>
     public bool TryReturnToLobbyAfterMatch()
     {
         NetworkMatchManager match = GetComponent<NetworkMatchManager>();
         if (!IsServer || !IsSpawned || returnToLobbyRequested ||
             sessionPhase.Value != SessionPhase.InMatch ||
-            selectedGameModeId.Value != GameModeId.TDM ||
+            (selectedGameModeId.Value != GameModeId.TDM &&
+             selectedGameModeId.Value != GameModeId.CTF) ||
             match == null || match.Phase != MatchPhase.Finished)
             return false;
 

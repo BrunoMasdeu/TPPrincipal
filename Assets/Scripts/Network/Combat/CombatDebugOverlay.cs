@@ -39,8 +39,11 @@ public class CombatDebugOverlay : NetworkBehaviour
 
         deathNotices.RemoveAll(notice => notice.ExpiresAt <= Time.unscaledTime);
 
+        GameModeId mode = NetworkLobbySession.Instance != null
+            ? NetworkLobbySession.Instance.SelectedGameModeId
+            : GameModeId.None;
         if (IsSpawned && IsOwner && !resultsCursorEnabled &&
-            NetworkLobbySession.Instance?.SelectedGameModeId == GameModeId.TDM &&
+            (mode == GameModeId.TDM || mode == GameModeId.CTF) &&
             NetworkMatchManager.Instance?.Phase == MatchPhase.Finished)
         {
             resultsCursorEnabled = true;
@@ -123,6 +126,81 @@ public class CombatDebugOverlay : NetworkBehaviour
             DrawTdmPanel(label, phase);
             DrawDeathNotices(label);
         }
+        else if (lobby != null && lobby.SelectedGameModeId == GameModeId.CTF)
+        {
+            DrawCtfPanel(label, phase);
+        }
+    }
+
+    private void DrawCtfPanel(GUIStyle label, MatchPhase phase)
+    {
+        CtfMatchManager ctf = CtfMatchManager.Instance;
+        NetworkMatchManager match = NetworkMatchManager.Instance;
+        float x = Screen.width < 920 ? 12f : Screen.width - 402f;
+        float y = Screen.width < 920 ? 245f : 12f;
+        float height = 265f + (phase == MatchPhase.Finished &&
+            NetworkManager != null && NetworkManager.IsHost ? 38f : 0f);
+
+        GUI.Box(new Rect(x, y, 390f, height), string.Empty);
+        GUILayout.BeginArea(new Rect(x + 10f, y + 6f, 370f, height - 12f));
+        GUILayout.Label("DEBUG CTF [F8]", label);
+        GUILayout.Label($"Fase: {phase}", label);
+
+        if (match != null)
+        {
+            if (phase == MatchPhase.Countdown)
+                GUILayout.Label($"Cuenta regresiva: {match.CountdownRemaining:0.0}s", label);
+            GUILayout.Label($"Tiempo restante: {match.TimeRemaining:0.0}s", label);
+        }
+
+        if (ctf == null)
+        {
+            GUILayout.Label("CTF: componente no configurado", label);
+        }
+        else
+        {
+            GUILayout.Label($"Capturas: Rojo {ctf.RedCaptures} | Azul {ctf.BlueCaptures}", label);
+            GUILayout.Label(ctf.TryGetCaptureLimit(out int limit)
+                ? $"Límite por equipo: {limit} capturas"
+                : "Límite por equipo: no definido", label);
+            GUILayout.Label(ctf.HasBaseZones
+                ? "Zonas de base: Rojo y Azul configuradas"
+                : "Zonas de base: sin configurar en servidor", label);
+            GUILayout.Label(DescribeFlag("Bandera roja", ctf.RedFlag,
+                ctf.GetReturnRemaining(TeamId.Red)), label);
+            GUILayout.Label(DescribeFlag("Bandera azul", ctf.BlueFlag,
+                ctf.GetReturnRemaining(TeamId.Blue)), label);
+        }
+
+        if (match != null && phase == MatchPhase.Finished && !match.Result.IsPending)
+        {
+            MatchResultData result = match.Result;
+            GUILayout.Label(result.IsDraw
+                ? $"Resultado: empate ({result.EndReason})"
+                : $"Resultado: ganó {result.WinningTeam} ({result.EndReason})", label);
+        }
+
+        if (phase == MatchPhase.Finished && NetworkManager != null &&
+            NetworkManager.IsHost && GUILayout.Button("Volver al lobby (host)"))
+        {
+            Debug.Log("[CTF] El host pulsó Volver al lobby.");
+            if (NetworkLobbySession.Instance == null ||
+                !NetworkLobbySession.Instance.TryReturnToLobbyAfterMatch())
+                Debug.LogWarning("[CTF] No se pudo solicitar el regreso al lobby.");
+        }
+
+        GUILayout.EndArea();
+    }
+
+    private static string DescribeFlag(string label, CtfFlagSnapshot flag,
+        float returnRemaining)
+    {
+        return flag.State switch
+        {
+            FlagState.Carried => $"{label}: Carried por jugador {flag.CarrierClientId}",
+            FlagState.Dropped => $"{label}: Dropped en {flag.DropPosition} | vuelve en {returnRemaining:0.0}s",
+            _ => $"{label}: AtBase"
+        };
     }
 
     private void DrawTdmPanel(GUIStyle label, MatchPhase phase)

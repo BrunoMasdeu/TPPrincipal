@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: CtfGameModeDefinition
   m_EditorClassIdentifier: Game::GameModeDefinition
   gameModeId: 2
-  sceneName: tdm_scene_prueba
+  sceneName: ctf_scene_prueba
   durationSeconds: 300
   scoreLimit: 5
   allowedPlayerCounts:

@@ -89,6 +89,15 @@ public sealed class NetworkSessionBootstrap : MonoBehaviour
             return false;
         }
 
+        if (definition != null && definition.GameModeId == GameModeId.CTF &&
+            session.GetComponent<CtfMatchManager>() == null)
+        {
+            validationError =
+                "NetworkSessionRoot no tiene CtfMatchManager. Agréguelo al prefab antes de iniciar CTF.";
+            Debug.LogError($"[Session] {validationError}");
+            return false;
+        }
+
         bool configured = session.ConfigureSession(
             definition,
             playerCount,

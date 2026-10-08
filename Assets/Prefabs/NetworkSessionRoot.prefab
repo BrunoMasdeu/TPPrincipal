@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8400005}
   - component: {fileID: 8400006}
   - component: {fileID: 1799313206458229338}
+  - component: {fileID: 4191575205333819968}
   m_Layer: 0
   m_Name: NetworkSessionRoot
   m_TagString: Untagged
@@ -120,4 +121,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3cbd2b1378e60d242ae981252b087b76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::TdmMatchManager
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &4191575205333819968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8400001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a32a76a0794bfa4fb61a63230e0e9b9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::CtfMatchManager
   ShowTopMostFoldoutHeaderGroup: 1
