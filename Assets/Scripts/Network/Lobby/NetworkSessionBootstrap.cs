@@ -14,8 +14,10 @@ public sealed class NetworkSessionBootstrap : MonoBehaviour
     private NetworkManager networkManager;
     private NetworkLobbySession preparedSession;
     private int preparedPlayerCount;
+    private string activeJoinCode = string.Empty;
 
     public int PreparedPlayerCount => preparedPlayerCount;
+    public string ActiveJoinCode => activeJoinCode;
     public bool HasPreparedSession => preparedSession != null &&
         preparedPlayerCount > 0;
 
@@ -33,6 +35,19 @@ public sealed class NetworkSessionBootstrap : MonoBehaviour
     private void Awake()
     {
         networkManager = GetComponent<NetworkManager>();
+
+        // MenuScene contiene un NetworkManager para el primer arranque. Al volver
+        // desde una partida, ya existe uno persistente: descartar esta copia.
+        if (NetworkManager.Singleton != null &&
+            NetworkManager.Singleton != networkManager)
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    public void SetActiveJoinCode(string joinCode)
+    {
+        activeJoinCode = joinCode ?? string.Empty;
     }
 
     private void OnEnable()
@@ -149,6 +164,7 @@ public sealed class NetworkSessionBootstrap : MonoBehaviour
         CancelPreparedSession();
         preparedSession = null;
         preparedPlayerCount = 0;
+        activeJoinCode = string.Empty;
     }
 
     private void OnDisable()

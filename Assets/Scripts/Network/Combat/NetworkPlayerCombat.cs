@@ -47,6 +47,9 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private ulong lastServerShotId;
     private string lastShotSummary = "Sin disparos";
 
+    public event Action<int> AmmunitionChanged;
+    public event Action ReloadChanged;
+
     public int Ammunition => ammunition.Value;
     public int MagazineSize => magazineSize;
     public bool IsCombatActive => combatMode;
@@ -62,6 +65,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        ammunition.OnValueChanged += OnAmmunitionChanged;
+        reloadEndsAt.OnValueChanged += OnReloadChanged;
         Debug.Log(
             $"[Combat] NetworkPlayerCombat presente: cliente={OwnerClientId}, " +
             $"owner={IsOwner}, servidor={IsServer}, " +
@@ -74,6 +79,20 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
         TryActivateCombatMode();
     }
+
+    public override void OnNetworkDespawn()
+    {
+        ammunition.OnValueChanged -= OnAmmunitionChanged;
+        reloadEndsAt.OnValueChanged -= OnReloadChanged;
+        AmmunitionChanged = null;
+        ReloadChanged = null;
+    }
+
+    private void OnAmmunitionChanged(int previous, int current) =>
+        AmmunitionChanged?.Invoke(current);
+
+    private void OnReloadChanged(double previous, double current) =>
+        ReloadChanged?.Invoke();
 
     private void TryActivateCombatMode()
     {

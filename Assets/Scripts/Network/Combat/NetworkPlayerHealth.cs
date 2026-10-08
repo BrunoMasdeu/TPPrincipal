@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -24,6 +25,9 @@ public class NetworkPlayerHealth : NetworkBehaviour
     private NetworkPlayerCombat combat;
     private bool combatMode;
     private ulong respawnSequence;
+
+    public event Action<int> HealthChanged;
+    public event Action<PlayerLifeState> LifeStateChanged;
 
     public int CurrentHealth => currentHealth.Value;
     public int MaxHealth => maxHealth;
@@ -83,6 +87,9 @@ public class NetworkPlayerHealth : NetworkBehaviour
         currentHealth.OnValueChanged -= OnHealthChanged;
         if (combatMode)
             lifeState.OnValueChanged -= OnLifeStateChanged;
+
+        HealthChanged = null;
+        LifeStateChanged = null;
     }
 
     private void Update()
@@ -207,6 +214,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
     private void OnLifeStateChanged(PlayerLifeState previous, PlayerLifeState current)
     {
         ApplyLocalControls();
+        LifeStateChanged?.Invoke(current);
     }
 
     private void OnHealthChanged(int previous, int current)
@@ -215,6 +223,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
             $"[Combat] Vida replicada del jugador {OwnerClientId}: " +
             $"{previous} -> {current} ({(IsServer ? "servidor" : "cliente")})."
         );
+        HealthChanged?.Invoke(current);
     }
 
     private void ApplyLocalControls()

@@ -280,6 +280,29 @@ public class NetworkLobbySession : NetworkBehaviour
         return false;
     }
 
+    /// <summary>El host regresa al menú con la misma conexión después de TDM.</summary>
+    public bool TryReturnToLobbyAfterMatch()
+    {
+        NetworkMatchManager match = GetComponent<NetworkMatchManager>();
+        if (!IsServer || !IsSpawned || returnToLobbyRequested ||
+            sessionPhase.Value != SessionPhase.InMatch ||
+            selectedGameModeId.Value != GameModeId.TDM ||
+            match == null || match.Phase != MatchPhase.Finished)
+            return false;
+
+        returnToLobbyRequested = true;
+        if (!TryReturnToLobby())
+        {
+            returnToLobbyRequested = false;
+            return false;
+        }
+
+        gameplaySceneLoaded = false;
+        sessionPhase.Value = SessionPhase.Lobby;
+        ResetAllPlayersReady();
+        return true;
+    }
+
     public bool NotifyPlayersSpawned()
     {
         if (!IsServer ||
@@ -453,20 +476,20 @@ public class NetworkLobbySession : NetworkBehaviour
         TryReturnToLobby();
     }
 
-    private void TryReturnToLobby()
+    private bool TryReturnToLobby()
     {
         if (!IsServer ||
             !returnToLobbyRequested ||
             string.IsNullOrWhiteSpace(lobbySceneName))
         {
-            return;
+            return false;
         }
 
         if (SceneManager.GetActiveScene().name == lobbySceneName)
         {
             returnToLobbyRequested = false;
             activeGameplaySceneName = string.Empty;
-            return;
+            return true;
         }
 
         SceneEventProgressStatus status =
@@ -479,9 +502,12 @@ public class NetworkLobbySession : NetworkBehaviour
             status != SceneEventProgressStatus.SceneEventInProgress)
         {
             Debug.LogError(
-                $"No se pudo regresar al lobby después de la desconexión: {status}."
+                $"No se pudo regresar al lobby: {status}."
             );
+            return false;
         }
+
+        return true;
     }
 
     private void OnLoadEventCompleted(
@@ -499,6 +525,7 @@ public class NetworkLobbySession : NetworkBehaviour
             {
                 returnToLobbyRequested = false;
                 activeGameplaySceneName = string.Empty;
+                GetComponent<NetworkMatchManager>()?.TryResetForRematch();
             }
             else
             {

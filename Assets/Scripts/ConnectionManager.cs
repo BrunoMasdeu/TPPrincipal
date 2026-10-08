@@ -63,6 +63,8 @@ public class ConnectionManager : MonoBehaviour
 
     private void Start()
     {
+        ResolveSessionBootstrap();
+
         if (NetworkManager.Singleton == null)
         {
             Debug.LogError("[Relay] No existe NetworkManager.Singleton.");
@@ -73,7 +75,27 @@ public class ConnectionManager : MonoBehaviour
         NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
         NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
-        ShowConnectionPanel();
+        if (NetworkManager.Singleton.IsListening)
+        {
+            currentJoinCode = sessionBootstrap != null
+                ? sessionBootstrap.ActiveJoinCode
+                : string.Empty;
+            BindLobbySession();
+            ShowLobby(NetworkManager.Singleton.IsHost);
+            UpdatePlayerCount();
+            SetStatus("CONNECTED TO ROOM");
+        }
+        else
+        {
+            ShowConnectionPanel();
+        }
+    }
+
+    private void ResolveSessionBootstrap()
+    {
+        NetworkManager activeManager = NetworkManager.Singleton;
+        if (activeManager != null)
+            sessionBootstrap = activeManager.GetComponent<NetworkSessionBootstrap>();
     }
 
     private void Update()
@@ -299,6 +321,7 @@ public class ConnectionManager : MonoBehaviour
                 return;
 
             Debug.Log($"[Relay][HOST] JOIN CODE GENERADO: {currentJoinCode}");
+            sessionBootstrap.SetActiveJoinCode(currentJoinCode);
 
             // También lo copia automáticamente al portapapeles del host.
             GUIUtility.systemCopyBuffer = currentJoinCode;
@@ -583,6 +606,7 @@ public class ConnectionManager : MonoBehaviour
         sessionBootstrap?.CancelPreparedSession();
 
         currentJoinCode = string.Empty;
+        sessionBootstrap?.SetActiveJoinCode(string.Empty);
         ShowConnectionPanel();
     }
 

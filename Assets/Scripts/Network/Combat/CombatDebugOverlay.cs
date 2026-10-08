@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,19 +8,77 @@ public class CombatDebugOverlay : NetworkBehaviour
 {
     private NetworkPlayerHealth health;
     private NetworkPlayerCombat combat;
+    private NetworkMatchManager subscribedMatch;
+    private CameraMovement cameraMovement;
+    private readonly List<DeathNotice> deathNotices = new();
+    private ulong lastDisplayedDeathEventId;
+    private bool resultsCursorEnabled;
     private bool visible = true;
+
+    private struct DeathNotice
+    {
+        public PlayerDeathInfo Death;
+        public float ExpiresAt;
+    }
 
     private void Awake()
     {
         health = GetComponent<NetworkPlayerHealth>();
         combat = GetComponent<NetworkPlayerCombat>();
+        cameraMovement = GetComponentInChildren<CameraMovement>(true);
     }
 
     private void Update()
     {
+        if (IsSpawned && IsOwner && subscribedMatch == null &&
+            NetworkMatchManager.Instance != null)
+        {
+            subscribedMatch = NetworkMatchManager.Instance;
+            subscribedMatch.DeathAnnounced += OnDeathAnnounced;
+        }
+
+        deathNotices.RemoveAll(notice => notice.ExpiresAt <= Time.unscaledTime);
+
+        if (IsSpawned && IsOwner && !resultsCursorEnabled &&
+            NetworkLobbySession.Instance?.SelectedGameModeId == GameModeId.TDM &&
+            NetworkMatchManager.Instance?.Phase == MatchPhase.Finished)
+        {
+            resultsCursorEnabled = true;
+            if (cameraMovement != null)
+                cameraMovement.enabled = false;
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
         if (IsSpawned && IsOwner && Keyboard.current != null &&
             Keyboard.current.f8Key.wasPressedThisFrame)
             visible = !visible;
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (subscribedMatch != null)
+            subscribedMatch.DeathAnnounced -= OnDeathAnnounced;
+
+        subscribedMatch = null;
+        deathNotices.Clear();
+        lastDisplayedDeathEventId = 0UL;
+    }
+
+    private void OnDeathAnnounced(PlayerDeathInfo death)
+    {
+        if (death.EventId == 0UL || death.EventId <= lastDisplayedDeathEventId)
+            return;
+
+        lastDisplayedDeathEventId = death.EventId;
+        deathNotices.Add(new DeathNotice
+        {
+            Death = death,
+            ExpiresAt = Time.unscaledTime + 5f
+        });
+
+        if (deathNotices.Count > 3)
+            deathNotices.RemoveAt(0);
     }
 
     private void OnGUI()
@@ -60,7 +119,10 @@ public class CombatDebugOverlay : NetworkBehaviour
         GUILayout.EndArea();
 
         if (lobby != null && lobby.SelectedGameModeId == GameModeId.TDM)
+        {
             DrawTdmPanel(label, phase);
+            DrawDeathNotices(label);
+        }
     }
 
     private void DrawTdmPanel(GUIStyle label, MatchPhase phase)
@@ -68,7 +130,9 @@ public class CombatDebugOverlay : NetworkBehaviour
         TdmMatchManager tdm = TdmMatchManager.Instance;
         NetworkMatchManager match = NetworkMatchManager.Instance;
         int count = tdm != null ? tdm.PlayerStatsCount : 0;
-        float height = 210f + count * 19f;
+        float height = 210f + count * 19f +
+            (phase == MatchPhase.Finished && NetworkManager != null &&
+             NetworkManager.IsHost ? 38f : 0f);
         bool narrowScreen = Screen.width < 920;
         float x = narrowScreen ? 12f : Screen.width - 402f;
         float y = narrowScreen ? 245f : 12f;
@@ -96,7 +160,7 @@ public class CombatDebugOverlay : NetworkBehaviour
                 ? $"Límite por equipo: {limit} eliminaciones"
                 : "Límite por equipo: sin límite oficial", label);
 
-            GUILayout.Label("Jugadores (ID | equipo | kills | deaths):", label);
+            GUILayout.Label("Tabla (jugador ID | equipo | kills | deaths):", label);
             for (int i = 0; i < count; i++)
             {
                 if (tdm.TryGetPlayerStats(i, out PlayerMatchStats stats))
@@ -110,6 +174,42 @@ public class CombatDebugOverlay : NetworkBehaviour
             GUILayout.Label(result.IsDraw
                 ? $"Resultado: empate ({result.EndReason})"
                 : $"Resultado: ganó {result.WinningTeam} ({result.EndReason})", label);
+        }
+
+        if (phase == MatchPhase.Finished && NetworkManager != null &&
+            NetworkManager.IsHost && GUILayout.Button("Volver al lobby (host)"))
+        {
+            Debug.Log("[TDM] El host pulsó Volver al lobby.");
+            if (NetworkLobbySession.Instance == null ||
+                !NetworkLobbySession.Instance.TryReturnToLobbyAfterMatch())
+                Debug.LogWarning("[TDM] No se pudo solicitar el regreso al lobby.");
+        }
+
+        GUILayout.EndArea();
+    }
+
+    private void DrawDeathNotices(GUIStyle label)
+    {
+        if (deathNotices.Count == 0)
+            return;
+
+        float y = Screen.width < 920
+            ? 467f + (TdmMatchManager.Instance?.PlayerStatsCount ?? 0) * 19f +
+              (NetworkMatchManager.Instance?.Phase == MatchPhase.Finished &&
+               NetworkManager != null && NetworkManager.IsHost ? 38f : 0f)
+            : 250f;
+        float height = 28f + deathNotices.Count * 46f;
+        GUI.Box(new Rect(12f, y, 490f, height), string.Empty);
+        GUILayout.BeginArea(new Rect(22f, y + 5f, 470f, height - 10f));
+        GUILayout.Label("MUERTES CONFIRMADAS", label);
+
+        foreach (DeathNotice notice in deathNotices)
+        {
+            PlayerDeathInfo death = notice.Death;
+            GUILayout.Label($"Eliminado: {death.VictimClientId} | {death.VictimTeamId}", label);
+            GUILayout.Label(death.HasAttacker
+                ? $"Eliminado por: {death.AttackerClientId} | {death.AttackerTeamId}"
+                : $"Causa: {death.Cause}", label);
         }
 
         GUILayout.EndArea();

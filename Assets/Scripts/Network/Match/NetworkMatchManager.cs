@@ -49,9 +49,14 @@ public class NetworkMatchManager : NetworkBehaviour
     private bool legacyRaceActive;
     private bool finishNotificationSent;
     private ulong nextDeathEventId;
+    private ulong lastAnnouncedDeathEventId;
+    private int lastCountdownSecond = -1;
 
     public event Action<MatchPhase> PhaseChanged;
     public event Action<MatchResultData> MatchFinished;
+    public event Action<int> CountdownSecondChanged;
+    // Sólo presentación en host y clientes; las reglas escuchan ServerDeathConfirmed.
+    public event Action<PlayerDeathInfo> DeathAnnounced;
     public event Action TimeExpired;
     // Los modos pueden escuchar esta confirmación del servidor para contar puntos.
     public event Action<PlayerDeathInfo> ServerDeathConfirmed;
@@ -118,12 +123,19 @@ public class NetworkMatchManager : NetworkBehaviour
         TimeExpired = null;
         PhaseChanged = null;
         MatchFinished = null;
+        CountdownSecondChanged = null;
+        DeathAnnounced = null;
         ServerDeathConfirmed = null;
     }
 
     private void Update()
     {
-        if (!IsSpawned || !IsServer)
+        if (!IsSpawned)
+            return;
+
+        NotifyCountdownSecond();
+
+        if (!IsServer)
             return;
 
         if (phase.Value == MatchPhase.Countdown &&
@@ -243,7 +255,34 @@ public class NetworkMatchManager : NetworkBehaviour
 
         Debug.Log($"[Combat] Muerte #{death.EventId}: {attackerClientId} eliminó a {victimClientId}.");
         ServerDeathConfirmed?.Invoke(death);
+        AnnounceDeathRpc(death);
         return true;
+    }
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void AnnounceDeathRpc(PlayerDeathInfo death)
+    {
+        if (death.EventId == 0UL || death.EventId <= lastAnnouncedDeathEventId)
+            return;
+
+        lastAnnouncedDeathEventId = death.EventId;
+        DeathAnnounced?.Invoke(death);
+    }
+
+    private void NotifyCountdownSecond()
+    {
+        if (phase.Value != MatchPhase.Countdown)
+        {
+            lastCountdownSecond = -1;
+            return;
+        }
+
+        int second = Mathf.CeilToInt(CountdownRemaining);
+        if (second <= 0 || second == lastCountdownSecond)
+            return;
+
+        lastCountdownSecond = second;
+        CountdownSecondChanged?.Invoke(second);
     }
 
     public bool TryResetForRematch()
@@ -300,6 +339,7 @@ public class NetworkMatchManager : NetworkBehaviour
 
     private void OnPhaseValueChanged(MatchPhase previous, MatchPhase current)
     {
+        lastCountdownSecond = -1;
         PhaseChanged?.Invoke(current);
 
         if (current != MatchPhase.Finished)
