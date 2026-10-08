@@ -150,6 +150,9 @@ public class NetworkPlayerCombat : NetworkBehaviour
         if (!IsOwner)
             return;
 
+        if (MatchDebugConsole.IsInputCaptured)
+            return;
+
         if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
             RequestLocalShot();
 

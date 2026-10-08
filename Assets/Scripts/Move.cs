@@ -63,6 +63,13 @@ public class Move : MonoBehaviour
             anim.SetBool(RunningParam, running);
         }
 
+        if (MatchDebugConsole.IsInputCaptured)
+        {
+            ClearMovementInput();
+            jumpPressed = false;
+            return;
+        }
+
         if (!keyboardInputEnabled)
             return;
 

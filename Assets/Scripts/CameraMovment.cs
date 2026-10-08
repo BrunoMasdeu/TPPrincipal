@@ -53,6 +53,9 @@ public class CameraMovement : MonoBehaviour
 
     void Update()
     {
+        if (MatchDebugConsole.IsInputCaptured)
+            return;
+
         Vector2 mouse = Mouse.current.delta.ReadValue();
 
         float mouseX = mouse.x * mouseSensitivity;

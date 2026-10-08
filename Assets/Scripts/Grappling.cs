@@ -85,16 +85,19 @@ public class Grappling : MonoBehaviour
 
     void Update()
     {
-        // Click derecho
-        if (Mouse.current.rightButton.wasPressedThisFrame)
+        if (MatchDebugConsole.IsInputCaptured)
         {
-            StartGrapple();
+            if (grappling || hookState == HookState.Flying)
+                StopGrapple();
         }
-
-        // Soltar click derecho
-        if (Mouse.current.rightButton.wasReleasedThisFrame)
+        else if (Mouse.current != null)
         {
-            StopGrapple();
+            // Click derecho
+            if (Mouse.current.rightButton.wasPressedThisFrame)
+                StartGrapple();
+
+            if (Mouse.current.rightButton.wasReleasedThisFrame)
+                StopGrapple();
         }
 
         if (grapplingCdTimer > 0)

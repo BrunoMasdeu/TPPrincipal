@@ -90,6 +90,21 @@ public class NetworkMatchManager : NetworkBehaviour
         }
     }
 
+    // Ajusta el reloj común para pruebas. TDM y CTF siguen resolviendo el
+    // timeout mediante TimeExpired; no se crea un temporizador paralelo.
+    public bool TrySetRemainingTimeForDebug(int seconds)
+    {
+        if (!IsServer || !IsSpawned || phase.Value != MatchPhase.Playing ||
+            legacyRaceActive || seconds < 1 || seconds > 3600 ||
+            lobbySession == null ||
+            !CombatValidationRules.IsCombatMode(lobbySession.SelectedGameModeId))
+            return false;
+
+        double elapsed = NetworkManager.ServerTime.Time - matchStartedAt.Value;
+        durationSeconds.Value = (float)elapsed + seconds;
+        return true;
+    }
+
     private void Awake()
     {
         lobbySession = GetComponent<NetworkLobbySession>();
