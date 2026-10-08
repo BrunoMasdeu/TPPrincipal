@@ -48,10 +48,13 @@ public class NetworkMatchManager : NetworkBehaviour
     private NetworkLobbySession lobbySession;
     private bool legacyRaceActive;
     private bool finishNotificationSent;
+    private ulong nextDeathEventId;
 
     public event Action<MatchPhase> PhaseChanged;
     public event Action<MatchResultData> MatchFinished;
     public event Action TimeExpired;
+    // Los modos pueden escuchar esta confirmación del servidor para contar puntos.
+    public event Action<PlayerDeathInfo> ServerDeathConfirmed;
 
     public MatchPhase Phase => phase.Value;
     public float DurationSeconds => durationSeconds.Value;
@@ -115,6 +118,7 @@ public class NetworkMatchManager : NetworkBehaviour
         TimeExpired = null;
         PhaseChanged = null;
         MatchFinished = null;
+        ServerDeathConfirmed = null;
     }
 
     private void Update()
@@ -209,6 +213,36 @@ public class NetworkMatchManager : NetworkBehaviour
         matchFinishedAt.Value = NetworkManager.ServerTime.Time;
         result.Value = finalResult;
         phase.Value = MatchPhase.Finished;
+        return true;
+    }
+
+    public bool TryRegisterPlayerDeath(
+        ulong victimClientId,
+        ulong attackerClientId,
+        out PlayerDeathInfo death)
+    {
+        death = default;
+
+        if (!IsServer || !IsSpawned || phase.Value != MatchPhase.Playing ||
+            lobbySession == null ||
+            !CombatValidationRules.IsCombatMode(lobbySession.SelectedGameModeId) ||
+            !lobbySession.TryGetPlayerData(victimClientId, out LobbyPlayerData victim) ||
+            !lobbySession.TryGetPlayerData(attackerClientId, out LobbyPlayerData attacker) ||
+            !CombatValidationRules.IsEnemy(attacker.TeamId, victim.TeamId))
+            return false;
+
+        death = new PlayerDeathInfo(
+            ++nextDeathEventId,
+            victimClientId,
+            victim.TeamId,
+            true,
+            attackerClientId,
+            attacker.TeamId,
+            PlayerDeathCause.PlayerAttack
+        );
+
+        Debug.Log($"[Combat] Muerte #{death.EventId}: {attackerClientId} eliminó a {victimClientId}.");
+        ServerDeathConfirmed?.Invoke(death);
         return true;
     }
 

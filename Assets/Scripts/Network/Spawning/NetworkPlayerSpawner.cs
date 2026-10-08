@@ -376,9 +376,55 @@ public class NetworkPlayerSpawner : NetworkBehaviour
             return false;
         }
 
+        bool hasCombat = playerInstance.TryGetComponent<NetworkPlayerCombat>(out _);
+        bool hasHealth = playerInstance.TryGetComponent<NetworkPlayerHealth>(out _);
+        bool hasOverlay = playerInstance.TryGetComponent<CombatDebugOverlay>(out _);
+        Debug.Log(
+            $"[Spawn] Prefab de {player.ClientId}: modo={lobbySession.SelectedGameModeId}, " +
+            $"combate={hasCombat}, vida={hasHealth}, panel={hasOverlay}."
+        );
+
+        if (CombatValidationRules.IsCombatMode(lobbySession.SelectedGameModeId) &&
+            (!hasCombat || !hasHealth || !hasOverlay))
+        {
+            Debug.LogError(
+                "[Spawn] PlayerPrefab no tiene todos los componentes de combate. " +
+                "Reimportá el prefab y verificá NetworkPlayerCombat, " +
+                "NetworkPlayerHealth y CombatDebugOverlay en el Inspector."
+            );
+        }
+
         playerNetworkObject.SpawnAsPlayerObject(player.ClientId, true);
         assignmentsByTeam[player.TeamId] = assignedCount + 1;
         spawnedClientIds.Add(player.ClientId);
+        return true;
+    }
+
+    public bool TryGetRespawnPoint(
+        TeamId teamId,
+        out Vector3 position,
+        out Quaternion rotation)
+    {
+        position = default;
+        rotation = Quaternion.identity;
+
+        if (!IsServer || !IsSpawned ||
+            !spawnPointsByTeam.TryGetValue(teamId, out List<TeamSpawnPoint> points) ||
+            points.Count == 0)
+            return false;
+
+        int assignment = assignmentsByTeam[teamId];
+        int index = TeamSpawnPoint.GetDeterministicIndex(assignment, points.Count);
+        if (index < 0)
+            return false;
+
+        TeamSpawnPoint point = points[index];
+        position = point.transform.position;
+        GameObject playerPrefab = NetworkManager.NetworkConfig.PlayerPrefab;
+        rotation = playerPrefab != null
+            ? point.transform.rotation * playerPrefab.transform.rotation
+            : point.transform.rotation;
+        assignmentsByTeam[teamId] = assignment + 1;
         return true;
     }
 

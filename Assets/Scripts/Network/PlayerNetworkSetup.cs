@@ -20,6 +20,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
     private Rigidbody playerRigidbody;
     private NetworkTransform networkTransform;
     private float nextRespawnRequestTime;
+    private bool matchControlsEnabled = true;
 
     private const float RespawnRequestCooldown = 0.5f;
 
@@ -44,13 +45,13 @@ public class PlayerNetworkSetup : NetworkBehaviour
             cameraMovement.enabled = esPropietario;
 
         if (move != null)
-            move.enabled = esPropietario;
+            move.enabled = esPropietario && matchControlsEnabled;
 
         if (wallRun != null)
-            wallRun.enabled = esPropietario;
+            wallRun.enabled = esPropietario && matchControlsEnabled;
 
         if (grappling != null)
-            grappling.enabled = esPropietario;
+            grappling.enabled = esPropietario && matchControlsEnabled;
 
         if (playerUI != null)          
             playerUI.enabled = esPropietario;
@@ -119,6 +120,54 @@ public class PlayerNetworkSetup : NetworkBehaviour
                 transform.localScale
             );
         }
+    }
+
+    public void SetMatchControlsEnabled(bool enabled)
+    {
+        matchControlsEnabled = enabled;
+        if (!IsSpawned || !IsOwner)
+            return;
+
+        if (move != null)
+            move.enabled = enabled;
+        if (wallRun != null)
+            wallRun.enabled = enabled;
+        if (grappling != null)
+            grappling.enabled = enabled;
+
+        if (!enabled && playerRigidbody != null)
+        {
+            playerRigidbody.linearVelocity = Vector3.zero;
+            playerRigidbody.angularVelocity = Vector3.zero;
+        }
+    }
+
+    // Separado del checkpoint de carrera: la salud confirma el teletransporte
+    // antes de volver a habilitar controles y vida.
+    public void RespawnForMatch(Vector3 position, Quaternion rotation, ulong sequence)
+    {
+        if (!IsServer || !IsSpawned)
+            return;
+
+        if (IsOwner)
+        {
+            ApplyRespawn(position, rotation);
+            GetComponent<NetworkPlayerHealth>()?.ConfirmMatchRespawn(sequence, OwnerClientId);
+        }
+        else
+        {
+            RespawnForMatchOwnerRpc(position, rotation, sequence);
+        }
+    }
+
+    [Rpc(SendTo.Owner)]
+    private void RespawnForMatchOwnerRpc(
+        Vector3 position,
+        Quaternion rotation,
+        ulong sequence)
+    {
+        ApplyRespawn(position, rotation);
+        GetComponent<NetworkPlayerHealth>()?.ConfirmMatchRespawn(sequence, OwnerClientId);
     }
 
     private void GuardarCheckpointInicial()
