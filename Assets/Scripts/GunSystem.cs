@@ -26,6 +26,7 @@ public class GunSystem : MonoBehaviour
     public Transform attackPoint;
     public RaycastHit rayHit;
     public LayerMask whatIsEnemy;
+    public LayerMask whatIsGround;
 
     public GameObject muzzleFlash;
     public GameObject bulletHoleGraphic;
@@ -99,44 +100,46 @@ public class GunSystem : MonoBehaviour
             fpsCam.transform.forward +
             new Vector3(x, y, 0);
 
+        LayerMask hitMask = whatIsEnemy | whatIsGround;
+
         if (Physics.Raycast(
             fpsCam.transform.position,
-            direction,
+            direction.normalized,
             out rayHit,
             range,
-            whatIsEnemy))
-        {
-            Debug.Log("Impactó a: " + rayHit.collider.name);
-
-            if (rayHit.collider.CompareTag("Enemy"))
+            hitMask,
+            QueryTriggerInteraction.Ignore))
             {
-                movimientoBot enemy =
-                   rayHit.collider.GetComponent<movimientoBot >();
+                Debug.Log("Impactó a: " + rayHit.collider.name);
 
-                if (enemy != null)
-                {
-                    enemy.TakeDamage(damage);
-                }
-            }
-            else if (rayHit.collider.CompareTag("Target"))
-            {
-                Diana target = rayHit.collider.GetComponent<Diana>();
-                if (target != null)
-                {
-                    Debug.Log("Llamada a Derribar()");
-                    target.Derribar();
-                }
-            }
+                if (rayHit.collider.CompareTag("Enemy"))
+                    {
+                        movimientoBot enemy =
+                        rayHit.collider.GetComponentInParent<movimientoBot>();
 
-            if (bulletHoleGraphic != null)
-            {
-                Instantiate(
+                        if (enemy != null)
+                            {
+                                enemy.TakeDamage(damage);
+                            }
+                    }
+                    else if (rayHit.collider.CompareTag("Target"))
+                    {
+                    Diana target = rayHit.collider.GetComponent<Diana>();
+                    if (target != null)
+                        {
+                            target.Derribar();
+                        }
+                    }
+
+                if (bulletHoleGraphic != null)
+                    {
+                    Instantiate(
                     bulletHoleGraphic,
                     rayHit.point,
                     Quaternion.LookRotation(rayHit.normal)
-                );
-            }
-        }
+                        );
+                    }
+                }
 
         if (muzzleFlash != null &&
             attackPoint != null)
