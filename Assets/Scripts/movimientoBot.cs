@@ -13,7 +13,7 @@ using UnityEngine.AI;
 /// - <see cref="Animator"/>: Actualiza los parámetros de animación visual (velocidad y estado en aire/suelo).
 /// </summary>
 [RequireComponent(typeof(CapsuleCollider), typeof(NavMeshAgent))]
-public class movimientoLateral : MonoBehaviour
+public class movimientoBot : MonoBehaviour
 {
     /// <summary>
     /// Evento estático invocado cuando un bot es destruido al quedarse sin vida.
@@ -45,19 +45,18 @@ public class movimientoLateral : MonoBehaviour
     /// </summary>
     public LayerMask obstacleMask = ~0;
 
-    [Header("Saltos en el lugar")]
-    public bool canJump;
-    [Min(0.1f)] public float jumpHeight = 0.8f;
-    [Min(0.2f)] public float jumpDuration = 0.8f;
+[Header("Saltos en el lugar")]
+public bool puedeSaltar = true;
+[Min(0.1f)] public float alturaDelSalto = 0.8f;
+[Min(0.2f)] public float duracionDelSalto = 0.8f;
 
-    /// <summary>
-    /// Rango de tiempo entre saltos aleatorios.
-    /// </summary>
-    public Vector2 jumpInterval = new Vector2(4f, 8f);
+[Min(0.5f)] public float saltoCadaSegundo = 5f;
 
-    /// <summary>
-    /// Margen de elevación (Skin) para evitar vibraciones o interacciones falsas con el suelo.
-    /// </summary>
+public Vector2 jumpInterval
+{
+    get => new Vector2(saltoCadaSegundo, saltoCadaSegundo);
+    set => saltoCadaSegundo = Mathf.Max(0.5f, Mathf.Min(value.x, value.y));
+}
     private const float Skin = 0.04f;
 
     private NavMeshAgent agent;
@@ -158,19 +157,20 @@ public class movimientoLateral : MonoBehaviour
         }
 
         // Evaluación de inicio de salto: se verifica disponibilidad del tiempo y el espacio superior necesario.
-        if (canJump && Time.time >= nextJump)
-        {
-            ScheduleJump();
-            if (CanMove(transform.position, transform.position + Vector3.up * jumpHeight))
+        if (puedeSaltar && Time.time >= nextJump)
             {
-                jumping = true;
-                jumpTime = 0f;
-                jumpOrigin = transform.position;
-                agent.isStopped = true;
-                Animate(0f);
-                return;
+            if (CanMove(transform.position, transform.position + Vector3.up * alturaDelSalto))
+                {
+                    ScheduleJump();
+                    jumping = true;
+                    jumpTime = 0f;
+                    jumpOrigin = transform.position;
+                    agent.isStopped = true;
+                    Animate(0f);
+                    return;
+                }
+            nextJump = Time.time + 0.5f;
             }
-        }
 
         // En período de espera/pausa en el lugar.
         if (Time.time < waitUntil)
@@ -262,7 +262,7 @@ public class movimientoLateral : MonoBehaviour
     /// <summary>
     /// Programa el tiempo del próximo intento de salto.
     /// </summary>
-    private void ScheduleJump() => nextJump = Time.time + RandomBetween(jumpInterval, 0.5f);
+    private void ScheduleJump() => nextJump = Time.time + saltoCadaSegundo;
 
     /// <summary>
     /// Devuelve un valor aleatorio entre los componentes de un Vector2 respetando un límite mínimo.
@@ -280,13 +280,13 @@ public class movimientoLateral : MonoBehaviour
     private void UpdateJump()
     {
         jumpTime += Time.deltaTime;
-        float t = Mathf.Clamp01(jumpTime / Mathf.Max(0.2f, jumpDuration));
+        float t = Mathf.Clamp01(jumpTime / Mathf.Max(0.2f, duracionDelSalto));
 
         // Trayectoria parabólica: 4 * h * t * (1 - t)
-        Vector3 candidate = jumpOrigin + Vector3.up * (4f * jumpHeight * t * (1f - t));
+        Vector3 candidate = jumpOrigin + Vector3.up * (4f * alturaDelSalto * t * (1f - t));
 
         if (CanMove(transform.position, candidate)) transform.position = candidate;
-        else if (t < 0.5f) jumpTime = Mathf.Max(0.2f, jumpDuration) - jumpTime; // Invierte dirección si encuentra techo al subir
+        else if (t < 0.5f) jumpTime = Mathf.Max(0.2f, duracionDelSalto) - jumpTime; // Invierte dirección si encuentra techo al subir
 
         // Mientras el bot está en el aire, se mantiene la huella del NavMeshAgent en el origen para que otros bots lo esquiven.
         agent.nextPosition = jumpOrigin - Vector3.up * Skin;

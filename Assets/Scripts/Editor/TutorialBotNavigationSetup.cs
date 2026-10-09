@@ -28,7 +28,7 @@ public static class TutorialBotNavigationSetup
         if (!Application.isBatchMode && !EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
         var scene = EditorSceneManager.OpenScene(ScenePath);
 
-        movimientoLateral[] bots = UnityEngine.Object.FindObjectsByType<movimientoLateral>(FindObjectsSortMode.None);
+        movimientoBot[] bots = UnityEngine.Object.FindObjectsByType<movimientoBot>(FindObjectsSortMode.None);
         if (bots.Length != 5) throw new InvalidOperationException("Se esperaban cinco bots en el tutorial.");
 
         // Selección de la instancia correcta de Factory1Floor02:
@@ -55,7 +55,7 @@ public static class TutorialBotNavigationSetup
 
         // Se excluyen triggers, componentes propios de bots o jugadores para no obstaculizar la malla de navegación.
         sources.RemoveAll(s => s.component == null || s.component.gameObject.scene != scene ||
-            s.component.GetComponentInParent<movimientoLateral>() != null ||
+            s.component.GetComponentInParent<movimientoBot>() != null ||
             s.component.GetComponentInParent<CharacterController>() != null ||
             s.component.GetComponentInParent<Move>() != null ||
             (s.component is Collider c && c.isTrigger));
@@ -99,10 +99,10 @@ public static class TutorialBotNavigationSetup
         PrefabUtility.RecordPrefabInstancePropertyModifications(area);
 
         // Configuración individual de cada bot
-        foreach (movimientoLateral bot in bots)
+        foreach (movimientoBot bot in bots)
         {
             bot.patrolArea = area;
-            bot.canJump = bot.name == "bot2" || bot.name == "bot3";
+            bot.puedeSaltar = bot.name == "bot2" || bot.name == "bot3";
             if (bot.GetComponent<NavMeshAgent>() == null) bot.gameObject.AddComponent<NavMeshAgent>();
 
             Rigidbody body = bot.GetComponent<Rigidbody>();

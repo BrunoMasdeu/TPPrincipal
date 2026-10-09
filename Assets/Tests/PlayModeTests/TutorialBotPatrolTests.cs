@@ -85,7 +85,7 @@ public class TutorialBotPatrolTests
         area = areaIndex
     };
 
-    private movimientoLateral Bot(Vector3 position, bool jumps)
+    private movimientoBot Bot(Vector3 position, bool jumps)
     {
         var go = new GameObject("TestBot");
         objects.Add(go);
@@ -96,9 +96,9 @@ public class TutorialBotPatrolTests
         capsule.height = 1.9f;
         capsule.center = Vector3.up * 0.95f;
 
-        var bot = go.AddComponent<movimientoLateral>();
+        var bot = go.AddComponent<movimientoBot>();
         bot.patrolArea = area;
-        bot.canJump = jumps;
+        bot.puedeSaltar = jumps;
         bot.jumpInterval = new Vector2(0.6f, 0.8f);
         bot.pauseDuration = new Vector2(0.1f, 0.2f);
         return bot;
@@ -107,7 +107,7 @@ public class TutorialBotPatrolTests
     /// <summary>
     /// Comprueba que no exista penetración física profunda entre la cápsula del bot y un obstáculo.
     /// </summary>
-    private static void AssertNoPenetration(movimientoLateral bot, Collider obstacle)
+    private static void AssertNoPenetration(movimientoBot bot, Collider obstacle)
     {
         var capsule = bot.GetComponent<CapsuleCollider>();
         bool intersects = Physics.ComputePenetration(capsule, bot.transform.position, bot.transform.rotation,
@@ -201,11 +201,11 @@ public class TutorialBotPatrolTests
 
     /// <summary>
     /// Escenario:
-    /// - Un bot saltador ubicado debajo de un techo bajo (altura 2.25m) e invocaciones seguidas a <see cref="movimientoLateral.TakeDamage"/>.
+    /// - Un bot saltador ubicado debajo de un techo bajo (altura 2.25m) e invocaciones seguidas a <see cref="movimientoBot.TakeDamage"/>.
     /// 
     /// Comportamiento verificado:
     /// - El bot detecta la falta de espacio libre superior mediante barrido de cápsula y aborta/cancela la acción de saltar.
-    /// - Al recibir daño letal repetido, notifica la destrucción mediante el evento <see cref="movimientoLateral.OnTargetDestroyed"/> una sola vez.
+    /// - Al recibir daño letal repetido, notifica la destrucción mediante el evento <see cref="movimientoBot.OnTargetDestroyed"/> una sola vez.
     /// 
     /// Error que pretende detectar:
     /// - Saltos atravesando techos u obstáculos superiores y notificaciones duplicadas de muerte en el sistema de eventos.
@@ -228,14 +228,14 @@ public class TutorialBotPatrolTests
 
         int deaths = 0;
         System.Action<string> listener = _ => deaths++;
-        movimientoLateral.OnTargetDestroyed += listener;
+        movimientoBot.OnTargetDestroyed += listener;
         try
         {
             bot.TakeDamage(100);
             bot.TakeDamage(100);
             Assert.That(deaths, Is.EqualTo(1));
         }
-        finally { movimientoLateral.OnTargetDestroyed -= listener; }
+        finally { movimientoBot.OnTargetDestroyed -= listener; }
 
         yield return null;
         Assert.That(bot == null, Is.True);
@@ -292,7 +292,7 @@ public class TutorialBotPatrolTests
         {
             foreach (var root in scene.GetRootGameObjects())
                 foreach (var behaviour in root.GetComponentsInChildren<MonoBehaviour>(true))
-                    if (behaviour != null && !(behaviour is movimientoLateral) && !(behaviour is BotPatrolArea))
+                    if (behaviour != null && !(behaviour is movimientoBot) && !(behaviour is BotPatrolArea))
                         behaviour.enabled = false;
         };
         SceneManager.sceneLoaded += prepare;
@@ -307,7 +307,7 @@ public class TutorialBotPatrolTests
         var tutorial = SceneManager.GetSceneByPath("Assets/Scenes/CentroEntrenamiento.unity");
         try
         {
-            var bots = tutorial.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<movimientoLateral>()).ToArray();
+            var bots = tutorial.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<movimientoBot>()).ToArray();
             Assert.That(bots.Length, Is.EqualTo(5));
             yield return null;
 
@@ -343,7 +343,7 @@ public class TutorialBotPatrolTests
             for (int i = 0; i < bots.Length; i++)
             {
                 Assert.That(travelled[i], Is.GreaterThan(5f), bots[i].name + " no patrulló");
-                Assert.That(jumped[i], Is.EqualTo(bots[i].canJump), bots[i].name);
+                Assert.That(jumped[i], Is.EqualTo(bots[i].puedeSaltar), bots[i].name);
             }
         }
         finally

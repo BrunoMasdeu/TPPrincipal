@@ -59,9 +59,9 @@ public class TutorialBotConfigurationTests
         var scene = EditorSceneManager.OpenScene("Assets/Scenes/CentroEntrenamiento.unity", OpenSceneMode.Additive);
         try
         {
-            var bots = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<movimientoLateral>(true)).ToArray();
+            var bots = scene.GetRootGameObjects().SelectMany(g => g.GetComponentsInChildren<movimientoBot>(true)).ToArray();
             Assert.That(bots.Length, Is.EqualTo(5));
-            Assert.That(bots.Count(b => b.canJump), Is.EqualTo(2));
+            Assert.That(bots.Count(b => b.puedeSaltar), Is.EqualTo(2));
 
             BotPatrolArea area = bots[0].patrolArea;
             Assert.That(area, Is.Not.Null);

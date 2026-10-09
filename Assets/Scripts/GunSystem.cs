@@ -110,8 +110,8 @@ public class GunSystem : MonoBehaviour
 
             if (rayHit.collider.CompareTag("Enemy"))
             {
-                movimientoLateral enemy =
-                   rayHit.collider.GetComponent<movimientoLateral >();
+                movimientoBot enemy =
+                   rayHit.collider.GetComponent<movimientoBot >();
 
                 if (enemy != null)
                 {

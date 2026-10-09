@@ -669,7 +669,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d019ece53e76e3247b1227759ec70010, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Game::BotPatrolArea
   floor: {fileID: 64768443}
   navigationData: {fileID: 23800000, guid: 4c164c82035683e43bbf7a0893ef9eda, type: 2}
@@ -1269,10 +1269,10 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  canJump: 0
-  jumpHeight: 0.8
-  jumpDuration: 0.8
-  jumpInterval: {x: 4, y: 8}
+  puedeSaltar: 1
+  alturaDelSalto: 1.4
+  duracionDelSalto: 0.8
+  saltoCadaSegundo: 3
 --- !u!195 &104926511
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -10977,10 +10977,10 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  canJump: 1
-  jumpHeight: 0.8
-  jumpDuration: 0.8
-  jumpInterval: {x: 4, y: 8}
+  puedeSaltar: 1
+  alturaDelSalto: 1.2
+  duracionDelSalto: 0.8
+  saltoCadaSegundo: 9
 --- !u!195 &937807210
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -17414,10 +17414,10 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  canJump: 1
-  jumpHeight: 0.8
-  jumpDuration: 0.8
-  jumpInterval: {x: 4, y: 8}
+  puedeSaltar: 1
+  alturaDelSalto: 1.7
+  duracionDelSalto: 0.8
+  saltoCadaSegundo: 6
 --- !u!195 &1376123280
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -18350,10 +18350,10 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  canJump: 0
-  jumpHeight: 0.8
-  jumpDuration: 0.8
-  jumpInterval: {x: 4, y: 8}
+  puedeSaltar: 1
+  alturaDelSalto: 1.5
+  duracionDelSalto: 0.8
+  saltoCadaSegundo: 4
 --- !u!195 &1476320323
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -20088,10 +20088,10 @@ MonoBehaviour:
   obstacleMask:
     serializedVersion: 2
     m_Bits: 4294967295
-  canJump: 0
-  jumpHeight: 0.8
-  jumpDuration: 0.8
-  jumpInterval: {x: 4, y: 8}
+  puedeSaltar: 1
+  alturaDelSalto: 1.2
+  duracionDelSalto: 0.8
+  saltoCadaSegundo: 7
 --- !u!195 &1584222267
 NavMeshAgent:
   m_ObjectHideFlags: 0
