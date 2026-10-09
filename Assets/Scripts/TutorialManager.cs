@@ -266,7 +266,7 @@ public class TutorialManager : MonoBehaviour
             playerHUD.SetActive(false);
             if (finalMenuPanel != null) finalMenuPanel.SetActive(true);
             if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(false);
-            if (playerGunScript != null) playerMoveScript.enabled = false;
+            if (playerGunScript != null) playerGunScript.enabled = false;
             if (playerCameraScript != null) playerCameraScript.enabled = false;
             // Libera el mouse para poder hacer click en el menú final
             Cursor.lockState = CursorLockMode.None;
@@ -295,7 +295,7 @@ public class TutorialManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.Locked; // Bloquea el cursor al centro
         Cursor.visible = false; // Oculta el cursor
         if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(true);
-        if (playerGunScript != null) playerMoveScript.enabled = true;
+        if (playerGunScript != null) playerGunScript.enabled = true;
         if (playerCameraScript != null) playerCameraScript.enabled = true;
         playerHUD.SetActive(true);
     }
@@ -311,7 +311,7 @@ public class TutorialManager : MonoBehaviour
             Cursor.lockState = CursorLockMode.None; // Libera el cursor
             Cursor.visible = true; // Hace visible el cursor
             if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(false);
-            if (playerGunScript != null) playerMoveScript.enabled = false;
+            if (playerGunScript != null) playerGunScript.enabled = false;
             if (playerCameraScript != null) playerCameraScript.enabled = false;
             playerHUD.SetActive(false);
         }
@@ -323,10 +323,9 @@ public class TutorialManager : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked; // Bloquea el cursor al centro
             Cursor.visible = false; // Oculta el cursor
             if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(true);
-            if (playerGunScript != null) playerMoveScript.enabled = true;
+            if (playerGunScript != null) playerGunScript.enabled = true;
             if (playerCameraScript != null) playerCameraScript.enabled = true;
             playerHUD.SetActive(true);
         }
     }
 }
-
