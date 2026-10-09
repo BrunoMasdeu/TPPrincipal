@@ -97,5 +97,5 @@ public class PlayerMovement : MonoBehaviour
             groundMask
         ).Length > 0;
     }
-   
+
 }

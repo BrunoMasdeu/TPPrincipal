@@ -66,7 +66,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
+  near clip plane: 0.05
   far clip plane: 1000
   field of view: 60
   orthographic: 0
@@ -99,6 +99,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraMovement
   mouseSensitivity: 0.2
+  nearClipPlane: 0.05
   player: {fileID: 8083471089779010748}
 --- !u!81 &826241322505965578
 AudioListener:
@@ -408,7 +409,7 @@ MonoBehaviour:
   groundDistance: 0.2
   groundMask:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 9
   grappling: {fileID: 6409448333679264622}
   wallRunning: {fileID: 0}
 --- !u!114 &6409448333679264622
@@ -426,6 +427,9 @@ MonoBehaviour:
   cam: {fileID: 5447229559108842156}
   gunTip: {fileID: 4914551785250790765}
   lr: {fileID: 0}
+  hookHead: {fileID: 0}
+  hookSurfaceOffset: 0.04
+  hookHeadRotationOffset: {x: 0, y: 0, z: 0}
   whatIsGrappleable:
     serializedVersion: 2
     m_Bits: 8
@@ -542,3 +546,4 @@ MonoBehaviour:
   move: {fileID: 0}
   wallRun: {fileID: 0}
   grappling: {fileID: 6409448333679264622}
+  playerUI: {fileID: 0}
