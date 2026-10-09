@@ -83,6 +83,10 @@ public class TutorialManager : MonoBehaviour
 
     private void Start()
     {
+        playerMoveScript = FindAnyObjectByType<Move>();
+        playerCameraScript = FindAnyObjectByType<CameraMovement>();
+        playerGunScript = FindAnyObjectByType<GunSystem>();
+        playerHUD = GameObject.Find("PlayerUI");
         if (tutorialSteps.Count > 0)
         {
             LoadStep(currentStepIndex);
@@ -256,13 +260,14 @@ public class TutorialManager : MonoBehaviour
         }
         else
         {
+            Time.timeScale = 0f;
             // Finaliza el tutorial completo
             tutorialPanel.SetActive(false);
             playerHUD.SetActive(false);
-
-            if (finalMenuPanel != null)
-                finalMenuPanel.SetActive(true);
-
+            if (finalMenuPanel != null) finalMenuPanel.SetActive(true);
+            if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(false);
+            if (playerGunScript != null) playerMoveScript.enabled = false;
+            if (playerCameraScript != null) playerCameraScript.enabled = false;
             // Libera el mouse para poder hacer click en el menú final
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -286,18 +291,17 @@ public class TutorialManager : MonoBehaviour
     public void PermanecerEnMapa()
     {
         finalMenuPanel.SetActive(false);
+        Time.timeScale = 1f; // Devuelve el tiempo a la normalidad
+        Cursor.lockState = CursorLockMode.Locked; // Bloquea el cursor al centro
+        Cursor.visible = false; // Oculta el cursor
+        if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(true);
+        if (playerGunScript != null) playerMoveScript.enabled = true;
+        if (playerCameraScript != null) playerCameraScript.enabled = true;
         playerHUD.SetActive(true);
     }
     public void TogglePause()
     {
         isPaused = !isPaused;
-        if (playerMoveScript == null)
-        {
-            playerMoveScript = FindAnyObjectByType<Move>();
-            playerCameraScript = FindAnyObjectByType<CameraMovement>();
-            playerGunScript = FindAnyObjectByType<GunSystem>();
-            playerHUD = GameObject.Find("PlayerUI");
-        }
 
         if (isPaused)
         {
