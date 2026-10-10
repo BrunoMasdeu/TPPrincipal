@@ -1,10 +1,10 @@
-
 using UnityEngine;
 using TMPro;
 using UnityEngine.InputSystem;
 
 public class GunSystem : MonoBehaviour
 {
+    [Header("Estadísticas")]
     public int damage;
     public float timeBetweenShooting;
     public float spread;
@@ -14,9 +14,15 @@ public class GunSystem : MonoBehaviour
     public int magazineSize;
     public int bulletsPerTap;
     public bool allowButtonHold;
+    public bool IsPrimary;
+
+    [Header("Munición")]
+    public int ExtraBullets;
 
     private int bulletsLeft;
     private int bulletsShot;
+
+    private int extraBulletsLeft;
 
     private bool shooting;
     private bool readyToShoot;
@@ -30,14 +36,16 @@ public class GunSystem : MonoBehaviour
 
     public GameObject muzzleFlash;
     public GameObject bulletHoleGraphic;
-    //public CamShake camShake;
+
     public float camShakeMagnitude;
     public float camShakeDuration;
+
     public TextMeshProUGUI text;
 
     private void Awake()
     {
         bulletsLeft = magazineSize;
+        extraBulletsLeft = ExtraBullets;
         readyToShoot = true;
     }
 
@@ -47,11 +55,11 @@ public class GunSystem : MonoBehaviour
 
         if (text != null)
         {
-            text.SetText(bulletsLeft + " / " + magazineSize);
+            text.SetText(
+                bulletsLeft + " / " + extraBulletsLeft
+            );
         }
     }
-
-    
 
     private void MyInput()
     {
@@ -70,6 +78,7 @@ public class GunSystem : MonoBehaviour
         if (Keyboard.current != null &&
             Keyboard.current.rKey.wasPressedThisFrame &&
             bulletsLeft < magazineSize &&
+            extraBulletsLeft > 0 &&
             !reloading)
         {
             Reload();
@@ -87,10 +96,8 @@ public class GunSystem : MonoBehaviour
 
     private void Shoot()
     {
+        Debug.Log("DISPARÓ");
 
-         Debug.Log("DISPARÓ");
-
-        
         readyToShoot = false;
 
         float x = Random.Range(-spread, spread);
@@ -109,40 +116,41 @@ public class GunSystem : MonoBehaviour
             range,
             hitMask,
             QueryTriggerInteraction.Ignore))
+        {
+            Debug.Log("Impactó a: " + rayHit.collider.name);
+
+            if (rayHit.collider.CompareTag("Enemy"))
             {
-                Debug.Log("Impactó a: " + rayHit.collider.name);
+                movimientoBot enemy =
+                    rayHit.collider.GetComponentInParent<movimientoBot>();
 
-                if (rayHit.collider.CompareTag("Enemy"))
-                    {
-                        movimientoBot enemy =
-                        rayHit.collider.GetComponentInParent<movimientoBot>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(damage);
+                }
+            }
+            else if (rayHit.collider.CompareTag("Target"))
+            {
+                Diana target =
+                    rayHit.collider.GetComponentInParent<Diana>();
 
-                        if (enemy != null)
-                            {
-                                enemy.TakeDamage(damage);
-                            }
-                    }
-                    else if (rayHit.collider.CompareTag("Target"))
-                    {
-                    Diana target = rayHit.collider.GetComponent<Diana>();
-                    if (target != null)
-                        {
-                            target.Derribar();
-                        }
-                    }
+                if (target != null)
+                {
+                    target.Derribar();
+                }
+            }
 
-                if (bulletHoleGraphic != null)
-                    {
-                    Instantiate(
+            if (bulletHoleGraphic != null)
+            {
+                Instantiate(
                     bulletHoleGraphic,
                     rayHit.point,
                     Quaternion.LookRotation(rayHit.normal)
-                        );
-                    }
-                }
+                );
+            }
+        }
 
-        if (muzzleFlash != null &&
-            attackPoint != null)
+        if (muzzleFlash != null && attackPoint != null)
         {
             Instantiate(
                 muzzleFlash,
@@ -151,34 +159,21 @@ public class GunSystem : MonoBehaviour
             );
         }
 
-       // if (camShake != null)
-       // {
-       //     camShake.Shake(
-       //         camShakeDuration,
-       //         camShakeMagnitude
-       //     );
-       // }
-
         bulletsLeft--;
         bulletsShot--;
 
         if (bulletsLeft == 0)
         {
-            Debug.LogWarning("Cargador vacío. Presioná R para recargar.");
+            Debug.LogWarning(
+                "Cargador vacío. Presioná R para recargar."
+            );
         }
 
-        Invoke(
-            nameof(ResetShot),
-            timeBetweenShooting
-        );
+        Invoke(nameof(ResetShot), timeBetweenShooting);
 
-        if (bulletsShot > 0 &&
-            bulletsLeft > 0)
+        if (bulletsShot > 0 && bulletsLeft > 0)
         {
-            Invoke(
-                nameof(Shoot),
-                timeBetweenShots
-            );
+            Invoke(nameof(Shoot), timeBetweenShots);
         }
     }
 
@@ -189,31 +184,38 @@ public class GunSystem : MonoBehaviour
 
     private void Reload()
     {
+        if (extraBulletsLeft <= 0)
+        {
+            Debug.LogWarning("No quedan balas de reserva.");
+            return;
+        }
+
         reloading = true;
 
-        Debug.Log(
-            "Recargando... Munición actual: " +
-            bulletsLeft + " / " + magazineSize
-        );
+        Debug.Log("Recargando...");
 
-        Invoke(
-            nameof(ReloadFinished),
-            reloadTime
-        );
+        Invoke(nameof(ReloadFinished), reloadTime);
     }
 
     private void ReloadFinished()
     {
-        bulletsLeft = magazineSize;
+        int bulletsNeeded = magazineSize - bulletsLeft;
+        int bulletsToLoad = Mathf.Min(
+            bulletsNeeded,
+            extraBulletsLeft
+        );
+
+        bulletsLeft += bulletsToLoad;
+        extraBulletsLeft -= bulletsToLoad;
+
         reloading = false;
 
         Debug.Log(
-            "Recarga completa. Munición: " +
-            bulletsLeft + " / " + magazineSize
+            "Recarga completa. Cargador: " +
+            bulletsLeft + " | Reserva: " + extraBulletsLeft
         );
     }
 }
-
 
 
 
