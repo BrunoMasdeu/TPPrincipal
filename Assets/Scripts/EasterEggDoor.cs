@@ -54,7 +54,7 @@ public class EasterEggDoor : MonoBehaviour
                 interactionPromptUI.SetActive(false);
         }
     }
-
+    //===============>> HACER <<====================//
     private void LoadTargetScene()
     {
         if (!string.IsNullOrEmpty(sceneToLoad))
@@ -70,4 +70,5 @@ public class EasterEggDoor : MonoBehaviour
             Debug.LogWarning($"[InteractiveDoor] No se ha definido una escena para cargar en '{gameObject.name}'.");
         }
     }
+    //==========================================//
 }
