@@ -31,6 +31,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
     [SerializeField, Min(0f)] private float secondsBetweenShots = 0.5f;
     [SerializeField, Min(0f)] private float spread = 0.01f;
     [SerializeField, Min(0f)] private float reloadSeconds = 1.3f;
+    [SerializeField, Min(0)] private int moneyLostOnDeath = 20;
     [SerializeField] private Camera aimCamera;
 
     private readonly NetworkVariable<int> ammunition = new(
@@ -39,6 +40,42 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private readonly NetworkVariable<double> reloadEndsAt = new(
         0d, NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
+    private readonly NetworkVariable<int> money = new(
+    100,
+    NetworkVariableReadPermission.Owner,
+    NetworkVariableWritePermission.Server);
+
+public int Money => money.Value;
+
+private void OnMoneyChanged(int previous, int current)
+{
+    if (!IsOwner)
+        return;
+
+    Debug.Log(
+        $"[Dinero][Local] Cliente {OwnerClientId}: " +
+        $"${previous} -> ${current}"
+    );
+}
+
+public void ApplyDeathMoneyPenalty()
+{
+    if (!IsServer || deathPenaltyApplied)
+        return;
+
+    deathPenaltyApplied = true;
+
+    int previous = money.Value;
+    money.Value = Mathf.Max(0, money.Value - moneyLostOnDeath);
+
+    Debug.Log(
+        $"[Dinero][Servidor] Cliente {OwnerClientId} murió: " +
+        $"-{moneyLostOnDeath} | ${previous} -> ${money.Value}"
+    );
+}
+
+
+
 
     private NetworkPlayerHealth health;
     private bool combatMode;
@@ -46,6 +83,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private ulong nextLocalShotId;
     private ulong lastServerShotId;
     private string lastShotSummary = "Sin disparos";
+    private bool deathPenaltyApplied;
 
     public event Action<int> AmmunitionChanged;
     public event Action ReloadChanged;
@@ -78,10 +116,22 @@ public class NetworkPlayerCombat : NetworkBehaviour
             remoteLegacyGun.enabled = false;
 
         TryActivateCombatMode();
+        money.OnValueChanged += OnMoneyChanged;
+
+        if (IsOwner)
+        {
+            Debug.Log(
+                $"[Dinero][Local] Cliente {OwnerClientId}: " +
+                $"Saldo inicial: ${money.Value}"
+            );
+        }
+
+
     }
 
     public override void OnNetworkDespawn()
     {
+        money.OnValueChanged -= OnMoneyChanged;
         ammunition.OnValueChanged -= OnAmmunitionChanged;
         reloadEndsAt.OnValueChanged -= OnReloadChanged;
         AmmunitionChanged = null;
@@ -281,16 +331,43 @@ public class NetworkPlayerCombat : NetworkBehaviour
             }
 
             if (victim.ApplyDamageFromPlayer(
-                OwnerClientId, damage, out int applied, out ulong deathId))
+            OwnerClientId, damage, out int applied, out ulong deathId))
             {
-                Debug.Log(
-                    $"[Combat] Impacto confirmado: {OwnerClientId} -> " +
-                    $"{victim.OwnerClientId}, daño={applied}, " +
-                    $"vida restante={victim.CurrentHealth}."
-                );
-                ShotFeedbackRpc(deathId > 0UL ? ShotOutcome.Kill : ShotOutcome.Hit,
-                    victim.OwnerClientId, applied, deathId);
+            if (deathId > 0UL)
+            {
+                NetworkPlayerCombat victimCombat =
+                victim.GetComponent<NetworkPlayerCombat>();
+
+                if (victimCombat != null)
+                    {
+                        victimCombat.ApplyDeathMoneyPenalty();
+                    }
             }
+
+            if (applied > 0)
+            {
+                money.Value += 10;
+
+                Debug.Log(
+                    $"[Dinero][Servidor] Cliente {OwnerClientId}: " +
+                    $"+10 | Total: ${money.Value}"
+                );
+            }
+
+                Debug.Log(
+                $"[Combat] Impacto confirmado: {OwnerClientId} -> " +
+                $"{victim.OwnerClientId}, daño={applied}, " +
+                $"vida restante={victim.CurrentHealth}."
+                );
+
+                ShotFeedbackRpc(
+                    deathId > 0UL ? ShotOutcome.Kill : ShotOutcome.Hit,
+                    victim.OwnerClientId,
+                    applied,
+                    deathId
+                );
+            }
+
             else
             {
                 ShotFeedbackRpc(ShotOutcome.Blocked, 0UL, 0, 0UL);
@@ -353,10 +430,13 @@ public class NetworkPlayerCombat : NetworkBehaviour
         if (!IsServer || !combatMode)
             return;
 
+        deathPenaltyApplied = false;
+
         ammunition.Value = magazineSize;
         reloadEndsAt.Value = 0d;
         nextShotAt = 0d;
     }
+
 
     private Vector3 ApplySpread(Vector3 direction)
     {

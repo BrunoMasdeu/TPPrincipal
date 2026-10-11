@@ -101,9 +101,9 @@ public class CombatDebugOverlay : NetworkBehaviour
             ? NetworkMatchManager.Instance.Phase
             : MatchPhase.WaitingForPlayers;
 
-        Rect panel = new Rect(12f, 12f, 490f, 225f);
+        Rect panel = new Rect(12f, 12f, 490f, 245f);
         GUI.Box(panel, string.Empty);
-        GUILayout.BeginArea(new Rect(22f, 18f, 470f, 215f));
+        GUILayout.BeginArea(new Rect(22f, 18f, 470f, 235f));
 
         GUIStyle label = new GUIStyle(GUI.skin.label)
         {
@@ -116,6 +116,7 @@ public class CombatDebugOverlay : NetworkBehaviour
         GUILayout.Label($"Circuito de red: combate={combat.IsCombatActive}, vida={health.IsCombatActive}", label);
         GUILayout.Label($"Vida: {health.CurrentHealth}/{health.MaxHealth}  |  Estado: {health.LifeState}", label);
         GUILayout.Label($"Balas: {combat.Ammunition}/{combat.MagazineSize}  |  Recarga: {combat.ReloadRemaining:0.0}s", label);
+        GUILayout.Label($"Dinero: ${combat.Money}", label);
         GUILayout.Label($"Último disparo: {combat.LastShotSummary}", label);
         GUILayout.Label($"Última muerte: #{health.LastDeathEventId}  |  Respawn: {health.RespawnRemaining:0.0}s", label);
         GUILayout.Label("Clic izquierdo: disparar  |  R: recargar  |  Clic derecho: gancho", label);
@@ -137,7 +138,7 @@ public class CombatDebugOverlay : NetworkBehaviour
         CtfMatchManager ctf = CtfMatchManager.Instance;
         NetworkMatchManager match = NetworkMatchManager.Instance;
         float x = Screen.width < 920 ? 12f : Screen.width - 402f;
-        float y = Screen.width < 920 ? 245f : 12f;
+        float y = Screen.width < 920 ? 265f : 12f;
         float height = 265f + (phase == MatchPhase.Finished &&
             NetworkManager != null && NetworkManager.IsHost ? 38f : 0f);
 
@@ -213,7 +214,7 @@ public class CombatDebugOverlay : NetworkBehaviour
              NetworkManager.IsHost ? 38f : 0f);
         bool narrowScreen = Screen.width < 920;
         float x = narrowScreen ? 12f : Screen.width - 402f;
-        float y = narrowScreen ? 245f : 12f;
+        float y = narrowScreen ? 265f : 12f;
 
         GUI.Box(new Rect(x, y, 390f, height), string.Empty);
         GUILayout.BeginArea(new Rect(x + 10f, y + 6f, 370f, height - 12f));
@@ -272,10 +273,10 @@ public class CombatDebugOverlay : NetworkBehaviour
             return;
 
         float y = Screen.width < 920
-            ? 467f + (TdmMatchManager.Instance?.PlayerStatsCount ?? 0) * 19f +
+            ? 487f + (TdmMatchManager.Instance?.PlayerStatsCount ?? 0) * 19f +
               (NetworkMatchManager.Instance?.Phase == MatchPhase.Finished &&
                NetworkManager != null && NetworkManager.IsHost ? 38f : 0f)
-            : 250f;
+            : 270f;
         float height = 28f + deathNotices.Count * 46f;
         GUI.Box(new Rect(12f, y, 490f, height), string.Empty);
         GUILayout.BeginArea(new Rect(22f, y + 5f, 470f, height - 10f));
