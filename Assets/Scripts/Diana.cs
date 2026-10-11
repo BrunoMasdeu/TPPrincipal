@@ -12,11 +12,11 @@ public class Diana : MonoBehaviour
 
     public void Derribar()
     {
-        if (!tumbada)
-        {
-            OnTargetDestroyed?.Invoke(gameObject.tag);
-            StartCoroutine(DerribarDiana());
-        }
+        if (tumbada) return;
+
+        tumbada = true;
+        OnTargetDestroyed?.Invoke(gameObject.tag);
+        StartCoroutine(DerribarDiana());
     }
 
     private IEnumerator DerribarDiana()

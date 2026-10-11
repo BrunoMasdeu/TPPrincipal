@@ -1,54 +1,153 @@
 fileFormatVersion: 2
 guid: a60d02b6fa0238044967381a9e887cae
+AssetOrigin:
+  serializedVersion: 1
+  productId: 162567
+  packageName: Industrial Train Dr14
+  packageVersion: 1.0
+  assetPath: Assets/Industrial Train Dr14/Meshes/Industrial Train Dr14.fbx
+  uploadId: 353068
 ModelImporter:
-  serializedVersion: 23
-  fileIDToRecycleName:
-    100000: //RootNode
-    100002: Wheel
-    100004: Wheel.001
-    100006: Wheel.002
-    100008: Wheel.003
-    100010: Wheel.004
-    100012: Wheel.005
-    100014: Wheel.006
-    100016: Wheel.007
-    400000: //RootNode
-    400002: Wheel
-    400004: Wheel.001
-    400006: Wheel.002
-    400008: Wheel.003
-    400010: Wheel.004
-    400012: Wheel.005
-    400014: Wheel.006
-    400016: Wheel.007
-    2300000: //RootNode
-    2300002: Wheel
-    2300004: Wheel.001
-    2300006: Wheel.002
-    2300008: Wheel.003
-    2300010: Wheel.004
-    2300012: Wheel.005
-    2300014: Wheel.006
-    2300016: Wheel.007
-    3300000: //RootNode
-    3300002: Wheel
-    3300004: Wheel.001
-    3300006: Wheel.002
-    3300008: Wheel.003
-    3300010: Wheel.004
-    3300012: Wheel.005
-    3300014: Wheel.006
-    3300016: Wheel.007
-    4300000: TrainDR14
-    4300002: Wheel.003
-    4300004: Wheel.001
-    4300006: Wheel.006
-    4300008: Wheel.004
-    4300010: Wheel
-    4300012: Wheel.007
-    4300014: Wheel.005
-    4300016: Wheel.002
-    2186277476908879412: ImportLogs
+  serializedVersion: 24300
+  internalIDToNameTable:
+  - first:
+      1: 100000
+    second: //RootNode
+  - first:
+      1: 100002
+    second: Wheel
+  - first:
+      1: 100004
+    second: Wheel.001
+  - first:
+      1: 100006
+    second: Wheel.002
+  - first:
+      1: 100008
+    second: Wheel.003
+  - first:
+      1: 100010
+    second: Wheel.004
+  - first:
+      1: 100012
+    second: Wheel.005
+  - first:
+      1: 100014
+    second: Wheel.006
+  - first:
+      1: 100016
+    second: Wheel.007
+  - first:
+      4: 400000
+    second: //RootNode
+  - first:
+      4: 400002
+    second: Wheel
+  - first:
+      4: 400004
+    second: Wheel.001
+  - first:
+      4: 400006
+    second: Wheel.002
+  - first:
+      4: 400008
+    second: Wheel.003
+  - first:
+      4: 400010
+    second: Wheel.004
+  - first:
+      4: 400012
+    second: Wheel.005
+  - first:
+      4: 400014
+    second: Wheel.006
+  - first:
+      4: 400016
+    second: Wheel.007
+  - first:
+      23: 2300000
+    second: //RootNode
+  - first:
+      23: 2300002
+    second: Wheel
+  - first:
+      23: 2300004
+    second: Wheel.001
+  - first:
+      23: 2300006
+    second: Wheel.002
+  - first:
+      23: 2300008
+    second: Wheel.003
+  - first:
+      23: 2300010
+    second: Wheel.004
+  - first:
+      23: 2300012
+    second: Wheel.005
+  - first:
+      23: 2300014
+    second: Wheel.006
+  - first:
+      23: 2300016
+    second: Wheel.007
+  - first:
+      33: 3300000
+    second: //RootNode
+  - first:
+      33: 3300002
+    second: Wheel
+  - first:
+      33: 3300004
+    second: Wheel.001
+  - first:
+      33: 3300006
+    second: Wheel.002
+  - first:
+      33: 3300008
+    second: Wheel.003
+  - first:
+      33: 3300010
+    second: Wheel.004
+  - first:
+      33: 3300012
+    second: Wheel.005
+  - first:
+      33: 3300014
+    second: Wheel.006
+  - first:
+      33: 3300016
+    second: Wheel.007
+  - first:
+      43: 4300000
+    second: TrainDR14
+  - first:
+      43: 4300002
+    second: Wheel.003
+  - first:
+      43: 4300004
+    second: Wheel.001
+  - first:
+      43: 4300006
+    second: Wheel.006
+  - first:
+      43: 4300008
+    second: Wheel.004
+  - first:
+      43: 4300010
+    second: Wheel
+  - first:
+      43: 4300012
+    second: Wheel.007
+  - first:
+      43: 4300014
+    second: Wheel.005
+  - first:
+      43: 4300016
+    second: Wheel.002
+  - first:
+      41386430: 2186277476908879412
+    second: ImportLogs
   externalObjects:
   - first:
       type: UnityEngine:Material
@@ -56,18 +155,18 @@ ModelImporter:
       name: TrainDr14
     second: {fileID: 2100000, guid: d5824be435cff784f8eb0905a22adf7f, type: 2}
   materials:
-    importMaterials: 1
+    materialImportMode: 1
     materialName: 0
     materialSearch: 1
     materialLocation: 1
+    searchTexturesGlobally: 1
   animations:
     legacyGenerateAnimations: 4
     bakeSimulation: 0
     resampleCurves: 1
     optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
     motionNodeName: 
-    rigImportErrors: 
-    rigImportWarnings: 
     animationImportErrors: 
     animationImportWarnings: 
     animationRetargetingWarnings: 
@@ -89,25 +188,39 @@ ModelImporter:
     meshCompression: 0
     addColliders: 0
     useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
     importVisibility: 1
     importBlendShapes: 1
     importCameras: 1
     importLights: 1
+    nodeNameCollisionStrategy: 0
+    fileIdsGeneration: 1
     swapUVChannels: 0
     generateSecondaryUV: 0
     useFileUnits: 1
-    optimizeMeshForGPU: 1
     keepQuads: 0
     weldVertices: 1
+    bakeAxisConversion: 0
     preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    generateMeshLods: 0
+    meshLodGenerationFlags: 0
+    maximumMeshLod: -1
+    meshOptimizationFlags: -1
     indexFormat: 0
     secondaryUVAngleDistortion: 8
     secondaryUVAreaDistortion: 15.000001
     secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 0
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 4
     useFileScale: 1
-    previousCalculatedGlobalScale: 1
-    hasPreviousCalculatedGlobalScale: 0
+    strictVertexDataChecks: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
@@ -116,10 +229,10 @@ ModelImporter:
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
     normalSmoothingSource: 0
+  referencedClips: []
   importAnimation: 1
-  copyAvatar: 0
   humanDescription:
-    serializedVersion: 2
+    serializedVersion: 3
     human: []
     skeleton: []
     armTwist: 0.5
@@ -129,21 +242,20 @@ ModelImporter:
     armStretch: 0.05
     legStretch: 0.05
     feetSpacing: 0
+    globalScale: 1
     rootMotionBoneName: 
     hasTranslationDoF: 0
     hasExtraRoot: 0
     skeletonHasParents: 1
   lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
   animationType: 0
   humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 0
+  importBlendShapeDeformPercent: 0
+  remapMaterialsIfMaterialImportModeIsNone: 1
   additionalBone: 0
   userData: 
   assetBundleName: 
   assetBundleVariant: 
-AssetOrigin:
-  serializedVersion: 1
-  productId: 162567
-  packageName: Industrial Train Dr14
-  packageVersion: 1.0
-  assetPath: Assets/Industrial Train Dr14/Meshes/Industrial Train Dr14.fbx
-  uploadId: 353068
