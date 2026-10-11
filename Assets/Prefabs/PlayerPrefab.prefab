@@ -4234,6 +4234,7 @@ Transform:
   - {fileID: 1230401407693510311}
   - {fileID: 6870693027120682118}
   - {fileID: 7841251349317399326}
+  - {fileID: 5267232780662220615}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!95 &8333738095510534989
@@ -4440,7 +4441,7 @@ MonoBehaviour:
   hookHeadRotationOffset: {x: 0, y: 0, z: 0}
   whatIsGrappleable:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 256
   maxGrappleDistance: 20
   grappleForce: 15
   stopDistance: 1
@@ -4457,14 +4458,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 2732103347
+  GlobalObjectIdHash: 377557317
   InScenePlacedSourceGlobalObjectIdHash: 377557317
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  m_InScenePlaced: 1
+  m_InScenePlaced: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
