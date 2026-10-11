@@ -69,7 +69,7 @@ public class TutorialManager : MonoBehaviour
         WallRun.OnPlayerWallrun += HandleWallrun;      // Escucha al script WallRun
         Grappling.OnPlayerGrapple += HandleGrapple;    // Escucha al script Grappling
         Diana.OnTargetDestroyed += HandleTargetDestroyed;
-        movimientoLateral.OnTargetDestroyed += HandleTargetDestroyed;
+        movimientoBot.OnTargetDestroyed += HandleTargetDestroyed;
     }
 
     private void OnDisable()
@@ -77,7 +77,7 @@ public class TutorialManager : MonoBehaviour
         WallRun.OnPlayerWallrun -= HandleWallrun;
         Grappling.OnPlayerGrapple -= HandleGrapple;
         Diana.OnTargetDestroyed -= HandleTargetDestroyed;
-        movimientoLateral.OnTargetDestroyed -= HandleTargetDestroyed;
+        movimientoBot.OnTargetDestroyed -= HandleTargetDestroyed;
     }
     // ---------------------------------------------------------
 
