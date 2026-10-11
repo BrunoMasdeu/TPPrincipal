@@ -43,13 +43,15 @@ public class Sprint4GameplayAutomatedTests : InputTestFixture
         Grappling grappling = CreateGrapplingFixture(
             out Rigidbody body,
             out LineRenderer line,
-            out Transform hook
+            out Transform cableOrigin
         );
         CreateCube("InvalidTarget", new Vector3(0f, 0f, 6f), new Vector3(2f, 2f, 1f));
         grappling.whatIsGrappleable = 1 << 8;
         body.linearVelocity = new Vector3(1f, 0f, 2f);
 
         yield return null;
+        Transform hook = GetRuntimeHook(cableOrigin);
+        Vector3 initialHookLocalPosition = hook.localPosition;
         Vector3 initialVelocity = body.linearVelocity;
 
         Press(mouse.rightButton);
@@ -57,7 +59,9 @@ public class Sprint4GameplayAutomatedTests : InputTestFixture
 
         Assert.That(grappling.IsGrappling(), Is.False);
         Assert.That(line.enabled, Is.False);
-        Assert.That(hook.gameObject.activeSelf, Is.False);
+        Assert.That(hook.gameObject.activeSelf, Is.True, "El gancho debe permanecer visible en reposo.");
+        Assert.That(hook.parent, Is.EqualTo(cableOrigin));
+        Assert.That(hook.localPosition, Is.EqualTo(initialHookLocalPosition));
         Assert.That(body.linearVelocity, Is.EqualTo(initialVelocity));
 
         Release(mouse.rightButton);
@@ -72,7 +76,7 @@ public class Sprint4GameplayAutomatedTests : InputTestFixture
         Grappling grappling = CreateGrapplingFixture(
             out Rigidbody body,
             out LineRenderer line,
-            out Transform hook
+            out Transform cableOrigin
         );
         GameObject distantTarget = CreateCube(
             "DistantTarget",
@@ -84,6 +88,8 @@ public class Sprint4GameplayAutomatedTests : InputTestFixture
         grappling.maxGrappleDistance = 20f;
 
         yield return null;
+        Transform hook = GetRuntimeHook(cableOrigin);
+        Vector3 initialHookLocalPosition = hook.localPosition;
         Vector3 initialPosition = body.position;
 
         for (int attempt = 0; attempt < 3; attempt++)
@@ -96,7 +102,9 @@ public class Sprint4GameplayAutomatedTests : InputTestFixture
 
         Assert.That(grappling.IsGrappling(), Is.False);
         Assert.That(line.enabled, Is.False);
-        Assert.That(hook.gameObject.activeSelf, Is.False);
+        Assert.That(hook.gameObject.activeSelf, Is.True, "El gancho debe permanecer montado en el arma.");
+        Assert.That(hook.parent, Is.EqualTo(cableOrigin));
+        Assert.That(hook.localPosition, Is.EqualTo(initialHookLocalPosition));
         Assert.That(Vector3.Distance(body.position, initialPosition), Is.LessThan(0.01f));
         AssertVectorIsFinite(body.linearVelocity, "velocidad tras intentos inválidos");
     }
@@ -109,7 +117,7 @@ public class Sprint4GameplayAutomatedTests : InputTestFixture
         Grappling grappling = CreateGrapplingFixture(
             out _,
             out LineRenderer line,
-            out Transform hook
+            out Transform cableOrigin
         );
         CreateCube("IgnoredTarget", new Vector3(0f, 0f, 4f), new Vector3(2f, 2f, 1f));
         GameObject validTarget = CreateCube(
@@ -121,6 +129,7 @@ public class Sprint4GameplayAutomatedTests : InputTestFixture
         grappling.whatIsGrappleable = 1 << validTarget.layer;
 
         yield return null;
+        Transform hook = GetRuntimeHook(cableOrigin);
 
         grappling.whatIsGrappleable = 1 << 9;
         Press(mouse.rightButton);
@@ -136,9 +145,35 @@ public class Sprint4GameplayAutomatedTests : InputTestFixture
         Assert.That(grappling.IsGrappling(), Is.True);
         Assert.That(line.enabled, Is.True);
         Assert.That(hook.gameObject.activeSelf, Is.True);
+        Assert.That(hook.parent, Is.Null, "El proyectil no salió de CableOrigin.");
 
         Release(mouse.rightButton);
         yield return null;
+
+        Assert.That(grappling.IsGrappling(), Is.False);
+        Assert.That(line.enabled, Is.False, "La cuerda no se ocultó al terminar el regreso.");
+        Assert.That(hook.gameObject.activeSelf, Is.True, "El gancho debe volver visible al arma.");
+        Assert.That(hook.parent, Is.EqualTo(cableOrigin));
+        Assert.That(Vector3.Distance(hook.position, cableOrigin.position), Is.LessThan(0.01f));
+    }
+
+    [Test]
+    [Category("Sprint4Automated")]
+    [Category("TST_S4_029")]
+    public void TST_S4_029_LaVelocidadDeLaCuerdaEsConfigurableYSegura()
+    {
+        GameObject player = CreateGameObject("Sprint4RopeSpeedPlayer", Vector3.zero);
+        Grappling grappling = player.AddComponent<Grappling>();
+
+        grappling.SetRopeSpeed(12f, 18f);
+
+        Assert.That(grappling.hookProjectileSpeed, Is.EqualTo(12f));
+        Assert.That(grappling.hookReturnSpeed, Is.EqualTo(18f));
+
+        grappling.SetRopeSpeed(0f);
+
+        Assert.That(grappling.hookProjectileSpeed, Is.EqualTo(0.1f));
+        Assert.That(grappling.hookReturnSpeed, Is.EqualTo(0.1f));
     }
 
     [UnityTest]
@@ -296,7 +331,7 @@ public class Sprint4GameplayAutomatedTests : InputTestFixture
     private Grappling CreateGrapplingFixture(
         out Rigidbody body,
         out LineRenderer line,
-        out Transform hook)
+        out Transform cableOrigin)
     {
         GameObject player = CreateGameObject("Sprint4GrapplingPlayer", Vector3.zero);
         body = player.AddComponent<Rigidbody>();
@@ -309,24 +344,39 @@ public class Sprint4GameplayAutomatedTests : InputTestFixture
         camera.enabled = false;
         camera.transform.localRotation = Quaternion.identity;
 
-        Transform gunTip = CreateChild(player.transform, "GunTip", Vector3.forward * 0.5f);
-        hook = CreateChild(player.transform, "HookHead", Vector3.zero);
-        hook.gameObject.SetActive(false);
+        cableOrigin = CreateChild(player.transform, "CableOrigin", Vector3.forward * 0.5f);
+
+        GameObject hookStored = CreateGameObject("Hook_Stored", cableOrigin.position);
+        hookStored.transform.SetParent(player.transform, true);
+
+        GameObject hookProjectilePrefab = CreateGameObject("TestHookProjectilePrefab", Vector3.zero);
 
         line = player.AddComponent<LineRenderer>();
         line.enabled = false;
 
         Grappling grappling = player.AddComponent<Grappling>();
         grappling.cam = camera;
-        grappling.gunTip = gunTip;
-        grappling.hookHead = hook;
         grappling.lr = line;
+        grappling.hookProjectilePrefab = hookProjectilePrefab;
+        grappling.cableOrigin = cableOrigin;
+        grappling.hookStored = hookStored;
+        grappling.hookProjectileSpeed = 1000f;
+        grappling.hookReturnSpeed = 1000f;
+        grappling.hookArrivalDistance = 0.05f;
+        grappling.hookRuntimeScale = 1f;
         grappling.maxGrappleDistance = 20f;
         grappling.grappleForce = 10f;
         grappling.stopDistance = 0.5f;
         grappling.grapplingCd = 0f;
 
         return grappling;
+    }
+
+    private static Transform GetRuntimeHook(Transform cableOrigin)
+    {
+        Transform runtimeHook = cableOrigin.Find("GrappleHook_Runtime");
+        Assert.That(runtimeHook, Is.Not.Null, "No se creó el gancho persistente en CableOrigin.");
+        return runtimeHook;
     }
 
     private global::Move CreateMovePlayer(out Rigidbody body)

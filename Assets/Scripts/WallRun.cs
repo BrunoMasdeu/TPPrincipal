@@ -1,9 +1,12 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody))]
 public class WallRun : MonoBehaviour
 {
+    public static event Action OnPlayerWallrun;
+
     [Header("Wallrunning")]
     public LayerMask whatIsWall;
     public LayerMask whatIsGround;
@@ -189,6 +192,9 @@ public class WallRun : MonoBehaviour
         );
 
         rb.useGravity = useGravity;
+
+        OnPlayerWallrun?.Invoke();
+        Debug.Log("Evento disparado");
     }
 
     private void WallRunningMovement()

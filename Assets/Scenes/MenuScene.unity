@@ -7502,7 +7502,7 @@ MonoBehaviour:
   statusDisplay: {fileID: 1380050107}
   playerCountDisplay: {fileID: 611628260}
   startGameButton: {fileID: 1594236924}
-  gameSceneName: CentroEntrenamiento
+  gameSceneName: GameScene
   requiredPlayerCount: 2
 --- !u!4 &1559012517
 Transform:

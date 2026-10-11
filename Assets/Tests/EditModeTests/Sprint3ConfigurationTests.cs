@@ -272,13 +272,28 @@ public class Sprint3ConfigurationTests
         GameObject prefab = LoadNetworkPlayerPrefab();
         Move move = prefab.GetComponent<Move>();
         Rigidbody body = prefab.GetComponent<Rigidbody>();
+        Grappling grappling = prefab.GetComponent<Grappling>();
 
         Assert.IsNotNull(move);
         Assert.IsNotNull(body);
         Assert.IsNotNull(prefab.GetComponent<Collider>());
         Assert.IsNotNull(move.orientation);
         Assert.IsNotNull(move.groundCheck);
-        Assert.IsNotNull(prefab.GetComponent<Grappling>());
+        Assert.IsNotNull(grappling);
+        Assert.IsNotNull(grappling.lr, "Grappling no tiene asignado el LineRenderer de la cuerda.");
+        Assert.IsNotNull(grappling.cableOrigin, "Grappling no tiene un CableOrigin configurado.");
+        Assert.IsNotNull(grappling.hookStored, "Grappling no tiene la posición de reposo Hook_Stored.");
+        Assert.IsNotNull(
+            grappling.hookProjectilePrefab,
+            "Grappling no tiene asignado el prefab del gancho animado."
+        );
+        Assert.That(grappling.hookProjectileSpeed, Is.GreaterThan(0f));
+        Assert.That(grappling.hookReturnSpeed, Is.GreaterThan(0f));
+        Assert.That(grappling.hookArrivalDistance, Is.GreaterThan(0f));
+        Assert.IsNull(
+            prefab.transform.Find("GrapplingVisuals/GrappleHookHead"),
+            "El prefab todavía conserva la cabeza estática del gancho anterior."
+        );
         Assert.IsNotNull(prefab.GetComponent<WallRun>());
         Assert.That(
             prefab.GetComponentsInChildren<Renderer>(true),

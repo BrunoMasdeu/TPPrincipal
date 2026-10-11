@@ -164,7 +164,7 @@ public class Sprint3GameplayTests
     public IEnumerator TST_S3_019_GanchoValidoActivaVisualesYAcercaAlJugador()
     {
         CreateMouse();
-        Grappling grappling = CreateGrapplingFixture(out Rigidbody body, out LineRenderer line, out Transform hook);
+        Grappling grappling = CreateGrapplingFixture(out Rigidbody body, out LineRenderer line, out Transform cableOrigin);
         GameObject target = CreateCube("ValidGrappleTarget", new Vector3(0f, 0f, 8f), new Vector3(2f, 2f, 1f));
         target.layer = 8;
         grappling.whatIsGrappleable = 1 << target.layer;
@@ -172,11 +172,22 @@ public class Sprint3GameplayTests
         yield return null;
         Physics.SyncTransforms();
 
+        Transform hook = GetRuntimeHook(cableOrigin);
+
         InvokePrivate(grappling, "StartGrapple");
 
         Assert.IsTrue(grappling.IsGrappling(), "El gancho no se activó sobre un objetivo válido.");
         Assert.IsTrue(line.enabled, "La línea del gancho no se hizo visible.");
-        Assert.IsTrue(hook.gameObject.activeSelf, "La cabeza del gancho no se hizo visible.");
+        Assert.IsTrue(hook.gameObject.activeSelf, "El gancho animado no se hizo visible.");
+        Assert.IsNull(hook.parent, "El gancho no se separó de CableOrigin al comenzar el vuelo.");
+
+        yield return null;
+
+        Assert.That(
+            Vector3.Distance(hook.position, grappling.GetGrapplePoint()),
+            Is.LessThan(0.1f),
+            "El proyectil no llegó a la superficie antes de comenzar el arrastre."
+        );
 
         float initialDistance = Vector3.Distance(body.position, grappling.GetGrapplePoint());
         yield return WaitForPhysicsSteps(8);
@@ -191,11 +202,13 @@ public class Sprint3GameplayTests
     public IEnumerator TST_S3_020_GanchoInvalidoNoAlteraEstadoNiMovimiento()
     {
         CreateMouse();
-        Grappling grappling = CreateGrapplingFixture(out Rigidbody body, out LineRenderer line, out Transform hook);
+        Grappling grappling = CreateGrapplingFixture(out Rigidbody body, out LineRenderer line, out Transform cableOrigin);
         grappling.whatIsGrappleable = 1 << 8;
         body.linearVelocity = new Vector3(1f, 0f, 2f);
 
         yield return null;
+        Transform hook = GetRuntimeHook(cableOrigin);
+        Vector3 initialHookLocalPosition = hook.localPosition;
         Vector3 initialVelocity = body.linearVelocity;
 
         for (int i = 0; i < 3; i++)
@@ -203,7 +216,9 @@ public class Sprint3GameplayTests
 
         Assert.IsFalse(grappling.IsGrappling());
         Assert.IsFalse(line.enabled);
-        Assert.IsFalse(hook.gameObject.activeSelf);
+        Assert.IsTrue(hook.gameObject.activeSelf, "El gancho debe seguir visible en reposo.");
+        Assert.That(hook.parent, Is.EqualTo(cableOrigin));
+        Assert.That(hook.localPosition, Is.EqualTo(initialHookLocalPosition));
         Assert.That(body.linearVelocity, Is.EqualTo(initialVelocity));
     }
 
@@ -299,7 +314,7 @@ public class Sprint3GameplayTests
     private Grappling CreateGrapplingFixture(
         out Rigidbody body,
         out LineRenderer line,
-        out Transform hook)
+        out Transform cableOrigin)
     {
         GameObject player = CreateGameObject("Sprint3GrapplingPlayer", Vector3.zero);
         body = player.AddComponent<Rigidbody>();
@@ -311,24 +326,39 @@ public class Sprint3GameplayTests
         Camera camera = cameraObject.AddComponent<Camera>();
         camera.transform.localRotation = Quaternion.identity;
 
-        Transform gunTip = CreateChild(player.transform, "GunTip", Vector3.forward * 0.5f);
-        hook = CreateChild(player.transform, "HookHead", Vector3.zero);
-        hook.gameObject.SetActive(false);
+        cableOrigin = CreateChild(player.transform, "CableOrigin", Vector3.forward * 0.5f);
+
+        GameObject hookStored = CreateGameObject("Hook_Stored", cableOrigin.position);
+        hookStored.transform.SetParent(player.transform, true);
+
+        GameObject hookProjectilePrefab = CreateGameObject("TestHookProjectilePrefab", Vector3.zero);
 
         line = player.AddComponent<LineRenderer>();
         line.enabled = false;
 
         Grappling grappling = player.AddComponent<Grappling>();
         grappling.cam = camera;
-        grappling.gunTip = gunTip;
-        grappling.hookHead = hook;
         grappling.lr = line;
+        grappling.hookProjectilePrefab = hookProjectilePrefab;
+        grappling.cableOrigin = cableOrigin;
+        grappling.hookStored = hookStored;
+        grappling.hookProjectileSpeed = 1000f;
+        grappling.hookReturnSpeed = 1000f;
+        grappling.hookArrivalDistance = 0.05f;
+        grappling.hookRuntimeScale = 1f;
         grappling.maxGrappleDistance = 20f;
         grappling.grappleForce = 10f;
         grappling.stopDistance = 0.5f;
         grappling.grapplingCd = 0f;
 
         return grappling;
+    }
+
+    private static Transform GetRuntimeHook(Transform cableOrigin)
+    {
+        Transform runtimeHook = cableOrigin.Find("GrappleHook_Runtime");
+        Assert.IsNotNull(runtimeHook, "No se creó el gancho persistente en CableOrigin.");
+        return runtimeHook;
     }
 
     private GameObject CreateGround()
