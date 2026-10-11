@@ -11,6 +11,19 @@ public class CombatValidationRulesTests
     }
 
     [Test]
+    public void InventarioPuedePrevisualizarseTemporalmenteEnEntrenamiento()
+    {
+        Assert.That(CombatValidationRules.SupportsInventoryPreview(
+            GameModeId.TDM), Is.True);
+        Assert.That(CombatValidationRules.SupportsInventoryPreview(
+            GameModeId.CTF), Is.True);
+        Assert.That(CombatValidationRules.SupportsInventoryPreview(
+            GameModeId.Race), Is.True);
+        Assert.That(CombatValidationRules.SupportsInventoryPreview(
+            GameModeId.None), Is.False);
+    }
+
+    [Test]
     public void DisparoRequierePlayingVidaBalasYCadencia()
     {
         Assert.That(CombatValidationRules.CanFire(
@@ -36,6 +49,38 @@ public class CombatValidationRulesTests
             MatchPhase.Playing, PlayerLifeState.Alive, 12, 12, 0d), Is.False);
         Assert.That(CombatValidationRules.CanReload(
             MatchPhase.Playing, PlayerLifeState.Dead, 5, 12, 0d), Is.False);
+        Assert.That(CombatValidationRules.CanReload(
+            MatchPhase.Playing, PlayerLifeState.Alive, 5, 12, 0d, 0), Is.False);
+    }
+
+    [Test]
+    public void AtaqueMeleeNoNecesitaMunicion()
+    {
+        Assert.That(CombatValidationRules.CanAttack(
+            MatchPhase.Playing,
+            PlayerLifeState.Alive,
+            false,
+            0,
+            0d,
+            1d,
+            1d), Is.True);
+    }
+
+    [TestCase(4, 12, 30, 8)]
+    [TestCase(10, 12, 1, 1)]
+    [TestCase(12, 12, 30, 0)]
+    [TestCase(0, 30, 10, 10)]
+    [TestCase(0, 30, 0, 0)]
+    public void TransferenciaDeRecargaNuncaExcedeCargadorNiReserva(
+        int ammunition,
+        int magazineSize,
+        int reserve,
+        int expected)
+    {
+        Assert.That(CombatValidationRules.CalculateReloadTransfer(
+            ammunition,
+            magazineSize,
+            reserve), Is.EqualTo(expected));
     }
 
     [Test]
