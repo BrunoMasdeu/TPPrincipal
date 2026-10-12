@@ -56,11 +56,24 @@ public class NetworkPlayerShop : NetworkBehaviour
 
     private int ItemCount => items == null ? 0 : Mathf.Min(items.Length, 32);
 
-    private bool IsPlayingTdm =>
-        NetworkLobbySession.Instance != null &&
-        NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.TDM &&
-        NetworkMatchManager.Instance != null &&
-        NetworkMatchManager.Instance.Phase == MatchPhase.Playing;
+    private bool IsPlayingShopMode
+    {
+        get
+        {
+            NetworkLobbySession lobby = NetworkLobbySession.Instance;
+            NetworkMatchManager match = NetworkMatchManager.Instance;
+
+            if (lobby == null || match == null ||
+                match.Phase != MatchPhase.Playing)
+            {
+                return false;
+            }
+
+            return lobby.SelectedGameModeId == GameModeId.TDM ||
+               lobby.SelectedGameModeId == GameModeId.CTF;
+        }
+    }
+
 
     private float RemainingSeconds =>
         NetworkManager == null
@@ -72,7 +85,7 @@ public class NetworkPlayerShop : NetworkBehaviour
 
     private bool CanUseShop =>
         IsSpawned &&
-        IsPlayingTdm &&
+        IsPlayingShopMode &&
         health != null &&
         health.LifeState == PlayerLifeState.Alive &&
         RemainingSeconds > 0f;
@@ -114,7 +127,7 @@ public class NetworkPlayerShop : NetworkBehaviour
         {
             RegisterOwnedItems();
 
-            if (!IsPlayingTdm ||
+            if (!IsPlayingShopMode ||
                 health.LifeState != PlayerLifeState.Alive)
             {
                 purchaseEndsAt.Value = 0d;
@@ -151,7 +164,7 @@ public class NetworkPlayerShop : NetworkBehaviour
 
     public void BeginPurchaseWindowOnServer()
     {
-        if (!IsServer || !IsSpawned || !IsPlayingTdm)
+        if (!IsServer || !IsSpawned || !IsPlayingShopMode)
             return;
 
         RegisterOwnedItems();
@@ -215,7 +228,7 @@ public class NetworkPlayerShop : NetworkBehaviour
             openShop = null;
 
         if (IsOwner &&
-            IsPlayingTdm &&
+            IsPlayingShopMode &&
             health != null &&
             health.LifeState == PlayerLifeState.Alive &&
             !MatchDebugConsole.IsInputCaptured)
