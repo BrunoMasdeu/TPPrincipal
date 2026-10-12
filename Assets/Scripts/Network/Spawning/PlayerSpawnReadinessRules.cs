@@ -2,30 +2,30 @@ public static class PlayerSpawnReadinessRules
 {
     public static bool CanBeginSpawn(
         bool isLoadingPhase,
-        int requiredPlayerCount,
+        int selectedPlayerCount,
         int connectedPlayerCount,
         int loadedPlayerCount,
         int timedOutPlayerCount)
     {
         return isLoadingPhase &&
-            requiredPlayerCount > 0 &&
+            selectedPlayerCount > 0 &&
             timedOutPlayerCount == 0 &&
-            connectedPlayerCount == requiredPlayerCount &&
-            loadedPlayerCount == requiredPlayerCount;
+            connectedPlayerCount == selectedPlayerCount &&
+            loadedPlayerCount == selectedPlayerCount;
     }
 
     public static bool ArePlayersReady(
-        int requiredPlayerCount,
+        int selectedPlayerCount,
         int connectedPlayerCount,
         int loadedPlayerCount,
         int spawnedPlayerCount,
         int timedOutPlayerCount)
     {
-        return requiredPlayerCount > 0 &&
+        return selectedPlayerCount > 0 &&
             timedOutPlayerCount == 0 &&
-            connectedPlayerCount == requiredPlayerCount &&
-            loadedPlayerCount == requiredPlayerCount &&
-            spawnedPlayerCount == requiredPlayerCount;
+            connectedPlayerCount == selectedPlayerCount &&
+            loadedPlayerCount == selectedPlayerCount &&
+            spawnedPlayerCount == selectedPlayerCount;
     }
 
     public static bool CanSpawnPlayer(

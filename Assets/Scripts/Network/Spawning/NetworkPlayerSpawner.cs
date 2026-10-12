@@ -126,7 +126,7 @@ public class NetworkPlayerSpawner : NetworkBehaviour
 
         if (!PlayerSpawnReadinessRules.CanBeginSpawn(
                 true,
-                lobbySession.RequiredPlayerCount,
+                lobbySession.SelectedPlayerCount,
                 connectedPlayerCount,
                 loadedClientIds.Count,
                 timedOutClientIds.Count))
@@ -160,7 +160,7 @@ public class NetworkPlayerSpawner : NetworkBehaviour
         int spawnedPlayerCount = CountSpawnedPlayers(sceneName);
 
         if (!PlayerSpawnReadinessRules.ArePlayersReady(
-                lobbySession.RequiredPlayerCount,
+                lobbySession.SelectedPlayerCount,
                 connectedPlayerCount,
                 loadedClientIds.Count,
                 spawnedPlayerCount,

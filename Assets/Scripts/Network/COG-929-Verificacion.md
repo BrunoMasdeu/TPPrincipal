@@ -10,19 +10,22 @@ Este archivo registra las comprobaciones manuales realizadas en Unity y mantiene
 ## Escenario multijugador Relay
 
 1. Abrir `MenuScene` en host y cliente con versiones iguales del proyecto (por ejemplo, Editor y build actualizada).
-2. Elegir TDM, 2 jugadores; crear sala y unir el cliente. Repetir con CTF. Los selectores provisionales aparecen en la esquina superior derecha.
-3. Seleccionar un rojo y un azul, marcar ready en ambas instancias y pulsar Start Game en host. El lobby debe mostrar `PLAYERS: 2/2`.
-4. Confirmar que ambos modos cargan el mapa elegido en la sala. TDM debe ofrecer `tdm_scene_prueba` y `ArenaIndustrial`; CTF debe ofrecer `ctf_scene_prueba` y `ArenaIndustrial`.
-5. Confirmar un `PlayerObject` por cliente, ownership correcto y punto del equipo correspondiente. Repetir callback/carga si se dispone de una prueba de PlayMode.
-6. Confirmar que host y clientes observan Lobby → Loading → InMatch y WaitingForPlayers → Countdown → Playing → Finished, con cronómetro concordante.
-7. Intentar desde un cliente equipo inválido, ready sin equipo, comienzo no autorizado y cambios de fase: deben rechazarse sin divergencia.
-8. Cancelar durante conexión o carga, volver al menú y crear una segunda sesión. No deben quedar raíz, jugadores ni callbacks duplicados.
+2. Crear una sala todavía sin modo, cantidad ni mapa. Unir el cliente con el código generado y confirmar que la sala muestra `2/8` conectados sin impedir la entrada por falta de configuración.
+3. Desde el host elegir TDM, 2 jugadores y Arena Industrial. El cliente debe ver esos valores replicados, pero no debe poder modificarlos.
+4. Seleccionar un rojo y un azul, marcar ready en ambas instancias y pulsar Start Game en host. El lobby debe mostrar `PLAYERS: 2/2`.
+5. Confirmar que ambos modos cargan el mapa elegido en la sala. TDM debe ofrecer `tdm_scene_prueba` y `ArenaIndustrial`; CTF debe ofrecer `ctf_scene_prueba` y `ArenaIndustrial`.
+6. Confirmar un `PlayerObject` por cliente, ownership correcto y punto del equipo correspondiente. Repetir callback/carga si se dispone de una prueba de PlayMode.
+7. Confirmar que host y clientes observan Lobby → Loading → InMatch y WaitingForPlayers → Countdown → Playing → Finished, con cronómetro concordante.
+8. Volver al lobby: el código y los jugadores deben mantenerse. Cambiar a CTF, 4 jugadores y Arena Industrial; los ready anteriores deben quedar desmarcados y el inicio debe bloquearse indicando que faltan dos personas.
+9. Intentar desde un cliente cambiar modo, cantidad o mapa, además de equipo inválido, ready sin equipo y comienzo no autorizado: todo debe rechazarse sin divergencia.
+10. Cancelar la conexión y crear una sala nueva. No deben quedar raíz, jugadores ni callbacks duplicados.
 
 - [x] TDM con Relay y 2 jugadores en Arena Industrial.
 - [x] CTF con Relay y 2 jugadores en Arena Industrial, incluidas reglas de bandera.
 - [ ] Cantidades 4, 6 y 8 validadas posteriormente, con equipos equilibrados y spawn suficiente.
 - [ ] Rechazo de cambios no autorizados y cancelación.
 - [x] Segunda sesión limpia y selección de mapa conservada al volver al lobby.
+- [ ] Sala flexible: crear sin configuración, configurar dentro del lobby y reutilizar el mismo código para otra cantidad/modo.
 
 ## Carrera individual y compatibilidad
 

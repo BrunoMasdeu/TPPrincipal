@@ -51,22 +51,22 @@ public class LobbyPlayerSpawner : MonoBehaviour
         NetworkManager.ConnectionApprovalResponse response)
     {
         NetworkLobbySession lobbySession = NetworkLobbySession.Instance;
-        bool modeSessionActive = lobbySession != null &&
-            lobbySession.IsSpawned &&
-            lobbySession.SelectedGameModeId != GameModeId.None;
+        bool networkSessionActive = lobbySession != null &&
+            lobbySession.IsSpawned;
 
-        bool modeSessionPrepared = sessionBootstrap != null &&
+        bool networkSessionPrepared = sessionBootstrap != null &&
             sessionBootstrap.HasPreparedSession;
 
-        int capacity = modeSessionActive
-            ? lobbySession.RequiredPlayerCount
-            : modeSessionPrepared
-                ? sessionBootstrap.PreparedPlayerCount
-                : requiredPlayerCount;
+        int capacity = networkSessionActive || networkSessionPrepared
+            ? MultiplayerSessionLimits.RoomCapacity
+            : requiredPlayerCount;
 
         response.Approved =
-            networkManager.ConnectedClientsIds.Count < capacity &&
-            (!modeSessionActive || lobbySession.Phase == SessionPhase.Lobby);
+            LobbyValidationRules.HasCapacity(
+                networkManager.ConnectedClientsIds.Count,
+                capacity) &&
+            (!networkSessionActive ||
+             lobbySession.Phase == SessionPhase.Lobby);
 
         // No crear al jugador mientras permanece en el lobby.
         response.CreatePlayerObject = false;

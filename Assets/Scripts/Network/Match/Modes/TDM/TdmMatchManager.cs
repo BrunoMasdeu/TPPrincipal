@@ -38,7 +38,7 @@ public class TdmMatchManager : NetworkBehaviour
     {
         if (IsTdm)
             return TdmRules.TryGetOfficialEliminationLimit(
-                lobby.RequiredPlayerCount, out limit);
+                lobby.SelectedPlayerCount, out limit);
 
         limit = 0;
         return false;
@@ -158,7 +158,7 @@ public class TdmMatchManager : NetworkBehaviour
                   $"Muerte #{death.EventId}: {death.Cause}.");
 
         if (TdmRules.TryResolveScoreLimit(
-                serverState, lobby.RequiredPlayerCount,
+                serverState, lobby.SelectedPlayerCount,
                 commonMatch.Phase, out MatchResultData result))
             commonMatch.TryFinishMatch(result);
     }

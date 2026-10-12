@@ -35,7 +35,7 @@ public class ConnectionManager : MonoBehaviour
     private Task initializationTask;
     private string currentJoinCode;
     private GameModeDefinition pendingGameModeDefinition;
-    private int pendingPlayerCount;
+    private int pendingMatchPlayerCount;
     private NetworkLobbySession lobbySession;
     private bool servicesInitialized;
     private bool isConnecting;
@@ -45,7 +45,7 @@ public class ConnectionManager : MonoBehaviour
     public GameModeDefinition PendingGameModeDefinition =>
         pendingGameModeDefinition;
 
-    public int PendingPlayerCount => pendingPlayerCount;
+    public int PendingMatchPlayerCount => pendingMatchPlayerCount;
     public bool IsConnecting => isConnecting;
     public bool IsLocalGameStarting => isLocalGameStarting;
 
@@ -121,18 +121,73 @@ public class ConnectionManager : MonoBehaviour
 
         // Controles temporales de prueba. La UI definitiva puede invocar los
         // mismos métodos públicos desde botones uGUI sin cambiar el lobby.
-        GUILayout.BeginArea(new Rect(Screen.width - 270, 15, 255, 360), GUI.skin.box);
-        GUILayout.Label($"MODO: {lobbySession.SelectedGameModeId}");
+        float panelHeight = Mathf.Min(570f, Screen.height - 30f);
+        GUILayout.BeginArea(
+            new Rect(Screen.width - 285, 15, 270, panelHeight),
+            GUI.skin.box);
+
+        string modeLabel = lobbySession.SelectedGameModeId == GameModeId.None
+            ? "Sin elegir"
+            : lobbySession.SelectedGameModeId.ToString();
+        GUILayout.Label($"MODO: {modeLabel}");
         GUILayout.Label($"FASE: {lobbySession.Phase}");
+        GUILayout.Label(
+            $"SALA: {lobbySession.Players.Count}/" +
+            $"{lobbySession.RoomCapacity} conectados");
+
+        string matchCountLabel = lobbySession.SelectedPlayerCount > 0
+            ? lobbySession.SelectedPlayerCount.ToString()
+            : "Sin elegir";
+        GUILayout.Label($"JUGADORES DE PARTIDA: {matchCountLabel}");
+
+        bool hostCanConfigure = lobbySession.Phase == SessionPhase.Lobby &&
+            NetworkManager.Singleton.IsHost;
+
+        if (hostCanConfigure)
+        {
+            GUILayout.Label("Seleccionar modo (host):");
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("TDM")) SelectTdm();
+            if (GUILayout.Button("CTF")) SelectCtf();
+            GUILayout.EndHorizontal();
+
+            GameModeDefinition definition = lobbySession.SelectedDefinition;
+            if (definition != null)
+            {
+                GUILayout.Label("Cantidad de la partida (host):");
+                GUILayout.BeginHorizontal();
+
+                for (int i = 0; i < definition.AllowedPlayerCounts.Count; i++)
+                {
+                    int playerCount = definition.AllowedPlayerCounts[i];
+                    bool previousEnabled = GUI.enabled;
+                    GUI.enabled = MultiplayerSessionLimits
+                        .CanSelectMatchPlayerCount(
+                            playerCount,
+                            lobbySession.Players.Count);
+
+                    string prefix = lobbySession.SelectedPlayerCount == playerCount
+                        ? "> "
+                        : string.Empty;
+
+                    if (GUILayout.Button(prefix + playerCount))
+                        SelectPlayerCount(playerCount);
+
+                    GUI.enabled = previousEnabled;
+                }
+
+                GUILayout.EndHorizontal();
+            }
+        }
 
         MapDefinition selectedMap = lobbySession.SelectedMapDefinition;
         string selectedMapLabel = selectedMap != null
             ? selectedMap.DisplayName
-            : lobbySession.SelectedSceneName;
+            : "Sin elegir";
         GUILayout.Label($"MAPA: {selectedMapLabel}");
 
-        if (lobbySession.Phase == SessionPhase.Lobby &&
-            NetworkManager.Singleton.IsHost)
+        if (hostCanConfigure &&
+            lobbySession.SelectedGameModeId != GameModeId.None)
         {
             GUILayout.Label("Seleccionar mapa (host):");
 
@@ -156,6 +211,21 @@ public class ConnectionManager : MonoBehaviour
             }
         }
 
+        if (!lobbySession.HasCompleteMatchConfiguration)
+        {
+            GUILayout.Label("CONFIGURACIÓN PENDIENTE");
+        }
+        else if (lobbySession.Players.Count < lobbySession.SelectedPlayerCount)
+        {
+            int missing = lobbySession.SelectedPlayerCount -
+                lobbySession.Players.Count;
+            GUILayout.Label($"FALTAN {missing} JUGADOR(ES)");
+        }
+        else if (lobbySession.Players.Count > lobbySession.SelectedPlayerCount)
+        {
+            GUILayout.Label("AUMENTÁ LA CANTIDAD DE LA PARTIDA");
+        }
+
         for (int i = 0; i < lobbySession.Players.Count; i++)
         {
             LobbyPlayerData player = lobbySession.Players[i];
@@ -165,6 +235,9 @@ public class ConnectionManager : MonoBehaviour
 
         if (lobbySession.Phase == SessionPhase.Lobby)
         {
+            bool previousEnabled = GUI.enabled;
+            GUI.enabled = lobbySession.HasCompleteMatchConfiguration;
+
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Equipo rojo")) SelectRedTeam();
             if (GUILayout.Button("Equipo azul")) SelectBlueTeam();
@@ -177,6 +250,8 @@ public class ConnectionManager : MonoBehaviour
             {
                 lobbySession.RequestReadyChange(!localPlayer.IsReady);
             }
+
+            GUI.enabled = previousEnabled;
         }
 
         GUILayout.EndArea();
@@ -184,6 +259,12 @@ public class ConnectionManager : MonoBehaviour
 
     public void SelectRedTeam() => lobbySession?.RequestTeamChange(TeamId.Red);
     public void SelectBlueTeam() => lobbySession?.RequestTeamChange(TeamId.Blue);
+    public void SelectTdm() =>
+        lobbySession?.RequestGameModeChange(GameModeId.TDM);
+    public void SelectCtf() =>
+        lobbySession?.RequestGameModeChange(GameModeId.CTF);
+    public void SelectPlayerCount(int playerCount) =>
+        lobbySession?.RequestPlayerCountChange(playerCount);
     public void SelectMap(MapId mapId) => lobbySession?.RequestMapChange(mapId);
 
     public void ToggleReady()
@@ -198,7 +279,7 @@ public class ConnectionManager : MonoBehaviour
 
     public bool ConfigureSessionSelection(
         GameModeDefinition definition,
-        int playerCount,
+        int matchPlayerCount,
         out string validationError)
     {
         NetworkManager networkManager = NetworkManager.Singleton;
@@ -226,20 +307,29 @@ public class ConnectionManager : MonoBehaviour
         if (!definition.IsValid(out validationError))
             return false;
 
-        if (!definition.AllowsPlayerCount(playerCount))
+        if (!MultiplayerSessionLimits.CanSelectMatchPlayerCount(
+                matchPlayerCount))
         {
             validationError =
-                $"El modo {definition.GameModeId} no admite {playerCount} jugadores.";
+                $"La partida debe admitir entre 1 y " +
+                $"{MultiplayerSessionLimits.RoomCapacity} jugadores.";
+            return false;
+        }
+
+        if (!definition.AllowsPlayerCount(matchPlayerCount))
+        {
+            validationError =
+                $"El modo {definition.GameModeId} no admite {matchPlayerCount} jugadores.";
             return false;
         }
 
         pendingGameModeDefinition = definition;
-        pendingPlayerCount = playerCount;
+        pendingMatchPlayerCount = matchPlayerCount;
         validationError = string.Empty;
 
         Debug.Log(
             $"[Relay] Selección preparada: {definition.GameModeId}, " +
-            $"{playerCount} jugadores."
+            $"{matchPlayerCount} jugadores."
         );
 
         UpdatePlayerCount();
@@ -299,13 +389,6 @@ public class ConnectionManager : MonoBehaviour
             if (networkManager == null)
                 throw new InvalidOperationException("NetworkManager no encontrado.");
 
-            if (pendingGameModeDefinition == null || pendingPlayerCount <= 0)
-            {
-                throw new InvalidOperationException(
-                    "No hay un modo y una cantidad de jugadores seleccionados."
-                );
-            }
-
             if (sessionBootstrap == null)
             {
                 throw new InvalidOperationException(
@@ -313,16 +396,15 @@ public class ConnectionManager : MonoBehaviour
                 );
             }
 
-            if (!sessionBootstrap.PrepareSession(
-                    pendingGameModeDefinition,
-                    pendingPlayerCount,
+            if (!sessionBootstrap.PrepareRoom(
                     out string validationError))
             {
                 throw new InvalidOperationException(validationError);
             }
 
-            // El puente sólo conserva la aprobación y el flujo de carrera.
-            // La cantidad multijugador proviene de NetworkSessionBootstrap.
+            // El puente conserva la aprobación y el flujo de carrera. La sala
+            // multijugador siempre reserva ocho lugares; la cantidad de la
+            // partida se elige después dentro del lobby.
             if (networkManager.GetComponent<LobbyPlayerSpawner>() == null)
             {
                 throw new InvalidOperationException(
@@ -338,12 +420,13 @@ public class ConnectionManager : MonoBehaviour
 
             Debug.Log(
                 $"[Relay][HOST] Creando allocation para " +
-                $"{pendingPlayerCount - 1} cliente(s) adicional(es)."
+                $"{MultiplayerSessionLimits.RemoteClientCapacity} " +
+                $"cliente(s) adicional(es)."
             );
 
             Allocation allocation =
                 await RelayService.Instance.CreateAllocationAsync(
-                    pendingPlayerCount - 1
+                    MultiplayerSessionLimits.RemoteClientCapacity
                 );
 
             if (operation != connectionOperation)
@@ -390,7 +473,7 @@ public class ConnectionManager : MonoBehaviour
             if (codeDisplay != null)
                 codeDisplay.text = $"JOIN CODE: {currentJoinCode}";
 
-            SetStatus("WAITING FOR PLAYERS...");
+            SetStatus("CONFIGURE MATCH");
         }
         catch (Exception exception)
         {
@@ -716,15 +799,17 @@ public class ConnectionManager : MonoBehaviour
                 ? networkManager.ConnectedClientsIds.Count
                 : 0;
 
-        int requiredPlayers = lobbySession != null &&
-            lobbySession.RequiredPlayerCount > 0
-                ? lobbySession.RequiredPlayerCount
-                : pendingPlayerCount;
+        int selectedPlayers = lobbySession != null &&
+            lobbySession.SelectedPlayerCount > 0
+                ? lobbySession.SelectedPlayerCount
+                : pendingMatchPlayerCount;
 
         if (playerCountDisplay != null)
         {
-            playerCountDisplay.text =
-                $"PLAYERS: {currentPlayers}/{requiredPlayers}";
+            playerCountDisplay.text = selectedPlayers > 0
+                ? $"PLAYERS: {currentPlayers}/{selectedPlayers}"
+                : $"ROOM: {currentPlayers}/" +
+                  $"{MultiplayerSessionLimits.RoomCapacity}";
         }
 
         if (startGameButton != null)
@@ -738,7 +823,8 @@ public class ConnectionManager : MonoBehaviour
 
         Debug.Log(
             $"[Netcode] Jugadores conectados: " +
-            $"{currentPlayers}/{requiredPlayers}"
+            $"{currentPlayers}; partida: {selectedPlayers}; " +
+            $"sala: {MultiplayerSessionLimits.RoomCapacity}."
         );
     }
 

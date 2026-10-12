@@ -6,7 +6,7 @@ Esta guía es para conectar una interfaz visual sin modificar las reglas de la p
 | --- | --- | --- |
 | Marcador Rojo/Azul y límite | `TdmMatchManager.RedEliminations`, `BlueEliminations`, `TryGetOfficialScoreLimit` | `ScoreChanged` |
 | Tabla de jugadores: ID, equipo, kills, deaths | `TdmMatchManager.PlayerStatsCount` y `TryGetPlayerStats` | `PlayerStatsChanged` |
-| Modo y cantidad elegida | `NetworkLobbySession.SelectedGameModeId`, `RequiredPlayerCount` | `LobbyStateChanged` |
+| Modo y cantidad elegida | `NetworkLobbySession.SelectedGameModeId`, `SelectedPlayerCount` | `LobbyStateChanged` |
 | Fase y resultado | `NetworkMatchManager.Phase`, `Result` | `PhaseChanged`, `MatchFinished` |
 | Tiempo y cuenta regresiva | `NetworkMatchManager.TimeRemaining`, `CountdownRemaining` | `PhaseChanged`; refrescar sólo el texto local periódicamente. `CountdownSecondChanged` sirve para una señal una vez por segundo. |
 | Vida y estado del jugador local | `NetworkPlayerHealth.CurrentHealth`, `MaxHealth`, `LifeState` | `HealthChanged`, `LifeStateChanged` |

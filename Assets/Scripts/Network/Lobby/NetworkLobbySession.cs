@@ -32,7 +32,7 @@ public class NetworkLobbySession : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
-    private readonly NetworkVariable<int> requiredPlayerCount = new(
+    private readonly NetworkVariable<int> selectedPlayerCount = new(
         0,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server
@@ -52,7 +52,7 @@ public class NetworkLobbySession : NetworkBehaviour
 
     private NetworkList<LobbyPlayerData> players;
     private GameModeDefinition preparedDefinition;
-    private int preparedPlayerCount;
+    private int preparedMatchPlayerCount;
     private MapId preparedMapId;
     private bool hasPreparedConfiguration;
     private bool gameplaySceneLoaded;
@@ -64,9 +64,25 @@ public class NetworkLobbySession : NetworkBehaviour
 
     public NetworkList<LobbyPlayerData> Players => players;
     public GameModeId SelectedGameModeId => selectedGameModeId.Value;
-    public int RequiredPlayerCount => requiredPlayerCount.Value;
+    public int SelectedPlayerCount => selectedPlayerCount.Value;
+    public int RoomCapacity => MultiplayerSessionLimits.RoomCapacity;
     public MapId SelectedMapId => selectedMapId.Value;
     public SessionPhase Phase => sessionPhase.Value;
+    public bool HasCompleteMatchConfiguration
+    {
+        get
+        {
+            GameModeDefinition definition = SelectedDefinition;
+            bool hasValidScene = definition != null &&
+                HasValidSceneSelection(definition, out _);
+
+            return LobbyConfigurationRules.IsConfigurationComplete(
+                definition,
+                selectedPlayerCount.Value,
+                hasValidScene
+            );
+        }
+    }
     public GameModeDefinition SelectedDefinition =>
         ResolveDefinition(selectedGameModeId.Value);
     public MapDefinition SelectedMapDefinition =>
@@ -108,7 +124,7 @@ public class NetworkLobbySession : NetworkBehaviour
 
         players.OnListChanged += OnPlayersChanged;
         selectedGameModeId.OnValueChanged += OnGameModeChanged;
-        requiredPlayerCount.OnValueChanged += OnRequiredPlayerCountChanged;
+        selectedPlayerCount.OnValueChanged += OnSelectedPlayerCountChanged;
         selectedMapId.OnValueChanged += OnSelectedMapChanged;
         sessionPhase.OnValueChanged += OnSessionPhaseChanged;
 
@@ -145,7 +161,7 @@ public class NetworkLobbySession : NetworkBehaviour
 
         players.OnListChanged -= OnPlayersChanged;
         selectedGameModeId.OnValueChanged -= OnGameModeChanged;
-        requiredPlayerCount.OnValueChanged -= OnRequiredPlayerCountChanged;
+        selectedPlayerCount.OnValueChanged -= OnSelectedPlayerCountChanged;
         selectedMapId.OnValueChanged -= OnSelectedMapChanged;
         sessionPhase.OnValueChanged -= OnSessionPhaseChanged;
 
@@ -166,7 +182,7 @@ public class NetworkLobbySession : NetworkBehaviour
 
     public bool ConfigureSession(
         GameModeDefinition definition,
-        int playerCount,
+        int matchPlayerCount,
         out string validationError)
     {
         if (IsSpawned && !IsServer)
@@ -192,10 +208,18 @@ public class NetworkLobbySession : NetworkBehaviour
         if (!definition.IsValid(out validationError))
             return false;
 
-        if (!definition.AllowsPlayerCount(playerCount))
+        if (!MultiplayerSessionLimits.CanSelectMatchPlayerCount(
+                matchPlayerCount))
         {
             validationError =
-                $"El modo {definition.GameModeId} no admite {playerCount} jugadores.";
+                $"La partida debe admitir entre 1 y {RoomCapacity} jugadores.";
+            return false;
+        }
+
+        if (!definition.AllowsPlayerCount(matchPlayerCount))
+        {
+            validationError =
+                $"El modo {definition.GameModeId} no admite {matchPlayerCount} jugadores.";
             return false;
         }
 
@@ -219,7 +243,7 @@ public class NetworkLobbySession : NetworkBehaviour
         );
 
         preparedDefinition = definition;
-        preparedPlayerCount = playerCount;
+        preparedMatchPlayerCount = matchPlayerCount;
         preparedMapId = defaultMap != null ? defaultMap.MapId : MapId.None;
         hasPreparedConfiguration = true;
 
@@ -228,6 +252,76 @@ public class NetworkLobbySession : NetworkBehaviour
 
         validationError = string.Empty;
         return true;
+    }
+
+    public bool PrepareUnconfiguredRoom(out string validationError)
+    {
+        if (IsSpawned && !IsServer)
+        {
+            validationError =
+                "Solamente el servidor puede preparar la sala.";
+            return false;
+        }
+
+        if (IsSpawned && sessionPhase.Value != SessionPhase.Lobby)
+        {
+            validationError =
+                "La sala solamente puede reiniciarse desde el lobby.";
+            return false;
+        }
+
+        if (!MapCatalogRules.IsCatalogValid(
+                availableMaps,
+                out validationError))
+        {
+            return false;
+        }
+
+        preparedDefinition = null;
+        preparedMatchPlayerCount = 0;
+        preparedMapId = MapId.None;
+        hasPreparedConfiguration = false;
+
+        if (IsSpawned)
+        {
+            selectedGameModeId.Value = GameModeId.None;
+            selectedPlayerCount.Value = 0;
+            selectedMapId.Value = MapId.None;
+            ResetAllPlayersReady();
+        }
+
+        validationError = string.Empty;
+        return true;
+    }
+
+    public void RequestGameModeChange(GameModeId requestedMode)
+    {
+        if (!IsSpawned)
+            return;
+
+        if (IsServer)
+        {
+            TryChangeGameMode(NetworkManager.LocalClientId, requestedMode);
+            return;
+        }
+
+        RequestGameModeChangeRpc(requestedMode);
+    }
+
+    public void RequestPlayerCountChange(int requestedPlayerCount)
+    {
+        if (!IsSpawned)
+            return;
+
+        if (IsServer)
+        {
+            TryChangePlayerCount(
+                NetworkManager.LocalClientId,
+                requestedPlayerCount);
+            return;
+        }
+
+        RequestPlayerCountChangeRpc(requestedPlayerCount);
     }
 
     public void RequestTeamChange(TeamId requestedTeam)
@@ -293,13 +387,10 @@ public class NetworkLobbySession : NetworkBehaviour
 
         GameModeDefinition definition = SelectedDefinition;
 
-        return definition != null &&
-            definition.IsValid(out _) &&
-            HasValidSceneSelection(definition, out _) &&
-            definition.AllowsPlayerCount(requiredPlayerCount.Value) &&
+        return HasCompleteMatchConfiguration &&
             LobbyValidationRules.CanStartMatch(
                 selectedGameModeId.Value,
-                requiredPlayerCount.Value,
+                selectedPlayerCount.Value,
                 CreatePlayerSnapshot(),
                 requireBalancedTeams,
                 definition.RequiresTeams
@@ -406,6 +497,26 @@ public class NetworkLobbySession : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void RequestGameModeChangeRpc(
+        GameModeId requestedMode,
+        RpcParams rpcParams = default)
+    {
+        TryChangeGameMode(
+            rpcParams.Receive.SenderClientId,
+            requestedMode);
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void RequestPlayerCountChangeRpc(
+        int requestedPlayerCount,
+        RpcParams rpcParams = default)
+    {
+        TryChangePlayerCount(
+            rpcParams.Receive.SenderClientId,
+            requestedPlayerCount);
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void RequestTeamChangeRpc(
         TeamId requestedTeam,
         RpcParams rpcParams = default)
@@ -446,6 +557,7 @@ public class NetworkLobbySession : NetworkBehaviour
     private bool TryChangeTeam(ulong clientId, TeamId requestedTeam)
     {
         if (!IsServer || sessionPhase.Value != SessionPhase.Lobby ||
+            !HasCompleteMatchConfiguration ||
             SelectedDefinition == null || !SelectedDefinition.RequiresTeams)
             return false;
 
@@ -457,7 +569,7 @@ public class NetworkLobbySession : NetworkBehaviour
                 CreatePlayerSnapshot(),
                 clientId,
                 requestedTeam,
-                requiredPlayerCount.Value))
+                selectedPlayerCount.Value))
         {
             return false;
         }
@@ -481,10 +593,18 @@ public class NetworkLobbySession : NetworkBehaviour
 
         LobbyPlayerData player = players[playerIndex];
 
-        if (isReady && SelectedDefinition != null &&
-            SelectedDefinition.RequiresTeams &&
-            !LobbyValidationRules.IsValidTeam(player.TeamId))
-            return false;
+        if (isReady)
+        {
+            if (!HasCompleteMatchConfiguration)
+                return false;
+
+            if (SelectedDefinition != null &&
+                SelectedDefinition.RequiresTeams &&
+                !LobbyValidationRules.IsValidTeam(player.TeamId))
+            {
+                return false;
+            }
+        }
 
         if (player.IsReady == isReady)
             return false;
@@ -496,9 +616,7 @@ public class NetworkLobbySession : NetworkBehaviour
 
     private bool TryChangeMap(ulong clientId, MapId requestedMapId)
     {
-        if (!IsServer || sessionPhase.Value != SessionPhase.Lobby ||
-            NetworkManager == null ||
-            clientId != NetworkManager.ServerClientId)
+        if (!CanHostEditConfiguration(clientId))
         {
             Debug.LogWarning(
                 $"El cliente {clientId} intentó cambiar el mapa sin permiso."
@@ -528,10 +646,122 @@ public class NetworkLobbySession : NetworkBehaviour
         return true;
     }
 
+    private bool TryChangeGameMode(
+        ulong clientId,
+        GameModeId requestedMode)
+    {
+        if (!CanHostEditConfiguration(clientId))
+        {
+            Debug.LogWarning(
+                $"El cliente {clientId} intentó cambiar el modo sin permiso."
+            );
+            return false;
+        }
+
+        GameModeDefinition definition = ResolveDefinition(requestedMode);
+
+        if (!LobbyConfigurationRules.IsSelectableMultiplayerMode(definition))
+        {
+            Debug.LogWarning(
+                $"El modo {requestedMode} no está disponible en la sala."
+            );
+            return false;
+        }
+
+        if (!MapCatalogRules.IsCatalogValid(
+                availableMaps,
+                out string validationError))
+        {
+            Debug.LogWarning(
+                $"No se pudo cambiar el modo: {validationError}"
+            );
+            return false;
+        }
+
+        MapDefinition nextMap = LobbyConfigurationRules.ResolveMapForMode(
+            availableMaps,
+            selectedMapId.Value,
+            requestedMode
+        );
+
+        bool changed = selectedGameModeId.Value != requestedMode ||
+            selectedMapId.Value != (nextMap != null
+                ? nextMap.MapId
+                : MapId.None);
+
+        if (selectedPlayerCount.Value > 0 &&
+            !definition.AllowsPlayerCount(selectedPlayerCount.Value))
+        {
+            selectedPlayerCount.Value = 0;
+            changed = true;
+        }
+
+        selectedGameModeId.Value = requestedMode;
+        selectedMapId.Value = nextMap != null
+            ? nextMap.MapId
+            : MapId.None;
+
+        if (changed)
+            ResetAllPlayersReady();
+
+        Debug.Log(
+            $"[Session] El host seleccionó el modo {requestedMode}."
+        );
+        return true;
+    }
+
+    private bool TryChangePlayerCount(
+        ulong clientId,
+        int requestedPlayerCount)
+    {
+        if (!CanHostEditConfiguration(clientId))
+        {
+            Debug.LogWarning(
+                $"El cliente {clientId} intentó cambiar la cantidad sin permiso."
+            );
+            return false;
+        }
+
+        GameModeDefinition definition = SelectedDefinition;
+
+        if (!LobbyConfigurationRules.CanSelectPlayerCount(
+                definition,
+                requestedPlayerCount,
+                players.Count))
+        {
+            Debug.LogWarning(
+                $"No se puede seleccionar {requestedPlayerCount} jugadores " +
+                $"con {players.Count} conectado(s)."
+            );
+            return false;
+        }
+
+        if (selectedPlayerCount.Value == requestedPlayerCount)
+            return true;
+
+        selectedPlayerCount.Value = requestedPlayerCount;
+        ResetAllPlayersReady();
+        Debug.Log(
+            $"[Session] El host configuró una partida para " +
+            $"{requestedPlayerCount} jugadores."
+        );
+        return true;
+    }
+
+    private bool CanHostEditConfiguration(ulong clientId)
+    {
+        return NetworkManager != null &&
+            LobbyConfigurationRules.CanHostEdit(
+                IsServer,
+                clientId == NetworkManager.ServerClientId,
+                sessionPhase.Value
+            );
+    }
+
     private void ApplyPreparedConfiguration()
     {
         selectedGameModeId.Value = preparedDefinition.GameModeId;
-        requiredPlayerCount.Value = preparedPlayerCount;
+        selectedPlayerCount.Value = preparedMatchPlayerCount;
         selectedMapId.Value = preparedMapId;
         sessionPhase.Value = SessionPhase.Lobby;
         ResetAllPlayersReady();
@@ -542,6 +772,7 @@ public class NetworkLobbySession : NetworkBehaviour
         if (!IsServer || FindPlayerIndex(clientId) >= 0)
             return;
 
+        ResetAllPlayersReady();
         bool autoReady = SelectedDefinition != null &&
             !SelectedDefinition.RequiresTeams;
         players.Add(new LobbyPlayerData(clientId, TeamId.None, autoReady));
@@ -560,7 +791,10 @@ public class NetworkLobbySession : NetworkBehaviour
         int playerIndex = FindPlayerIndex(clientId);
 
         if (playerIndex >= 0)
+        {
             players.RemoveAt(playerIndex);
+            ResetAllPlayersReady();
+        }
 
         if (sessionPhase.Value == SessionPhase.Loading)
         {
@@ -702,7 +936,7 @@ public class NetworkLobbySession : NetworkBehaviour
 
         players.Clear();
         selectedGameModeId.Value = GameModeId.None;
-        requiredPlayerCount.Value = 0;
+        selectedPlayerCount.Value = 0;
         selectedMapId.Value = MapId.None;
         sessionPhase.Value = SessionPhase.Lobby;
         gameplaySceneLoaded = false;
@@ -758,7 +992,7 @@ public class NetworkLobbySession : NetworkBehaviour
         LobbyStateChanged?.Invoke();
     }
 
-    private void OnRequiredPlayerCountChanged(int previous, int current)
+    private void OnSelectedPlayerCountChanged(int previous, int current)
     {
         LobbyStateChanged?.Invoke();
     }

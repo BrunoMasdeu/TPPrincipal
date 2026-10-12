@@ -13,13 +13,15 @@ public sealed class NetworkSessionBootstrap : MonoBehaviour
 
     private NetworkManager networkManager;
     private NetworkLobbySession preparedSession;
-    private int preparedPlayerCount;
+    private int preparedMatchPlayerCount;
     private string activeJoinCode = string.Empty;
 
-    public int PreparedPlayerCount => preparedPlayerCount;
+    public int PreparedMatchPlayerCount => preparedMatchPlayerCount;
+    public int RoomCapacity => MultiplayerSessionLimits.RoomCapacity;
     public string ActiveJoinCode => activeJoinCode;
-    public bool HasPreparedSession => preparedSession != null &&
-        preparedPlayerCount > 0;
+    public bool HasPreparedSession => preparedSession != null;
+    public bool HasPreparedConfiguration => HasPreparedSession &&
+        preparedMatchPlayerCount > 0;
 
     public NetworkLobbySession CurrentSession
     {
@@ -59,9 +61,37 @@ public sealed class NetworkSessionBootstrap : MonoBehaviour
         networkManager.OnServerStopped += OnServerStopped;
     }
 
+    public bool PrepareRoom(out string validationError)
+    {
+        if (networkManager.IsListening)
+        {
+            validationError =
+                "La sala debe prepararse antes de iniciar NetworkManager.";
+            return false;
+        }
+
+        NetworkLobbySession session = EnsureLocalSession();
+
+        if (session == null)
+        {
+            validationError =
+                "No se pudo crear NetworkSessionRoot. Revise el prefab configurado.";
+            return false;
+        }
+
+        if (!HasMultiplayerManagers(session, out validationError))
+            return false;
+
+        if (!session.PrepareUnconfiguredRoom(out validationError))
+            return false;
+
+        preparedMatchPlayerCount = 0;
+        return true;
+    }
+
     public bool PrepareSession(
         GameModeDefinition definition,
-        int playerCount,
+        int matchPlayerCount,
         out string validationError)
     {
         if (networkManager.IsListening)
@@ -100,14 +130,36 @@ public sealed class NetworkSessionBootstrap : MonoBehaviour
 
         bool configured = session.ConfigureSession(
             definition,
-            playerCount,
+            matchPlayerCount,
             out validationError
         );
 
         if (configured)
-            preparedPlayerCount = playerCount;
+            preparedMatchPlayerCount = matchPlayerCount;
 
         return configured;
+    }
+
+    private static bool HasMultiplayerManagers(
+        NetworkLobbySession session,
+        out string validationError)
+    {
+        if (session.GetComponent<TdmMatchManager>() == null)
+        {
+            validationError =
+                "NetworkSessionRoot no tiene TdmMatchManager.";
+            return false;
+        }
+
+        if (session.GetComponent<CtfMatchManager>() == null)
+        {
+            validationError =
+                "NetworkSessionRoot no tiene CtfMatchManager.";
+            return false;
+        }
+
+        validationError = string.Empty;
+        return true;
     }
 
     public void CancelPreparedSession()
@@ -117,7 +169,7 @@ public sealed class NetworkSessionBootstrap : MonoBehaviour
 
         Destroy(preparedSession.gameObject);
         preparedSession = null;
-        preparedPlayerCount = 0;
+        preparedMatchPlayerCount = 0;
     }
 
     private void OnServerStarted()
@@ -172,7 +224,7 @@ public sealed class NetworkSessionBootstrap : MonoBehaviour
     {
         CancelPreparedSession();
         preparedSession = null;
-        preparedPlayerCount = 0;
+        preparedMatchPlayerCount = 0;
         activeJoinCode = string.Empty;
     }
 

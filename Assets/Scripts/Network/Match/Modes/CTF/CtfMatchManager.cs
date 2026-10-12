@@ -52,7 +52,7 @@ public class CtfMatchManager : NetworkBehaviour
     public bool TryGetCaptureLimit(out int limit)
     {
         if (IsCtf)
-            return CtfRules.TryGetCaptureLimit(lobby.RequiredPlayerCount,
+            return CtfRules.TryGetCaptureLimit(lobby.SelectedPlayerCount,
                 out limit);
 
         limit = 0;
@@ -250,7 +250,7 @@ public class CtfMatchManager : NetworkBehaviour
             Debug.Log($"[CTF] {playerId} capturó para {playerTeam}: " +
                 $"Rojo {RedCaptures} - Azul {BlueCaptures}.");
             if (CtfRules.TryResolveCaptureLimit(serverState,
-                    lobby.RequiredPlayerCount, commonMatch.Phase,
+                    lobby.SelectedPlayerCount, commonMatch.Phase,
                     out MatchResultData result))
                 commonMatch.TryFinishMatch(result);
         }

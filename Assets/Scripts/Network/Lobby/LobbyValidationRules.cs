@@ -93,11 +93,11 @@ public static class LobbyValidationRules
 
     public static bool AreAllPlayersReady(
         IReadOnlyList<LobbyPlayerData> players,
-        int requiredPlayerCount)
+        int selectedPlayerCount)
     {
         if (players == null ||
-            requiredPlayerCount <= 0 ||
-            players.Count != requiredPlayerCount)
+            selectedPlayerCount <= 0 ||
+            players.Count != selectedPlayerCount)
         {
             return false;
         }
@@ -113,13 +113,13 @@ public static class LobbyValidationRules
 
     public static bool CanStartMatch(
         GameModeId gameModeId,
-        int requiredPlayerCount,
+        int selectedPlayerCount,
         IReadOnlyList<LobbyPlayerData> players,
         bool requireBalancedTeams = true,
         bool requiresTeams = true)
     {
         if (!HasSelectedMode(gameModeId) ||
-            !AreAllPlayersReady(players, requiredPlayerCount) ||
+            !AreAllPlayersReady(players, selectedPlayerCount) ||
             !HaveUniqueClientIds(players))
         {
             return false;
@@ -138,14 +138,14 @@ public static class LobbyValidationRules
         IReadOnlyList<LobbyPlayerData> players,
         ulong clientId,
         TeamId requestedTeam,
-        int requiredPlayerCount,
+        int selectedPlayerCount,
         int maximumDifference = 1)
     {
         if (players == null ||
             !IsValidTeam(requestedTeam) ||
-            requiredPlayerCount < 2 ||
-            requiredPlayerCount % 2 != 0 ||
-            players.Count > requiredPlayerCount ||
+            selectedPlayerCount < 2 ||
+            selectedPlayerCount % 2 != 0 ||
+            players.Count > selectedPlayerCount ||
             maximumDifference < 0)
         {
             return false;
@@ -191,7 +191,7 @@ public static class LobbyValidationRules
         else
             bluePlayers++;
 
-        int teamCapacity = requiredPlayerCount / 2;
+        int teamCapacity = selectedPlayerCount / 2;
 
         if (redPlayers > teamCapacity || bluePlayers > teamCapacity)
             return false;
