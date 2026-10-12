@@ -18,6 +18,10 @@ public class NetworkLobbySession : NetworkBehaviour
     [SerializeField] private GameModeDefinition ctfDefinition;
     [SerializeField] private GameModeDefinition raceDefinition;
 
+    [Header("Maps")]
+    [SerializeField] private MapDefinition[] availableMaps =
+        System.Array.Empty<MapDefinition>();
+
     [Header("Session")]
     [SerializeField] private string lobbySceneName = "MenuScene";
     [SerializeField] private bool requireBalancedTeams = true;
@@ -34,6 +38,12 @@ public class NetworkLobbySession : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    private readonly NetworkVariable<MapId> selectedMapId = new(
+        MapId.None,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     private readonly NetworkVariable<SessionPhase> sessionPhase = new(
         SessionPhase.Lobby,
         NetworkVariableReadPermission.Everyone,
@@ -43,6 +53,7 @@ public class NetworkLobbySession : NetworkBehaviour
     private NetworkList<LobbyPlayerData> players;
     private GameModeDefinition preparedDefinition;
     private int preparedPlayerCount;
+    private MapId preparedMapId;
     private bool hasPreparedConfiguration;
     private bool gameplaySceneLoaded;
     private bool returnToLobbyRequested;
@@ -54,9 +65,29 @@ public class NetworkLobbySession : NetworkBehaviour
     public NetworkList<LobbyPlayerData> Players => players;
     public GameModeId SelectedGameModeId => selectedGameModeId.Value;
     public int RequiredPlayerCount => requiredPlayerCount.Value;
+    public MapId SelectedMapId => selectedMapId.Value;
     public SessionPhase Phase => sessionPhase.Value;
     public GameModeDefinition SelectedDefinition =>
         ResolveDefinition(selectedGameModeId.Value);
+    public MapDefinition SelectedMapDefinition =>
+        MapCatalogRules.FindById(availableMaps, selectedMapId.Value);
+    public IReadOnlyList<MapDefinition> AvailableMaps => availableMaps;
+    public string SelectedSceneName
+    {
+        get
+        {
+            MapDefinition selectedMap = SelectedMapDefinition;
+
+            if (selectedMap != null)
+                return selectedMap.SceneName;
+
+            // Compatibilidad con sesiones antiguas o prefabs que todavía no
+            // tengan el catálogo asignado en el Inspector.
+            return SelectedDefinition != null
+                ? SelectedDefinition.SceneName
+                : string.Empty;
+        }
+    }
 
     private void Awake()
     {
@@ -78,6 +109,7 @@ public class NetworkLobbySession : NetworkBehaviour
         players.OnListChanged += OnPlayersChanged;
         selectedGameModeId.OnValueChanged += OnGameModeChanged;
         requiredPlayerCount.OnValueChanged += OnRequiredPlayerCountChanged;
+        selectedMapId.OnValueChanged += OnSelectedMapChanged;
         sessionPhase.OnValueChanged += OnSessionPhaseChanged;
 
         if (!IsServer)
@@ -114,6 +146,7 @@ public class NetworkLobbySession : NetworkBehaviour
         players.OnListChanged -= OnPlayersChanged;
         selectedGameModeId.OnValueChanged -= OnGameModeChanged;
         requiredPlayerCount.OnValueChanged -= OnRequiredPlayerCountChanged;
+        selectedMapId.OnValueChanged -= OnSelectedMapChanged;
         sessionPhase.OnValueChanged -= OnSessionPhaseChanged;
 
         if (NetworkManager != null && IsServer)
@@ -173,8 +206,21 @@ public class NetworkLobbySession : NetworkBehaviour
             return false;
         }
 
+        if (!MapCatalogRules.IsCatalogValid(
+                availableMaps,
+                out validationError))
+        {
+            return false;
+        }
+
+        MapDefinition defaultMap = MapCatalogRules.FindDefault(
+            availableMaps,
+            definition.GameModeId
+        );
+
         preparedDefinition = definition;
         preparedPlayerCount = playerCount;
+        preparedMapId = defaultMap != null ? defaultMap.MapId : MapId.None;
         hasPreparedConfiguration = true;
 
         if (IsSpawned)
@@ -212,6 +258,20 @@ public class NetworkLobbySession : NetworkBehaviour
         RequestReadyChangeRpc(isReady);
     }
 
+    public void RequestMapChange(MapId requestedMapId)
+    {
+        if (!IsSpawned)
+            return;
+
+        if (IsServer)
+        {
+            TryChangeMap(NetworkManager.LocalClientId, requestedMapId);
+            return;
+        }
+
+        RequestMapChangeRpc(requestedMapId);
+    }
+
     public void RequestStartMatch()
     {
         if (!IsSpawned)
@@ -235,6 +295,7 @@ public class NetworkLobbySession : NetworkBehaviour
 
         return definition != null &&
             definition.IsValid(out _) &&
+            HasValidSceneSelection(definition, out _) &&
             definition.AllowsPlayerCount(requiredPlayerCount.Value) &&
             LobbyValidationRules.CanStartMatch(
                 selectedGameModeId.Value,
@@ -260,7 +321,7 @@ public class NetworkLobbySession : NetworkBehaviour
         sessionPhase.Value = SessionPhase.Loading;
         gameplaySceneLoaded = false;
         returnToLobbyRequested = false;
-        activeGameplaySceneName = definition.SceneName;
+        activeGameplaySceneName = SelectedSceneName;
 
         SceneEventProgressStatus status =
             NetworkManager.SceneManager.LoadScene(
@@ -361,6 +422,14 @@ public class NetworkLobbySession : NetworkBehaviour
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void RequestMapChangeRpc(
+        MapId requestedMapId,
+        RpcParams rpcParams = default)
+    {
+        TryChangeMap(rpcParams.Receive.SenderClientId, requestedMapId);
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void RequestStartMatchRpc(RpcParams rpcParams = default)
     {
         if (rpcParams.Receive.SenderClientId != NetworkManager.ServerClientId)
@@ -425,10 +494,45 @@ public class NetworkLobbySession : NetworkBehaviour
         return true;
     }
 
+    private bool TryChangeMap(ulong clientId, MapId requestedMapId)
+    {
+        if (!IsServer || sessionPhase.Value != SessionPhase.Lobby ||
+            NetworkManager == null ||
+            clientId != NetworkManager.ServerClientId)
+        {
+            Debug.LogWarning(
+                $"El cliente {clientId} intentó cambiar el mapa sin permiso."
+            );
+            return false;
+        }
+
+        if (!MapCatalogRules.TryResolveSelection(
+                availableMaps,
+                requestedMapId,
+                selectedGameModeId.Value,
+                out MapDefinition map,
+                out string validationError))
+        {
+            Debug.LogWarning($"No se pudo cambiar el mapa: {validationError}");
+            return false;
+        }
+
+        if (selectedMapId.Value == map.MapId)
+            return true;
+
+        selectedMapId.Value = map.MapId;
+        ResetAllPlayersReady();
+        Debug.Log(
+            $"[Session] El host seleccionó {map.DisplayName} ({map.SceneName})."
+        );
+        return true;
+    }
+
     private void ApplyPreparedConfiguration()
     {
         selectedGameModeId.Value = preparedDefinition.GameModeId;
         requiredPlayerCount.Value = preparedPlayerCount;
+        selectedMapId.Value = preparedMapId;
         sessionPhase.Value = SessionPhase.Lobby;
         ResetAllPlayersReady();
     }
@@ -599,6 +703,7 @@ public class NetworkLobbySession : NetworkBehaviour
         players.Clear();
         selectedGameModeId.Value = GameModeId.None;
         requiredPlayerCount.Value = 0;
+        selectedMapId.Value = MapId.None;
         sessionPhase.Value = SessionPhase.Lobby;
         gameplaySceneLoaded = false;
         returnToLobbyRequested = false;
@@ -616,6 +721,31 @@ public class NetworkLobbySession : NetworkBehaviour
         };
     }
 
+    private bool HasValidSceneSelection(
+        GameModeDefinition definition,
+        out string validationError)
+    {
+        if (selectedMapId.Value == MapId.None)
+        {
+            if (!string.IsNullOrWhiteSpace(definition.SceneName))
+            {
+                validationError = string.Empty;
+                return true;
+            }
+
+            validationError = "La sesión no tiene una escena seleccionada.";
+            return false;
+        }
+
+        return MapCatalogRules.TryResolveSelection(
+            availableMaps,
+            selectedMapId.Value,
+            definition.GameModeId,
+            out _,
+            out validationError
+        );
+    }
+
     private void OnPlayersChanged(
         NetworkListEvent<LobbyPlayerData> changeEvent)
     {
@@ -629,6 +759,11 @@ public class NetworkLobbySession : NetworkBehaviour
     }
 
     private void OnRequiredPlayerCountChanged(int previous, int current)
+    {
+        LobbyStateChanged?.Invoke();
+    }
+
+    private void OnSelectedMapChanged(MapId previous, MapId current)
     {
         LobbyStateChanged?.Invoke();
     }

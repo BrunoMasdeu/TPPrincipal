@@ -15,4 +15,18 @@ public class TeamSpawnPoint : MonoBehaviour
 
         return assignedPlayerCount % availableSpawnPointCount;
     }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = teamId switch
+        {
+            TeamId.Red => new Color(1f, 0.2f, 0.2f, 0.9f),
+            TeamId.Blue => new Color(0.2f, 0.5f, 1f, 0.9f),
+            _ => Color.white
+        };
+
+        Vector3 position = transform.position;
+        Gizmos.DrawWireSphere(position, 0.45f);
+        Gizmos.DrawLine(position, position + transform.forward * 2f);
+    }
 }

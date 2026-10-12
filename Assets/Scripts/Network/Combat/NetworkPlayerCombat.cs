@@ -71,6 +71,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private ulong lastServerShotId;
     private double nextLocalAttackRequestAt;
     private string lastShotSummary = "Sin disparos";
+    private bool localInputEnabled = true;
 
     public event Action<int> AmmunitionChanged;
     public event Action<int> ReserveAmmunitionChanged;
@@ -80,6 +81,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
     public int Ammunition => ammunition.Value;
     public int ReserveAmmunition => reserveAmmunition.Value;
     public int Money => money.Value;
+    public bool LocalInputEnabled => localInputEnabled;
     public bool IsCombatActive => combatMode;
     public string LastShotSummary => lastShotSummary;
     public WeaponDefinition SelectedWeapon =>
@@ -163,7 +165,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
         if (IsServer)
             CompleteReloadWhenReady();
 
-        if (!IsOwner || MatchDebugConsole.IsInputCaptured)
+        if (!IsOwner || !localInputEnabled || MatchDebugConsole.IsInputCaptured)
             return;
 
         WeaponDefinition weapon = SelectedWeapon;
@@ -203,17 +205,6 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
         combatMode = true;
 
-        // Las implementaciones locales anteriores no pueden leer input ni
-        // aplicar daño mientras esta activo el circuito autoritativo.
-        foreach (GunSystem legacyGun in
-            GetComponentsInChildren<GunSystem>(true))
-        {
-            legacyGun.enabled = false;
-        }
-
-        if (TryGetComponent(out ShootingAi legacyHealth))
-            legacyHealth.enabled = false;
-
         if (IsServer)
         {
             ResetAllWeaponStates();
@@ -236,6 +227,17 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
         Transform aim = aimCamera.transform;
         RequestAttackRpc(++nextLocalShotId, aim.position, aim.forward);
+    }
+
+    /// <summary>
+    /// Bloquea ataques y recargas locales sin detener el NetworkBehaviour ni
+    /// sus callbacks de replicacion.
+    /// </summary>
+    public void SetLocalInputEnabled(bool enabled)
+    {
+        localInputEnabled = enabled;
+        if (!enabled)
+            nextLocalAttackRequestAt = 0d;
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]

@@ -57,8 +57,8 @@ public class TutorialManager : MonoBehaviour
     private int currentStepIndex = 0;
     private bool isTransitioning = false;
 
+    private PlayerNetworkSetup playerNetworkSetup;
     private Move playerMoveScript;
-    private GunSystem playerGunScript;
     private GameObject playerHUD;
     private MonoBehaviour playerCameraScript;
 
@@ -82,10 +82,7 @@ public class TutorialManager : MonoBehaviour
 
     private void Start()
     {
-        playerMoveScript = FindAnyObjectByType<Move>();
-        playerCameraScript = FindAnyObjectByType<CameraMovement>();
-        playerGunScript = FindAnyObjectByType<GunSystem>();
-        playerHUD = GameObject.Find("PlayerUI");
+        ResolvePlayerReferences();
         if (tutorialSteps.Count > 0)
         {
             LoadStep(currentStepIndex);
@@ -262,11 +259,8 @@ public class TutorialManager : MonoBehaviour
             Time.timeScale = 0f;
             // Finaliza el tutorial completo
             tutorialPanel.SetActive(false);
-            playerHUD.SetActive(false);
             if (finalMenuPanel != null) finalMenuPanel.SetActive(true);
-            if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(false);
-            if (playerGunScript != null) playerGunScript.enabled = false;
-            if (playerCameraScript != null) playerCameraScript.enabled = false;
+            SetPlayerPresentation(false, false);
             // Libera el mouse para poder hacer click en el menú final
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
@@ -293,10 +287,7 @@ public class TutorialManager : MonoBehaviour
         Time.timeScale = 1f; // Devuelve el tiempo a la normalidad
         Cursor.lockState = CursorLockMode.Locked; // Bloquea el cursor al centro
         Cursor.visible = false; // Oculta el cursor
-        if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(true);
-        if (playerGunScript != null) playerGunScript.enabled = true;
-        if (playerCameraScript != null) playerCameraScript.enabled = true;
-        playerHUD.SetActive(true);
+        SetPlayerPresentation(true, true);
     }
     public void TogglePause()
     {
@@ -309,10 +300,7 @@ public class TutorialManager : MonoBehaviour
             Time.timeScale = 0f; // Congela el tiempo y las físicas
             Cursor.lockState = CursorLockMode.None; // Libera el cursor
             Cursor.visible = true; // Hace visible el cursor
-            if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(false);
-            if (playerGunScript != null) playerGunScript.enabled = false;
-            if (playerCameraScript != null) playerCameraScript.enabled = false;
-            playerHUD.SetActive(false);
+            SetPlayerPresentation(false, false);
         }
         else
         {
@@ -321,10 +309,60 @@ public class TutorialManager : MonoBehaviour
             Time.timeScale = 1f; // Devuelve el tiempo a la normalidad
             Cursor.lockState = CursorLockMode.Locked; // Bloquea el cursor al centro
             Cursor.visible = false; // Oculta el cursor
-            if (playerMoveScript != null) playerMoveScript.SetKeyboardInputEnabled(true);
-            if (playerGunScript != null) playerGunScript.enabled = true;
-            if (playerCameraScript != null) playerCameraScript.enabled = true;
-            playerHUD.SetActive(true);
+            SetPlayerPresentation(true, true);
         }
+    }
+
+    private void ResolvePlayerReferences()
+    {
+        PlayerNetworkSetup[] candidates = FindObjectsByType<PlayerNetworkSetup>(
+            FindObjectsInactive.Include,
+            FindObjectsSortMode.None);
+
+        playerNetworkSetup = null;
+        foreach (PlayerNetworkSetup candidate in candidates)
+        {
+            if (candidate != null && candidate.IsSpawned && candidate.IsOwner)
+            {
+                playerNetworkSetup = candidate;
+                break;
+            }
+        }
+
+        if (playerNetworkSetup == null && candidates.Length > 0)
+            playerNetworkSetup = candidates[0];
+
+        playerMoveScript = playerNetworkSetup != null
+            ? playerNetworkSetup.GetComponent<Move>()
+            : FindAnyObjectByType<Move>();
+        playerCameraScript = playerNetworkSetup != null
+            ? playerNetworkSetup.GetComponentInChildren<CameraMovement>(true)
+            : FindAnyObjectByType<CameraMovement>();
+
+        PlayerHudView hudView = playerNetworkSetup != null
+            ? playerNetworkSetup.GetComponentInChildren<PlayerHudView>(true)
+            : FindAnyObjectByType<PlayerHudView>(FindObjectsInactive.Include);
+        playerHUD = hudView != null ? hudView.gameObject : GameObject.Find("PlayerUI");
+    }
+
+    private void SetPlayerPresentation(bool controlsEnabled, bool hudEnabled)
+    {
+        if (playerNetworkSetup == null)
+            ResolvePlayerReferences();
+
+        if (playerNetworkSetup != null)
+        {
+            playerNetworkSetup.SetPresentationControlsEnabled(controlsEnabled);
+            playerNetworkSetup.SetLocalHudVisible(hudEnabled);
+            return;
+        }
+
+        // Fallback para abrir la escena del tutorial sin una sesion de red.
+        if (playerMoveScript != null)
+            playerMoveScript.SetKeyboardInputEnabled(controlsEnabled);
+        if (playerCameraScript != null)
+            playerCameraScript.enabled = controlsEnabled;
+        if (playerHUD != null)
+            playerHUD.SetActive(hudEnabled);
     }
 }

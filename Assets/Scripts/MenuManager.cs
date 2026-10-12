@@ -166,7 +166,11 @@ public class MenuManager : MonoBehaviour
             return;
         }
 
-        connectionManager.StartLocalGame(raceDefinition);
+        if (!connectionManager.StartLocalGame(raceDefinition))
+            return;
+
+        playModesLayout.SetActive(false);
+        canvasMain.SetActive(false);
     }
 
     public void Settings()

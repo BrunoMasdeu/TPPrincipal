@@ -12,6 +12,9 @@ public class PlayerNetworkSetup : NetworkBehaviour
     [SerializeField] private WallRun wallRun;
     [SerializeField] private Grappling grappling;
     [SerializeField] private Canvas playerUI;
+    [SerializeField] private NetworkPlayerInventory inventory;
+    [SerializeField] private NetworkPlayerCombat combat;
+    [SerializeField] private NetworkPlayerHudPresenter hudPresenter;
 
     [Header("Checkpoint")]
     private Vector3 ultimoCheckpointPos;
@@ -21,6 +24,8 @@ public class PlayerNetworkSetup : NetworkBehaviour
     private NetworkTransform networkTransform;
     private float nextRespawnRequestTime;
     private bool matchControlsEnabled = true;
+    private bool presentationControlsEnabled = true;
+    private bool hudVisible = true;
 
     private const float RespawnRequestCooldown = 0.5f;
 
@@ -28,6 +33,9 @@ public class PlayerNetworkSetup : NetworkBehaviour
     {
         playerRigidbody = GetComponent<Rigidbody>();
         networkTransform = GetComponent<NetworkTransform>();
+        inventory ??= GetComponent<NetworkPlayerInventory>();
+        combat ??= GetComponent<NetworkPlayerCombat>();
+        hudPresenter ??= GetComponent<NetworkPlayerHudPresenter>();
         GuardarCheckpointInicial();
     }
 
@@ -41,20 +49,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
         if (audioListener != null)
             audioListener.enabled = esPropietario;
 
-        if (cameraMovement != null)
-            cameraMovement.enabled = esPropietario;
-
-        if (move != null)
-            move.enabled = esPropietario && matchControlsEnabled;
-
-        if (wallRun != null)
-            wallRun.enabled = esPropietario && matchControlsEnabled;
-
-        if (grappling != null)
-            grappling.enabled = esPropietario && matchControlsEnabled;
-
-        if (playerUI != null)          
-            playerUI.enabled = esPropietario;
+        ApplyLocalState();
 
         // Al conectarse, actualiza el punto seguro con la posición de red definitiva.
         GuardarCheckpointInicial();
@@ -125,22 +120,28 @@ public class PlayerNetworkSetup : NetworkBehaviour
     public void SetMatchControlsEnabled(bool enabled)
     {
         matchControlsEnabled = enabled;
-        if (!IsSpawned || !IsOwner)
-            return;
-
-        if (move != null)
-            move.enabled = enabled;
-        if (wallRun != null)
-            wallRun.enabled = enabled;
-        if (grappling != null)
-            grappling.enabled = enabled;
-
-        if (!enabled && playerRigidbody != null)
-        {
-            playerRigidbody.linearVelocity = Vector3.zero;
-            playerRigidbody.angularVelocity = Vector3.zero;
-        }
+        ApplyLocalState();
     }
+
+    /// <summary>
+    /// Controla pausa, tutorial y pantallas finales sin alterar el estado
+    /// autoritativo de vida ni detener la replicacion de combate/inventario.
+    /// </summary>
+    public void SetPresentationControlsEnabled(bool enabled)
+    {
+        presentationControlsEnabled = enabled;
+        ApplyLocalState();
+    }
+
+    public void SetLocalHudVisible(bool visible)
+    {
+        hudVisible = visible;
+        ApplyHudState();
+    }
+
+    public bool LocalGameplayInputEnabled =>
+        IsSpawned && IsOwner && matchControlsEnabled &&
+        presentationControlsEnabled;
 
     // Separado del checkpoint de carrera: la salud confirma el teletransporte
     // antes de volver a habilitar controles y vida.
@@ -174,6 +175,42 @@ public class PlayerNetworkSetup : NetworkBehaviour
     {
         ultimoCheckpointPos = transform.position;
         ultimoCheckpointRot = GetValidRotation(transform.rotation);
+    }
+
+    private void ApplyLocalState()
+    {
+        bool localPresentation = IsSpawned && IsOwner &&
+            presentationControlsEnabled;
+        bool localGameplay = localPresentation && matchControlsEnabled;
+
+        if (cameraMovement != null)
+            cameraMovement.enabled = localPresentation;
+        if (move != null)
+            move.enabled = localGameplay;
+        if (wallRun != null)
+            wallRun.enabled = localGameplay;
+        if (grappling != null)
+            grappling.enabled = localGameplay;
+
+        inventory?.SetLocalInputEnabled(localGameplay);
+        combat?.SetLocalInputEnabled(localGameplay);
+        ApplyHudState();
+
+        if (!localGameplay && playerRigidbody != null && IsOwner)
+        {
+            playerRigidbody.linearVelocity = Vector3.zero;
+            playerRigidbody.angularVelocity = Vector3.zero;
+        }
+    }
+
+    private void ApplyHudState()
+    {
+        bool visible = IsSpawned && IsOwner && hudVisible;
+
+        if (playerUI != null)
+            playerUI.enabled = visible;
+
+        hudPresenter?.SetHudVisible(visible);
     }
 
     private static Quaternion GetValidRotation(Quaternion rotation)

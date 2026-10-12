@@ -39,6 +39,7 @@ public class ConnectionManager : MonoBehaviour
     private NetworkLobbySession lobbySession;
     private bool servicesInitialized;
     private bool isConnecting;
+    private bool isLocalGameStarting;
     private int connectionOperation;
 
     public GameModeDefinition PendingGameModeDefinition =>
@@ -46,6 +47,7 @@ public class ConnectionManager : MonoBehaviour
 
     public int PendingPlayerCount => pendingPlayerCount;
     public bool IsConnecting => isConnecting;
+    public bool IsLocalGameStarting => isLocalGameStarting;
 
     private void Awake()
     {
@@ -111,16 +113,48 @@ public class ConnectionManager : MonoBehaviour
 
     private void OnGUI()
     {
-        if (lobbyPanel == null || !lobbyPanel.activeSelf ||
+        if (isLocalGameStarting ||
+            lobbyPanel == null || !lobbyPanel.activeSelf ||
             lobbySession == null || !lobbySession.IsSpawned ||
             NetworkManager.Singleton == null)
             return;
 
         // Controles temporales de prueba. La UI definitiva puede invocar los
         // mismos métodos públicos desde botones uGUI sin cambiar el lobby.
-        GUILayout.BeginArea(new Rect(Screen.width - 250, 15, 235, 245), GUI.skin.box);
+        GUILayout.BeginArea(new Rect(Screen.width - 270, 15, 255, 360), GUI.skin.box);
         GUILayout.Label($"MODO: {lobbySession.SelectedGameModeId}");
         GUILayout.Label($"FASE: {lobbySession.Phase}");
+
+        MapDefinition selectedMap = lobbySession.SelectedMapDefinition;
+        string selectedMapLabel = selectedMap != null
+            ? selectedMap.DisplayName
+            : lobbySession.SelectedSceneName;
+        GUILayout.Label($"MAPA: {selectedMapLabel}");
+
+        if (lobbySession.Phase == SessionPhase.Lobby &&
+            NetworkManager.Singleton.IsHost)
+        {
+            GUILayout.Label("Seleccionar mapa (host):");
+
+            for (int i = 0; i < lobbySession.AvailableMaps.Count; i++)
+            {
+                MapDefinition map = lobbySession.AvailableMaps[i];
+
+                if (!MapCatalogRules.IsSelectableForMode(
+                        map,
+                        lobbySession.SelectedGameModeId))
+                {
+                    continue;
+                }
+
+                string prefix = lobbySession.SelectedMapId == map.MapId
+                    ? "> "
+                    : string.Empty;
+
+                if (GUILayout.Button(prefix + map.DisplayName))
+                    SelectMap(map.MapId);
+            }
+        }
 
         for (int i = 0; i < lobbySession.Players.Count; i++)
         {
@@ -150,6 +184,7 @@ public class ConnectionManager : MonoBehaviour
 
     public void SelectRedTeam() => lobbySession?.RequestTeamChange(TeamId.Red);
     public void SelectBlueTeam() => lobbySession?.RequestTeamChange(TeamId.Blue);
+    public void SelectMap(MapId mapId) => lobbySession?.RequestMapChange(mapId);
 
     public void ToggleReady()
     {
@@ -374,28 +409,31 @@ public class ConnectionManager : MonoBehaviour
         }
     }
 
-    public void StartLocalGame(GameModeDefinition definition)
+    public bool StartLocalGame(GameModeDefinition definition)
     {
         NetworkManager networkManager = NetworkManager.Singleton;
 
         if (isConnecting || networkManager == null || networkManager.IsListening)
-            return;
+            return false;
 
         if (!ConfigureSessionSelection(definition, 1, out string error) ||
             !sessionBootstrap.PrepareSession(definition, 1, out error))
         {
             Debug.LogError($"No se pudo preparar la partida individual: {error}");
             SetStatus("LOCAL GAME CONFIGURATION ERROR");
-            return;
+            return false;
         }
+
+        isLocalGameStarting = true;
 
         UnityTransport transport = networkManager.GetComponent<UnityTransport>();
 
         if (transport == null)
         {
+            isLocalGameStarting = false;
             sessionBootstrap.CancelPreparedSession();
             SetStatus("UNITY TRANSPORT NOT FOUND");
-            return;
+            return false;
         }
 
         ushort localPort = transport.ConnectionData.Port == 0
@@ -405,13 +443,15 @@ public class ConnectionManager : MonoBehaviour
 
         if (!networkManager.StartHost())
         {
+            isLocalGameStarting = false;
             sessionBootstrap.CancelPreparedSession();
             SetStatus("LOCAL HOST COULD NOT START");
-            return;
+            return false;
         }
 
-        ShowLobby(true);
+        HideConnectionPanels();
         StartCoroutine(StartLocalMatchWhenReady());
+        return true;
     }
 
     private IEnumerator StartLocalMatchWhenReady()
@@ -570,7 +610,7 @@ public class ConnectionManager : MonoBehaviour
             return;
         }
 
-        string sceneName = definition.SceneName;
+        string sceneName = session.SelectedSceneName;
         SetStatus("LOADING MATCH...");
 
         if (!session.TryStartMatch())
@@ -595,6 +635,7 @@ public class ConnectionManager : MonoBehaviour
 
         connectionOperation++;
         isConnecting = false;
+        isLocalGameStarting = false;
         UnbindLobbySession();
 
         if (NetworkManager.Singleton != null &&
@@ -737,6 +778,15 @@ public class ConnectionManager : MonoBehaviour
     {
         if (connectionPanel != null)
             connectionPanel.SetActive(true);
+
+        if (lobbyPanel != null)
+            lobbyPanel.SetActive(false);
+    }
+
+    private void HideConnectionPanels()
+    {
+        if (connectionPanel != null)
+            connectionPanel.SetActive(false);
 
         if (lobbyPanel != null)
             lobbyPanel.SetActive(false);

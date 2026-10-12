@@ -76,6 +76,12 @@ public class WallRun : MonoBehaviour
         }
     }
 
+    private void OnDisable()
+    {
+        if (move != null && move.wallrunning)
+            StopWallRun();
+    }
+
     private void GetInput()
     {
         horizontalInput = 0f;

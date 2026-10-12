@@ -44,10 +44,12 @@ public class NetworkPlayerInventory : NetworkBehaviour
     private WeaponId primaryWeaponId;
     private WeaponId utilityWeaponId;
     private bool inventoryMode;
+    private bool localInputEnabled = true;
 
     public event Action<WeaponId> SelectedWeaponChanged;
 
     public WeaponId SelectedWeaponId => selectedWeapon.Value;
+    public bool LocalInputEnabled => localInputEnabled;
     public WeaponDefinition SelectedWeaponDefinition =>
         TryGetDefinition(selectedWeapon.Value, out WeaponDefinition definition)
             ? definition
@@ -79,7 +81,8 @@ public class NetworkPlayerInventory : NetworkBehaviour
         if (!inventoryMode)
             TryActivateInventoryMode();
 
-        if (!inventoryMode || !IsOwner || MatchDebugConsole.IsInputCaptured)
+        if (!inventoryMode || !IsOwner || !localInputEnabled ||
+            MatchDebugConsole.IsInputCaptured)
             return;
 
         Keyboard keyboard = Keyboard.current;
@@ -184,6 +187,15 @@ public class NetworkPlayerInventory : NetworkBehaviour
             _ => WeaponSlot.None
         };
         return slot != WeaponSlot.None;
+    }
+
+    /// <summary>
+    /// Bloquea solamente la lectura de teclado local. El componente permanece
+    /// activo para seguir replicando la seleccion de los jugadores remotos.
+    /// </summary>
+    public void SetLocalInputEnabled(bool enabled)
+    {
+        localInputEnabled = enabled;
     }
 
     private void InitializeLoadout()

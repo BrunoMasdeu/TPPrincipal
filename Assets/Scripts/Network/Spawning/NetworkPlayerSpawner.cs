@@ -115,7 +115,7 @@ public class NetworkPlayerSpawner : NetworkBehaviour
 
         if (lobbySession.Phase != SessionPhase.Loading ||
             definition == null ||
-            sceneName != definition.SceneName)
+            sceneName != lobbySession.SelectedSceneName)
         {
             return;
         }

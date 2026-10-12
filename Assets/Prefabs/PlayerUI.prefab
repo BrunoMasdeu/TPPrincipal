@@ -815,6 +815,7 @@ GameObject:
   - component: {fileID: 2983595332500339606}
   - component: {fileID: 2172910761934025866}
   - component: {fileID: 6223802698850979123}
+  - component: {fileID: 1437686175334581308}
   m_Layer: 5
   m_Name: PlayerUI
   m_TagString: Untagged
@@ -908,6 +909,29 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!114 &1437686175334581308
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4035904569179689877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bdaade1133834d4c82612b7c3635d1d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::PlayerHudView
+  healthIcon: {fileID: 605262082541652954}
+  healthText: {fileID: 7768807440004000381}
+  ammunitionText: {fileID: 6140618848898632630}
+  meleeHighlight: {fileID: 7904175383063673447}
+  secondaryHighlight: {fileID: 2260571474196765801}
+  primaryHighlight: {fileID: 1658518413665727120}
+  utilityHighlight: {fileID: 3178500212294868461}
+  inactiveSlotAlpha: 0
+  activeSlotAlpha: 0.65
+  normalHealthColor: {r: 1, g: 1, b: 1, a: 1}
+  lowHealthColor: {r: 1, g: 0.25, b: 0.25, a: 1}
 --- !u!1 &4210565236257837592
 GameObject:
   m_ObjectHideFlags: 0

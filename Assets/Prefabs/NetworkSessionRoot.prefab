@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 822863583
+  GlobalObjectIdHash: 3547126103
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -81,6 +81,10 @@ MonoBehaviour:
   tdmDefinition: {fileID: 11400000, guid: 4968f3babad645ef81006ff42daa1939, type: 2}
   ctfDefinition: {fileID: 11400000, guid: 9f38f594a1634f33baec203054483d37, type: 2}
   raceDefinition: {fileID: 11400000, guid: f9e48267f36c4c1984070a70e79d64a4, type: 2}
+  availableMaps:
+  - {fileID: 11400000, guid: 8f3dec389ea7ecf4caac34db14199f48, type: 2}
+  - {fileID: 11400000, guid: f9d1f64b61cda1b46a006c23f19a7861, type: 2}
+  - {fileID: 11400000, guid: b17991778f0562d479aabe58df38cab1, type: 2}
   lobbySceneName: MenuScene
   requireBalancedTeams: 1
 --- !u!114 &8400005
