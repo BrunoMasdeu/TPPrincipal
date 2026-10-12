@@ -10032,11 +10032,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::MenuManager
   playModesLayout: {fileID: 1631011259}
   connectionManager: {fileID: 1559012516}
-  tdmDefinition: {fileID: 11400000, guid: 4968f3babad645ef81006ff42daa1939, type: 2}
-  ctfDefinition: {fileID: 11400000, guid: 9f38f594a1634f33baec203054483d37, type: 2}
   raceDefinition: {fileID: 11400000, guid: f9e48267f36c4c1984070a70e79d64a4, type: 2}
-  initialGameMode: 1
-  selectedPlayerCount: 2
   cursorDefault: {fileID: 0}
   cursorHover: {fileID: 2800000, guid: a418eb152ae3ca64d904e40a67b51f18, type: 3}
   hotSpotDefault: {x: 0, y: 0}
