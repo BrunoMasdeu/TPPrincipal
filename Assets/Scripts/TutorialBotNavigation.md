@@ -1,6 +1,6 @@
 # Bots del tutorial
 
-En `CentroEntrenamiento`, los cinco componentes `movimientoLateral` comparten el
+En `CentroEntrenamiento`, los cinco componentes `movimientoBot` comparten el
 `BotPatrolArea` de la instancia de `Factory1Floor02` situada debajo de ellos.
 La otra instancia del mismo prefab no forma parte del recorrido.
 

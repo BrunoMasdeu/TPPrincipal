@@ -17,7 +17,7 @@ public class movimientoBot : MonoBehaviour
 {
     /// <summary>
     /// Evento estático invocado cuando un bot es destruido al quedarse sin vida.
-    /// Preservado para integración con GunSystem y TutorialManager.
+    /// Consumido por TutorialManager para registrar las bajas de práctica.
     /// </summary>
     public static event Action<string> OnTargetDestroyed;
 

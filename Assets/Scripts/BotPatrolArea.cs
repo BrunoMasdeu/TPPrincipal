@@ -7,7 +7,7 @@ using UnityEngine.AI;
 /// 
 /// Relación con otros componentes:
 /// - Se ejecuta con prioridad previa (<c>[DefaultExecutionOrder(-100)]</c>) para registrar el <see cref="NavMeshData"/> antes del Start de los bots.
-/// - Es referenciado por <see cref="movimientoLateral"/> para validar las posiciones y generar destinos aleatorios dentro del piso.
+/// - Es referenciado por <see cref="movimientoBot"/> para validar las posiciones y generar destinos aleatorios dentro del piso.
 /// </summary>
 [DefaultExecutionOrder(-100)]
 public class BotPatrolArea : MonoBehaviour

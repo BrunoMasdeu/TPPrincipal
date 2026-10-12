@@ -1,14 +1,13 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement;
-using Unity.Netcode;
 
 public class MenuManager : MonoBehaviour
 {
     [SerializeField] private GameObject playModesLayout;
 
-    [Tooltip("Nombre exacto de la escena del juego")]
-    [SerializeField] private string nombreEscenaJuego = "GameScene";
+    [Header("Network flow")]
+    [SerializeField] private ConnectionManager connectionManager;
+    [SerializeField] private GameModeDefinition raceDefinition;
 
     [Header("Texturas de Cursor")]
     [Tooltip("Cursor por defecto del juego")]
@@ -28,7 +27,6 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject panelExit;
     [SerializeField] private GameObject canvasMultiplayer;
     private bool sobreBoton = false;
-
     private void Start()
     {
         // Establecer el cursor personalizado al iniciar la escena
@@ -82,36 +80,17 @@ public class MenuManager : MonoBehaviour
 
     public void PlaySinglePlayer()
     {
-        NetworkManager networkManager = NetworkManager.Singleton;
-
-        if (networkManager == null)
+        if (connectionManager == null || raceDefinition == null)
         {
-            Debug.LogError("No existe un NetworkManager en MenuScene.");
+            Debug.LogError("Falta configurar la carrera individual en el menú.");
             return;
         }
 
-        LobbyPlayerSpawner playerSpawner =
-            networkManager.GetComponent<LobbyPlayerSpawner>();
-
-        if (playerSpawner == null)
-        {
-            Debug.LogError("No existe un LobbyPlayerSpawner en MenuScene.");
+        if (!connectionManager.StartLocalGame(raceDefinition))
             return;
-        }
 
-        playerSpawner.ConfigureRequiredPlayerCount(1);
-
-        if (!networkManager.StartHost())
-        {
-            playerSpawner.ConfigureRequiredPlayerCount(2);
-            Debug.LogError("No se pudo iniciar la partida individual.");
-            return;
-        }
-
-        networkManager.SceneManager.LoadScene(
-            nombreEscenaJuego,
-            LoadSceneMode.Single
-        );
+        playModesLayout.SetActive(false);
+        canvasMain.SetActive(false);
     }
 
     public void Settings()
@@ -166,4 +145,5 @@ public class MenuManager : MonoBehaviour
         canvasMultiplayer.SetActive(false);
         canvasMain.SetActive(true);
     }
+
 }

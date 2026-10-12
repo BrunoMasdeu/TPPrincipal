@@ -76,12 +76,20 @@ public class WallRun : MonoBehaviour
         }
     }
 
+    private void OnDisable()
+    {
+        if (move != null && move.wallrunning)
+            StopWallRun();
+    }
+
     private void GetInput()
     {
         horizontalInput = 0f;
         verticalInput = 0f;
+        upwardsRunning = false;
+        downwardsRunning = false;
 
-        if (Keyboard.current == null)
+        if (MatchDebugConsole.IsInputCaptured || Keyboard.current == null)
             return;
 
         if (Keyboard.current.aKey.isPressed)

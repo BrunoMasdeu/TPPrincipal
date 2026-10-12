@@ -39,6 +39,7 @@ public class Grappling : MonoBehaviour
     private Animator hookAnimator;
     private HookState hookState = HookState.Idle;
     private bool hasStarted;
+    private bool equipped;
 
     [Header("Visuals")]
     [SerializeField] private float hookSurfaceOffset = 0.04f;
@@ -69,7 +70,11 @@ public class Grappling : MonoBehaviour
 
         HideGrappleVisuals();
         hasStarted = true;
-        CreatePersistentHook();
+
+        if (equipped)
+            CreatePersistentHook();
+        else
+            HideEquipmentVisuals();
 
         Debug.Log(
             $"[Grappling] Start en '{name}'. " +
@@ -81,22 +86,28 @@ public class Grappling : MonoBehaviour
 
     void OnEnable()
     {
-        if (hasStarted)
+        if (hasStarted && equipped)
             CreatePersistentHook();
     }
 
     void Update()
     {
-        // Click derecho
-        if (Mouse.current.rightButton.wasPressedThisFrame)
-        {
-            StartGrapple();
-        }
+        if (!equipped)
+            return;
 
-        // Soltar click derecho
-        if (Mouse.current.rightButton.wasReleasedThisFrame)
+        if (MatchDebugConsole.IsInputCaptured)
         {
-            StopGrapple();
+            if (grappling || hookState == HookState.Flying)
+                StopGrapple();
+        }
+        else if (Mouse.current != null)
+        {
+            // Click derecho
+            if (Mouse.current.rightButton.wasPressedThisFrame)
+                StartGrapple();
+
+            if (Mouse.current.rightButton.wasReleasedThisFrame)
+                StopGrapple();
         }
 
         if (grapplingCdTimer > 0)
@@ -112,7 +123,7 @@ public class Grappling : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!grappling || hookState != HookState.Attached)
+        if (!equipped || !grappling || hookState != HookState.Attached)
             return;
 
         Vector3 toPoint = grapplePoint - transform.position;
@@ -136,13 +147,14 @@ public class Grappling : MonoBehaviour
 
     void LateUpdate()
     {
-        if (hookState != HookState.Idle)
+        if (equipped && hookState != HookState.Idle)
             UpdateGrappleVisuals();
     }
 
     void StartGrapple()
     {
-        if (grapplingCdTimer > 0 || hookState != HookState.Idle)
+        if (!equipped || grapplingCdTimer > 0 ||
+            hookState != HookState.Idle)
             return;
 
         if (activeHook == null)
@@ -227,7 +239,7 @@ public class Grappling : MonoBehaviour
         }
 
         if (hookStored != null)
-            hookStored.SetActive(true);
+            hookStored.SetActive(equipped);
 
         hookState = HookState.Idle;
         grappling = false;
@@ -250,6 +262,12 @@ public class Grappling : MonoBehaviour
 
     private void CreatePersistentHook()
     {
+        if (!equipped)
+        {
+            HideEquipmentVisuals();
+            return;
+        }
+
         if (hookProjectilePrefab == null || cableOrigin == null)
         {
             Debug.LogWarning(
@@ -443,6 +461,53 @@ public class Grappling : MonoBehaviour
     {
         SetRopeSpeed(speed, speed);
     }
+
+    /// <summary>
+    /// El inventario controla si el gancho esta en la mano. Al desequiparlo
+    /// se cancela inmediatamente cualquier ciclo y se ocultan sus visuales.
+    /// </summary>
+    public void SetEquipped(bool value)
+    {
+        equipped = value;
+
+        if (!equipped)
+        {
+            HideEquipmentVisuals();
+            return;
+        }
+
+        if (enabled && hasStarted)
+        {
+            CreatePersistentHook();
+            return;
+        }
+
+        // Las copias remotas no ejecutan Grappling, pero deben mostrar el
+        // modelo guardado cuando la seleccion replicada es el gancho.
+        if (hookStored != null)
+            hookStored.SetActive(true);
+    }
+
+    private void HideEquipmentVisuals()
+    {
+        HideGrappleVisuals();
+
+        if (activeHook != null)
+        {
+            if (cableOrigin != null)
+                activeHook.transform.SetParent(cableOrigin, false);
+
+            activeHook.SetActive(false);
+        }
+
+        if (hookStored != null)
+            hookStored.SetActive(false);
+
+        hookState = HookState.Idle;
+        grappling = false;
+    }
+
+    public bool IsEquipped() => equipped;
 
     public bool IsGrappling()
     {

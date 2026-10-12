@@ -12,7 +12,7 @@ using UnityEngine.AI;
 /// Responsabilidad:
 /// - Abre la escena de entrenamiento, identifica la instancia correcta del piso "Factory1Floor02".
 /// - Recolecta las fuentes geométricas de la escena, hornea y guarda el asset de <see cref="NavMeshData"/>.
-/// - Configura los componentes <see cref="movimientoLateral"/>, <see cref="NavMeshAgent"/>, <see cref="Rigidbody"/> y <see cref="Animator"/> de los 5 bots.
+/// - Configura los componentes <see cref="movimientoBot"/>, <see cref="NavMeshAgent"/>, <see cref="Rigidbody"/> y <see cref="Animator"/> de los 5 bots.
 /// </summary>
 public static class TutorialBotNavigationSetup
 {

@@ -1618,7 +1618,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 64e28582a9c93914bab0822a61a6bd0d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game::movimientoLateral
+  m_EditorClassIdentifier: Game::movimientoBot
   velocidad: 3
   distanciaMovimiento: 2.5
   health: 100
@@ -12841,7 +12841,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 64e28582a9c93914bab0822a61a6bd0d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game::movimientoLateral
+  m_EditorClassIdentifier: Game::movimientoBot
   velocidad: 3.5
   distanciaMovimiento: 2.5
   health: 100
@@ -21145,7 +21145,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 64e28582a9c93914bab0822a61a6bd0d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game::movimientoLateral
+  m_EditorClassIdentifier: Game::movimientoBot
   velocidad: 3
   distanciaMovimiento: 2.5
   health: 100
@@ -22509,7 +22509,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 64e28582a9c93914bab0822a61a6bd0d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game::movimientoLateral
+  m_EditorClassIdentifier: Game::movimientoBot
   velocidad: 3
   distanciaMovimiento: 2.5
   health: 100
@@ -24572,7 +24572,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 64e28582a9c93914bab0822a61a6bd0d, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game::movimientoLateral
+  m_EditorClassIdentifier: Game::movimientoBot
   velocidad: 3
   distanciaMovimiento: 2.5
   health: 100
