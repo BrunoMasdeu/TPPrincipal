@@ -55,6 +55,8 @@ public class CameraMovement : MonoBehaviour
     {
         if (MatchDebugConsole.IsInputCaptured)
             return;
+        if (NetworkPlayerShop.IsInputCaptured)
+            return;
 
         Vector2 mouse = Mouse.current.delta.ReadValue();
 

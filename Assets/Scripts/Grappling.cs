@@ -94,6 +94,8 @@ public class Grappling : MonoBehaviour
     {
         if (!equipped)
             return;
+        if (NetworkPlayerShop.IsInputCaptured)
+            return;
 
         if (MatchDebugConsole.IsInputCaptured)
         {

@@ -1928,6 +1928,7 @@ GameObject:
   - component: {fileID: 9175954417150250765}
   - component: {fileID: 5239097955346510620}
   - component: {fileID: 5225828390091857571}
+  - component: {fileID: -404201642656342299}
   m_Layer: 0
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -2180,7 +2181,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3814868959
+  GlobalObjectIdHash: 377557317
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -2324,7 +2325,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::NetworkPlayerCombat
   ShowTopMostFoldoutHeaderGroup: 1
   aimCamera: {fileID: 8424079443320761598}
-  moneyLostOnDeath: 20
+  moneyLostOnDeath: 100
 --- !u!114 &9175954417150250765
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2357,10 +2358,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3b8f7d56ab2a6354ab5018fffeed33cf, type: 2}
   - {fileID: 11400000, guid: 16997cb19e704fd4686fc5b0a9532515, type: 2}
   - {fileID: 11400000, guid: d7d5c2c192cd16c4da5efab3132af787, type: 2}
+  - {fileID: 11400000, guid: d6e61bd2e5244aa597304b855fa03954, type: 2}
   meleeWeapon: {fileID: 11400000, guid: 75d7730895551604fa8d00c4f83e13ad, type: 2}
   startingSidearm: {fileID: 11400000, guid: 86d321765143bf84c829903a87b9b7b0, type: 2}
-  startingPrimary: {fileID: 11400000, guid: 16997cb19e704fd4686fc5b0a9532515, type: 2}
-  startingUtility: {fileID: 11400000, guid: d6e61bd2e5244aa597304b855fa03954, type: 2}
+  startingPrimary: {fileID: 0}
+  startingUtility: {fileID: 0}
   weaponVisuals:
   - WeaponId: 1
     Visual: {fileID: 7799358782046836286}
@@ -2388,6 +2390,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::NetworkPlayerHudPresenter
   ShowTopMostFoldoutHeaderGroup: 1
   view: {fileID: 3221399559167807117}
+--- !u!114 &-404201642656342299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7aecc69f3e01fce438a52327f3506795, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::NetworkPlayerShop
+  ShowTopMostFoldoutHeaderGroup: 1
+  purchaseSeconds: 15
+  items:
+  - Label: AK
+    Weapon: {fileID: 11400000, guid: 16997cb19e704fd4686fc5b0a9532515, type: 2}
+    Price: 600
+  - Label: Gancho
+    Weapon: {fileID: 11400000, guid: d6e61bd2e5244aa597304b855fa03954, type: 2}
+    Price: 300
+  - Label: M4
+    Weapon: {fileID: 11400000, guid: d7d5c2c192cd16c4da5efab3132af787, type: 2}
+    Price: 500
+  - Label: Revolver
+    Weapon: {fileID: 11400000, guid: 3b8f7d56ab2a6354ab5018fffeed33cf, type: 2}
+    Price: 250
+  - Label: Pistola
+    Weapon: {fileID: 11400000, guid: 86d321765143bf84c829903a87b9b7b0, type: 2}
+    Price: 150
 --- !u!1 &6349465550390264369
 GameObject:
   m_ObjectHideFlags: 0
