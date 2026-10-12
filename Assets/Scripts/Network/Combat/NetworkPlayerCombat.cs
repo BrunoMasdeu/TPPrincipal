@@ -376,12 +376,22 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
             if (trainingPreview)
             {
-                movimientoLateral target =
-                    hit.collider.GetComponentInParent<movimientoLateral>();
+                movimientoBot bot =
+                    hit.collider.GetComponentInParent<movimientoBot>();
 
-                if (target != null)
+                if (bot != null)
                 {
-                    target.TakeDamage(weapon.Damage);
+                    bot.TakeDamage(weapon.Damage);
+                    ShotFeedbackRpc(
+                        ShotOutcome.TrainingHit,
+                        0UL,
+                        weapon.Damage,
+                        0UL);
+                }
+                else if (hit.collider.GetComponentInParent<Diana>() is
+                    Diana target)
+                {
+                    target.Derribar();
                     ShotFeedbackRpc(
                         ShotOutcome.TrainingHit,
                         0UL,

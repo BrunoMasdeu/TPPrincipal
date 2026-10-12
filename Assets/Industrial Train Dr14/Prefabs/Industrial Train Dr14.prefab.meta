@@ -1,0 +1,16 @@
+fileFormatVersion: 2
+guid: 6e35b9c040b5a1248ab789b5a16c9af8
+timeCreated: 1581021014
+licenseType: Store
+NativeFormatImporter:
+  mainObjectFileID: 100100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 162567
+  packageName: Industrial Train Dr14
+  packageVersion: 1.0
+  assetPath: Assets/Industrial Train Dr14/Prefabs/Industrial Train Dr14.prefab
+  uploadId: 353068

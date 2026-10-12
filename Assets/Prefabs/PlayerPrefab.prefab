@@ -2342,7 +2342,7 @@ MonoBehaviour:
   hookHeadRotationOffset: {x: 0, y: 0, z: 0}
   whatIsGrappleable:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 256
   maxGrappleDistance: 20
   grappleForce: 15
   stopDistance: 1
