@@ -20,6 +20,11 @@ public class UnifiedPlayerPrefabTests
         Assert.That(prefab.GetComponent<Grappling>(), Is.Not.Null);
         Assert.That(prefab.GetComponent<WallRun>(), Is.Not.Null);
 
+        CtfFlagCarrySocket[] flagSockets =
+            prefab.GetComponentsInChildren<CtfFlagCarrySocket>(true);
+        Assert.That(flagSockets, Has.Length.EqualTo(1),
+            "PlayerPrefab necesita un único CtfFlagCarrySocket.");
+
         PlayerHudView view = prefab.GetComponentInChildren<PlayerHudView>(true);
         Assert.That(view, Is.Not.Null, "Falta PlayerHudView dentro del prefab.");
         Assert.That(view.HasRequiredReferences, Is.True,
@@ -104,12 +109,25 @@ public class UnifiedPlayerPrefabTests
             new[] { 1, 2, 3, 4, 5, 6 },
             configuredIds);
 
-        WeaponDefinition utility = serializedInventory
-            .FindProperty("startingUtility")
-            .objectReferenceValue as WeaponDefinition;
-        Assert.That(utility, Is.Not.Null);
-        Assert.That(utility.Id, Is.EqualTo(WeaponId.Grapple));
-        Assert.That(utility.Slot, Is.EqualTo(WeaponSlot.Utility));
+        SerializedProperty definitions =
+            serializedInventory.FindProperty("weaponDefinitions");
+        WeaponDefinition grapple = null;
+
+        for (int index = 0; index < definitions.arraySize; index++)
+        {
+            WeaponDefinition definition = definitions
+                .GetArrayElementAtIndex(index)
+                .objectReferenceValue as WeaponDefinition;
+            if (definition != null && definition.Id == WeaponId.Grapple)
+            {
+                grapple = definition;
+                break;
+            }
+        }
+
+        Assert.That(grapple, Is.Not.Null,
+            "El catálogo del inventario necesita la definición del gancho.");
+        Assert.That(grapple.Slot, Is.EqualTo(WeaponSlot.Utility));
     }
 
     private static GameObject LoadPlayerPrefab()
