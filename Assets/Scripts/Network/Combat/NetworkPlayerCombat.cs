@@ -40,7 +40,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
     [SerializeField] private Camera aimCamera;
 
     [Header("Economia provisional")]
-    [SerializeField, Min(0)] private int moneyLostOnDeath = 20;
+    [SerializeField, Min(0)] private int moneyLostOnDeath = 100;
 
     private readonly NetworkVariable<int> ammunition = new(
         0,
@@ -55,7 +55,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
     private readonly NetworkVariable<int> money = new(
-        100,
+        0,
         NetworkVariableReadPermission.Owner,
         NetworkVariableWritePermission.Server);
 
@@ -470,20 +470,18 @@ public class NetworkPlayerCombat : NetworkBehaviour
         int appliedDamage,
         ulong deathEventId)
     {
-        if (deathEventId > 0UL)
-        {
-            NetworkPlayerCombat victimCombat =
-                victim.GetComponent<NetworkPlayerCombat>();
-            victimCombat?.ApplyDeathMoneyPenalty();
-        }
-
-        if (appliedDamage <= 0)
+        if (!IsServer || deathEventId == 0UL)
             return;
 
-        money.Value += 10;
+        NetworkPlayerCombat victimCombat =
+            victim.GetComponent<NetworkPlayerCombat>();
+        victimCombat?.ApplyDeathMoneyPenalty();
+
+        money.Value += 200;
+
         Debug.Log(
             $"[Dinero][Servidor] Cliente {OwnerClientId}: " +
-            $"+10 | Total: ${money.Value}"
+            $"+200 por eliminacion | Total: ${money.Value}"
         );
     }
 
@@ -591,6 +589,62 @@ public class NetworkPlayerCombat : NetworkBehaviour
             weaponStates.TryGetValue(weapon.Id, out state);
     }
 
+    public bool TryBuyWeaponOnServer(WeaponId weaponId, int price)
+    {
+        if (!IsServer ||
+            !IsSpawned ||
+            !combatMode ||
+            price < 0 ||
+            money.Value < price ||
+            health == null ||
+            health.LifeState != PlayerLifeState.Alive ||
+            inventory == null ||
+            inventory.HasWeaponInLoadout(weaponId) ||
+            !inventory.TryGetDefinition(
+                weaponId,
+                out WeaponDefinition definition))
+        {
+            return false;
+        }
+
+        bool createdState = false;
+
+        if (!weaponStates.ContainsKey(weaponId))
+        {
+            weaponStates.Add(weaponId, new WeaponRuntimeState
+            {
+                MagazineAmmunition = definition.UsesAmmunition
+                    ? definition.MagazineSize
+                    : 0,
+                ReserveAmmunition = definition.UsesAmmunition
+                    ? definition.InitialReserveAmmunition
+                    : 0,
+                ReloadEndsAt = 0d,
+                NextAttackAt = 0d
+            });
+
+            createdState = true;
+        }
+
+        if (!inventory.TryAddPurchasedWeaponOnServer(weaponId))
+        {
+            if (createdState)
+                weaponStates.Remove(weaponId);
+
+            return false;
+        }
+
+        money.Value -= price;
+        PublishSelectedWeaponState();
+
+        Debug.Log(
+            $"[Tienda][Servidor] Cliente {OwnerClientId}: " +
+            $"compro {definition.DisplayName} por ${price}. " +
+            $"Saldo: ${money.Value}");
+
+        return true;
+    }
+
     private void PublishSelectedWeaponState()
     {
         if (!IsServer || !TryGetSelectedWeaponState(
@@ -649,6 +703,9 @@ public class NetworkPlayerCombat : NetworkBehaviour
         deathPenaltyApplied = false;
         ResetAllWeaponStates();
         PublishSelectedWeaponState();
+
+        GetComponent<NetworkPlayerShop>()?
+            .BeginPurchaseWindowOnServer();
     }
 
     private void OnAmmunitionChanged(int previous, int current) =>

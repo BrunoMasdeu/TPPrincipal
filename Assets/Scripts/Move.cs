@@ -63,7 +63,8 @@ public class Move : MonoBehaviour
             anim.SetBool(RunningParam, running);
         }
 
-        if (MatchDebugConsole.IsInputCaptured)
+        if (MatchDebugConsole.IsInputCaptured ||
+            NetworkPlayerShop.IsInputCaptured)
         {
             ClearMovementInput();
             jumpPressed = false;

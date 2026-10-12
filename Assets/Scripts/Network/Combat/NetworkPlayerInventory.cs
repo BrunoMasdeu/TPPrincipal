@@ -305,6 +305,86 @@ public class NetworkPlayerInventory : NetworkBehaviour
             : null;
         return definition != null;
     }
+        public bool HasWeaponInLoadout(WeaponId weaponId)
+        {
+            return IsInCurrentLoadout(weaponId);
+        }
+    
+        public bool TryAddPurchasedWeaponOnServer(WeaponId weaponId)
+        {
+            if (!IsServer)
+                return false;
+
+            if (!IsSpawned)
+            {
+                Debug.LogWarning(
+                    "[Inventario] Compra rechazada: jugador sin spawn.",
+                    this);
+                return false;
+            }
+
+            if (!inventoryMode)
+            {
+                Debug.LogWarning(
+                    "[Inventario] Compra rechazada: modo inventario inactivo.",
+                    this);
+                return false;
+            }
+
+            if (!TryGetDefinition(
+                    weaponId,
+                    out WeaponDefinition definition))
+            {
+                Debug.LogWarning(
+                $"[Inventario] Compra rechazada: {weaponId} no tiene " +
+                    "una definicion registrada. Revisá Weapon Definitions.",
+                    this);
+                return false;
+            }
+
+            if (IsInCurrentLoadout(weaponId))
+            {
+                Debug.LogWarning(
+                    $"[Inventario] Compra rechazada: ya tenés {weaponId}.",
+                    this);
+                return false;
+            }
+
+            switch (definition.Slot)
+            {
+                case WeaponSlot.Melee:
+                    meleeWeaponId = weaponId;
+                    break;
+
+                case WeaponSlot.Secondary:
+                    sidearmWeaponId = weaponId;
+                    break;
+
+                case WeaponSlot.Primary:
+                    primaryWeaponId = weaponId;
+                    break;
+
+                case WeaponSlot.Utility:
+                    utilityWeaponId = weaponId;
+                    break;
+
+                default:
+                    Debug.LogWarning(
+                        $"[Inventario] Compra rechazada: {weaponId} " +
+                        $"tiene una ranura invalida ({definition.Slot}).",
+                        this);
+                    return false;
+            }
+
+            selectedWeapon.Value = weaponId;
+
+            Debug.Log(
+                $"[Inventario] Compra aceptada: {weaponId}, " +
+                $"ranura {definition.Slot}.",
+                this);
+
+            return true;
+        }
 
     private static void AddUniqueDefinition(
         List<WeaponDefinition> destination,
