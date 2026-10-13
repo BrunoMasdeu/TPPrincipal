@@ -26,6 +26,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject canvasRules;
     [SerializeField] private GameObject panelExit;
     [SerializeField] private GameObject canvasMultiplayer;
+    [SerializeField] private GameObject canvasLobby;
     private bool sobreBoton = false;
     private void Start()
     {
@@ -75,7 +76,7 @@ public class MenuManager : MonoBehaviour
     }
     public void Play()
     {
-        playModesLayout.SetActive(!playModesLayout.activeSelf);
+        ShowConnectionMenu();
     }
 
     public void PlaySinglePlayer()
@@ -89,8 +90,7 @@ public class MenuManager : MonoBehaviour
         if (!connectionManager.StartLocalTutorial())
             return;
 
-        playModesLayout.SetActive(false);
-        canvasMain.SetActive(false);
+        HideMenu();
     }
 
     public void PlayParkour()
@@ -104,32 +104,28 @@ public class MenuManager : MonoBehaviour
         if (!connectionManager.StartLocalGame(raceDefinition))
             return;
 
-        playModesLayout.SetActive(false);
-        canvasMain.SetActive(false);
+        HideMenu();
     }
 
     public void Settings()
     {
-        canvasMain.SetActive(false);
-        canvasSettings.SetActive(true);
+        ShowCanvas(canvasSettings);
     }
 
     public void OpenRules()
     {
-        canvasMain.SetActive(false);
-        canvasRules.SetActive(true);
+        if (canvasRules != null)
+            ShowCanvas(canvasRules);
     }
 
     public void CloseRules()
     {
-        canvasMain.SetActive(true);
-        canvasRules.SetActive(false);
+        ShowMainMenu();
     }
 
     public void ReturnMenu()
     {
-        canvasMain.SetActive(true);
-        canvasSettings.SetActive(false);
+        ShowMainMenu();
     }
 
     public void SalirDelJuego()
@@ -150,15 +146,36 @@ public class MenuManager : MonoBehaviour
 
     public void OpenMultiplayer()
     {
-        canvasMain.SetActive(false);
-        canvasSettings.SetActive(false);
-        canvasMultiplayer.SetActive(true);
+        ShowConnectionMenu();
     }
 
     public void CloseMultiplayer()
     {
-        canvasMultiplayer.SetActive(false);
-        canvasMain.SetActive(true);
+        connectionManager?.CancelConnection();
+        ShowMainMenu();
     }
 
+    public void ShowMainMenu() => ShowCanvas(canvasMain);
+    public void ShowConnectionMenu() => ShowCanvas(canvasMultiplayer);
+    public void ShowLobbyMenu() => ShowCanvas(canvasLobby);
+    public void HideMenu() => ShowCanvas(null);
+
+    private void ShowCanvas(GameObject selected)
+    {
+        SetCanvasActive(canvasMain, selected);
+        SetCanvasActive(canvasSettings, selected);
+        SetCanvasActive(canvasRules, selected);
+        SetCanvasActive(canvasMultiplayer, selected);
+        SetCanvasActive(canvasLobby, selected);
+        if (playModesLayout != null && playModesLayout != canvasMultiplayer)
+            playModesLayout.SetActive(false);
+        if (panelExit != null)
+            panelExit.SetActive(false);
+    }
+
+    private static void SetCanvasActive(GameObject canvas, GameObject selected)
+    {
+        if (canvas != null)
+            canvas.SetActive(canvas == selected);
+    }
 }

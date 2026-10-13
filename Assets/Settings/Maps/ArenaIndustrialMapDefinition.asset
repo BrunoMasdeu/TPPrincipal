@@ -15,5 +15,6 @@ MonoBehaviour:
   mapId: 3
   displayName: Arena Industrial
   sceneName: ArenaIndustrial
+  previewImage: {fileID: 21300000, guid: 333416d296e01d04c949d2e5b0793878, type: 3}
   supportedGameModes: 0102
   selectable: 1

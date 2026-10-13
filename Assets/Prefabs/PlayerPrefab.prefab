@@ -4958,7 +4958,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::NetworkPlayerCombat
   ShowTopMostFoldoutHeaderGroup: 1
   aimCamera: {fileID: 8424079443320761598}
-  moneyLostOnDeath: 100
+  moneyLostOnDeath: 0
 --- !u!114 &9175954417150250765
 MonoBehaviour:
   m_ObjectHideFlags: 0

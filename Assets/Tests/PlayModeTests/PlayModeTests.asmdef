@@ -6,6 +6,8 @@
     "references": [
         "Unity.InputSystem",
         "Unity.InputSystem.TestFramework",
-        "Game"
+        "Game",
+        "Unity.Netcode.Runtime",
+        "Unity.TextMeshPro"
     ]
 }
