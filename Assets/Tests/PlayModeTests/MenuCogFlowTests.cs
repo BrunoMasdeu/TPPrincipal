@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Reflection;
 using NUnit.Framework;
 using TMPro;
 using Unity.Netcode;
@@ -112,12 +113,85 @@ public class MenuCogFlowTests
         float deadline = Time.realtimeSinceStartup + 20;
         while ((SceneManager.GetActiveScene().name != "CentroEntrenamiento" ||
                 NetworkLobbySession.Instance == null ||
-                NetworkLobbySession.Instance.Phase != SessionPhase.InMatch) && Time.realtimeSinceStartup < deadline)
+                NetworkManager.Singleton.LocalClient.PlayerObject == null) && Time.realtimeSinceStartup < deadline)
             yield return null;
         Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("CentroEntrenamiento"));
         Assert.That(NetworkManager.Singleton.IsHost, Is.True);
-        Assert.That(NetworkLobbySession.Instance.SelectedGameModeId, Is.EqualTo(GameModeId.Race));
-        Assert.That(NetworkLobbySession.Instance.SelectedPlayerCount, Is.EqualTo(1));
+        Assert.That(NetworkLobbySession.Instance.SelectedGameModeId, Is.EqualTo(GameModeId.None));
+        Assert.That(NetworkLobbySession.Instance.SelectedPlayerCount, Is.EqualTo(0));
+        Assert.That(NetworkLobbySession.Instance.Phase, Is.EqualTo(SessionPhase.Lobby));
         Assert.That(NetworkManager.Singleton.LocalClient.PlayerObject, Is.Not.Null);
+    }
+
+    [UnityTest]
+    public IEnumerator EasterEggDoorStartsRaceOnlyAfterTutorialCompletion()
+    {
+        ConnectionManager connection =
+            Object.FindFirstObjectByType<ConnectionManager>();
+        connection.GetComponent<MenuManager>().Play();
+        connection.transform.Find("Canv_Jugar/Btn_SinglePlayer")
+            .GetComponent<Button>().onClick.Invoke();
+
+        float deadline = Time.realtimeSinceStartup + 20f;
+        while ((SceneManager.GetActiveScene().name != "CentroEntrenamiento" ||
+                NetworkLobbySession.Instance == null ||
+                NetworkManager.Singleton.LocalClient.PlayerObject == null) &&
+               Time.realtimeSinceStartup < deadline)
+            yield return null;
+
+        Assert.That(SceneManager.GetActiveScene().name,
+            Is.EqualTo("CentroEntrenamiento"));
+        TutorialManager tutorial =
+            Object.FindFirstObjectByType<TutorialManager>();
+        EasterEggDoor door =
+            Object.FindFirstObjectByType<EasterEggDoor>();
+        Assert.That(tutorial, Is.Not.Null);
+        Assert.That(door, Is.Not.Null);
+        Assert.That(tutorial.IsCompleted, Is.False);
+
+        FieldInfo nearbyField = typeof(EasterEggDoor).GetField(
+            "playerIsNearby", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.That(nearbyField, Is.Not.Null);
+        nearbyField.SetValue(door, true);
+        Assert.That(door.TryEnterRace(), Is.False,
+            "La puerta no debe iniciar Race antes de completar el tutorial.");
+        Assert.That(NetworkLobbySession.Instance.TryStartLocalRaceFromTutorial(
+            "GameScene", out _), Is.False,
+            "La sesión tampoco debe permitir saltarse el tutorial.");
+        Assert.That(NetworkLobbySession.Instance.SelectedGameModeId,
+            Is.EqualTo(GameModeId.None));
+
+        FieldInfo stepsField = typeof(TutorialManager).GetField(
+            "tutorialSteps", BindingFlags.Instance | BindingFlags.NonPublic);
+        FieldInfo indexField = typeof(TutorialManager).GetField(
+            "currentStepIndex", BindingFlags.Instance | BindingFlags.NonPublic);
+        Assert.That(stepsField, Is.Not.Null);
+        Assert.That(indexField, Is.Not.Null);
+        IList steps = (IList)stepsField.GetValue(tutorial);
+        Assert.That(steps.Count, Is.GreaterThan(0));
+        indexField.SetValue(tutorial, steps.Count);
+        Assert.That(tutorial.IsCompleted, Is.True);
+        Assert.That(door.TryEnterRace(), Is.True);
+
+        deadline = Time.realtimeSinceStartup + 25f;
+        while ((SceneManager.GetActiveScene().name != "GameScene" ||
+                NetworkLobbySession.Instance == null ||
+                NetworkLobbySession.Instance.Phase != SessionPhase.InMatch ||
+                NetworkManager.Singleton.LocalClient.PlayerObject == null ||
+                NetworkManager.Singleton.LocalClient.PlayerObject.gameObject.scene.name !=
+                    "GameScene") && Time.realtimeSinceStartup < deadline)
+            yield return null;
+
+        Assert.That(SceneManager.GetActiveScene().name, Is.EqualTo("GameScene"));
+        Assert.That(NetworkLobbySession.Instance.SelectedGameModeId,
+            Is.EqualTo(GameModeId.Race));
+        Assert.That(NetworkLobbySession.Instance.SelectedPlayerCount,
+            Is.EqualTo(1));
+        Assert.That(NetworkLobbySession.Instance.Phase,
+            Is.EqualTo(SessionPhase.InMatch));
+        Assert.That(NetworkManager.Singleton.LocalClient.PlayerObject.gameObject.scene.name,
+            Is.EqualTo("GameScene"));
+        Assert.That(Object.FindFirstObjectByType<GameManager>(), Is.Not.Null);
+        Assert.That(Object.FindFirstObjectByType<RaceStatusUI>(), Is.Not.Null);
     }
 }

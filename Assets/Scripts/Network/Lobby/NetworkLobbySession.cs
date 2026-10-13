@@ -432,6 +432,64 @@ public class NetworkLobbySession : NetworkBehaviour
         return false;
     }
 
+    /// <summary>
+    /// Inicia Race desde el tutorial offline usando el host local existente.
+    /// No expone Race como opción del lobby multijugador.
+    /// </summary>
+    public bool TryStartLocalRaceFromTutorial(
+        string targetSceneName,
+        out string validationError)
+    {
+        if (!IsSpawned || !IsServer || !NetworkManager.IsHost ||
+            sessionPhase.Value != SessionPhase.Lobby ||
+            selectedGameModeId.Value != GameModeId.None ||
+            SceneManager.GetActiveScene().name != "CentroEntrenamiento" ||
+            NetworkManager.ConnectedClientsIds.Count != 1 ||
+            players.Count != 1 ||
+            players[0].ClientId != NetworkManager.LocalClientId ||
+            players[0].TeamId != TeamId.None)
+        {
+            validationError =
+                "La carrera sólo puede iniciarse desde el tutorial local de un jugador.";
+            return false;
+        }
+
+        TutorialManager tutorial = FindFirstObjectByType<TutorialManager>();
+        if (tutorial == null || !tutorial.IsCompleted)
+        {
+            validationError = "Completá el tutorial antes de entrar a Race.";
+            return false;
+        }
+
+        if (raceDefinition == null ||
+            raceDefinition.GameModeId != GameModeId.Race ||
+            !string.Equals(
+                raceDefinition.SceneName,
+                targetSceneName,
+                StringComparison.Ordinal))
+        {
+            validationError =
+                "La puerta no apunta a la escena configurada para Race.";
+            return false;
+        }
+
+        if (!ConfigureSession(raceDefinition, 1, out validationError))
+            return false;
+
+        if (SelectedSceneName != targetSceneName ||
+            !TryChangeReady(NetworkManager.LocalClientId, true) ||
+            !TryStartMatch())
+        {
+            PrepareUnconfiguredRoom(out _);
+            validationError =
+                "No se pudo preparar o cargar Race desde el tutorial.";
+            return false;
+        }
+
+        validationError = string.Empty;
+        return true;
+    }
+
     /// <summary>El host regresa al menú con la misma conexión tras TDM o CTF.</summary>
     public bool TryReturnToLobbyAfterMatch()
     {

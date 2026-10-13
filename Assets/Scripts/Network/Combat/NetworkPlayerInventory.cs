@@ -180,9 +180,9 @@ public class NetworkPlayerInventory : NetworkBehaviour
     {
         slot = number switch
         {
-            1 => WeaponSlot.Melee,
+            1 => WeaponSlot.Primary,
             2 => WeaponSlot.Secondary,
-            3 => WeaponSlot.Primary,
+            3 => WeaponSlot.Melee,
             4 => WeaponSlot.Utility,
             _ => WeaponSlot.None
         };
@@ -286,7 +286,13 @@ public class NetworkPlayerInventory : NetworkBehaviour
     private bool SupportsInventoryPreview() =>
         NetworkLobbySession.Instance != null &&
         CombatValidationRules.SupportsInventoryPreview(
-            NetworkLobbySession.Instance.SelectedGameModeId);
+            NetworkLobbySession.Instance.SelectedGameModeId,
+            IsTutorialTraining());
+
+    private static bool IsTutorialTraining() =>
+        NetworkLobbySession.Instance != null &&
+        NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.None &&
+        TutorialManager.IsTutorialLoaded;
 
     private static WeaponId GetConfiguredId(
         WeaponDefinition definition,

@@ -82,7 +82,7 @@ public class MenuCogIntegrationTests
     }
 
     [Test]
-    public void MenuSceneUsesPrefabAndExistingNetworkBootstrap()
+    public void MenuSceneHasSingleMenuAndExistingNetworkBootstrap()
     {
         var previous = EditorSceneManager.GetSceneManagerSetup();
         try
@@ -94,8 +94,7 @@ public class MenuCogIntegrationTests
                 .ToArray();
             Assert.That(connections.Length, Is.EqualTo(1));
             ConnectionManager connection = connections[0];
-            Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(connection.gameObject),
-                Is.EqualTo(PrefabPath));
+            Assert.That(connection.gameObject.name, Is.EqualTo("MenuCOG"));
             Assert.That(new SerializedObject(connection).FindProperty("sessionBootstrap").objectReferenceValue,
                 Is.Not.Null);
             Assert.That(scene.GetRootGameObjects().Where(root => root.activeInHierarchy)

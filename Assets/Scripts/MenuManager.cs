@@ -81,9 +81,23 @@ public class MenuManager : MonoBehaviour
 
     public void PlaySinglePlayer()
     {
+        if (connectionManager == null)
+        {
+            Debug.LogError("Falta configurar ConnectionManager en el menú.");
+            return;
+        }
+
+        if (!connectionManager.StartLocalTutorial())
+            return;
+
+        HideMenu();
+    }
+
+    public void PlayParkour()
+    {
         if (connectionManager == null || raceDefinition == null)
         {
-            Debug.LogError("Falta configurar la carrera individual en el menú.");
+            Debug.LogError("Falta configurar la carrera de parkour en el menú.");
             return;
         }
 

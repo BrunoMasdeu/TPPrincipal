@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.SceneManagement;
 
 public class EasterEggDoor : MonoBehaviour
 {
@@ -10,65 +9,70 @@ public class EasterEggDoor : MonoBehaviour
     [Header("Referencias de UI")]
     [SerializeField] private GameObject interactionPromptUI; // El texto en pantalla (ej: "Presiona E para interactuar")
     private bool playerIsNearby = false;
+    private bool transitionInProgress;
+    private TutorialManager tutorialManager;
 
     private void Start()
     {
-        // Asegurarnos de que el aviso esté apagado al iniciar
+        tutorialManager = FindFirstObjectByType<TutorialManager>();
         if (interactionPromptUI != null)
             interactionPromptUI.SetActive(false);
     }
 
     private void Update()
     {
-        // Si el jugador está cerca y presiona la tecla asignada
-        if (playerIsNearby && Keyboard.current != null)
-        {
-            if (Keyboard.current[Key.E].wasPressedThisFrame)
-            {
-                LoadTargetScene();
-            }
-        }
+        bool canInteract = playerIsNearby &&
+            !transitionInProgress &&
+            tutorialManager != null && tutorialManager.IsCompleted;
+
+        if (interactionPromptUI != null &&
+            interactionPromptUI.activeSelf != canInteract)
+            interactionPromptUI.SetActive(canInteract);
+
+        if (canInteract && Keyboard.current != null &&
+            Keyboard.current[Key.E].wasPressedThisFrame)
+            TryEnterRace();
     }
 
     // Detecta cuando el jugador entra al área de la puerta
     private void OnTriggerEnter(Collider other)
     {
-        // Puedes verificar si el objeto que entra es el jugador mediante un Tag
         if (other.CompareTag("Player"))
-        {
             playerIsNearby = true;
-
-            if (interactionPromptUI != null)
-                interactionPromptUI.SetActive(true);
-        }
     }
 
     // Detecta cuando el jugador se aleja de la puerta
     private void OnTriggerExit(Collider other)
     {
         if (other.CompareTag("Player"))
-        {
             playerIsNearby = false;
-
-            if (interactionPromptUI != null)
-                interactionPromptUI.SetActive(false);
-        }
     }
-    //===============>> HACER <<====================//
-    private void LoadTargetScene()
+
+    public bool TryEnterRace()
     {
-        if (!string.IsNullOrEmpty(sceneToLoad))
-        {
-            // Restablece el tiempo por si acaso estuvo pausado antes
-            Time.timeScale = 1f;
+        if (transitionInProgress || !playerIsNearby ||
+            tutorialManager == null || !tutorialManager.IsCompleted)
+            return false;
 
-            // Carga la nueva escena
-            SceneManager.LoadScene(sceneToLoad);
-        }
-        else
+        NetworkLobbySession session = NetworkLobbySession.Instance;
+        if (session == null)
         {
-            Debug.LogWarning($"[InteractiveDoor] No se ha definido una escena para cargar en '{gameObject.name}'.");
+            Debug.LogWarning(
+                "[EasterEggDoor] No hay una sesión local activa. Iniciá el tutorial desde el menú.");
+            return false;
         }
+
+        if (!session.TryStartLocalRaceFromTutorial(
+                sceneToLoad, out string validationError))
+        {
+            Debug.LogWarning($"[EasterEggDoor] {validationError}");
+            return false;
+        }
+
+        transitionInProgress = true;
+        Time.timeScale = 1f;
+        if (interactionPromptUI != null)
+            interactionPromptUI.SetActive(false);
+        return true;
     }
-    //==========================================//
 }

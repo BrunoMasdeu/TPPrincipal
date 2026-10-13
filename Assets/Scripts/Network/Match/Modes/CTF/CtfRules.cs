@@ -43,7 +43,10 @@ public static class CtfRules
         return true;
     }
 
-    /// <summary>La bandera propia no necesita estar en la base para capturar.</summary>
+    /// <summary>
+    /// Para capturar, el portador debe llegar a su base con la bandera enemiga
+    /// y la bandera de su equipo debe encontrarse en AtBase.
+    /// </summary>
     public static bool TryCapture(CtfMatchState state, TeamId baseTeam,
         TeamId playerTeam, ulong playerClientId, MatchPhase phase,
         out CtfMatchState next)
@@ -54,8 +57,10 @@ public static class CtfRules
             return false;
 
         TeamId enemyFlagTeam = OpponentOf(baseTeam);
+        CtfFlagData ownFlag = state.GetFlag(baseTeam);
         CtfFlagData enemyFlag = state.GetFlag(enemyFlagTeam);
-        if (enemyFlag.State != FlagState.Carried ||
+        if (ownFlag.State != FlagState.AtBase ||
+            enemyFlag.State != FlagState.Carried ||
             enemyFlag.CarrierClientId != playerClientId)
             return false;
 

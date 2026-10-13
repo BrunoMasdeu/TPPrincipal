@@ -14,6 +14,7 @@ public sealed class PlayerHudView : MonoBehaviour
     [SerializeField] private Image healthIcon;
     [SerializeField] private TMP_Text healthText;
     [SerializeField] private TMP_Text ammunitionText;
+    [SerializeField] private TMP_Text grenadeText;
 
     [Header("Ranuras del equipamiento")]
     [SerializeField] private Image meleeHighlight;
@@ -41,6 +42,7 @@ public sealed class PlayerHudView : MonoBehaviour
         healthIcon != null &&
         healthText != null &&
         ammunitionText != null &&
+        grenadeText != null &&
         meleeHighlight != null &&
         secondaryHighlight != null &&
         primaryHighlight != null &&
@@ -68,6 +70,7 @@ public sealed class PlayerHudView : MonoBehaviour
         Transform panelHealth = FindDescendant(transform, "PanelHealth");
         Transform health = FindDescendant(transform, "Salud");
         Transform ammunition = FindDescendant(transform, "Cargador");
+        Transform grenades = FindDescendant(transform, "Granadas");
 
         healthIcon ??= health != null ? health.GetComponent<Image>() : null;
         healthText ??= panelHealth != null
@@ -75,6 +78,9 @@ public sealed class PlayerHudView : MonoBehaviour
             : null;
         ammunitionText ??= ammunition != null
             ? ammunition.GetComponent<TMP_Text>()
+            : null;
+        grenadeText ??= grenades != null
+            ? grenades.GetComponentInChildren<TMP_Text>(true)
             : null;
 
         meleeHighlight ??= FindImage("Cuchillo");
@@ -134,6 +140,12 @@ public sealed class PlayerHudView : MonoBehaviour
         ammunitionText.text = reloading
             ? "RECARGANDO"
             : $"{lastAmmunition}/{lastReserve}";
+    }
+
+    public void SetGrenades(int count)
+    {
+        if (grenadeText != null)
+            grenadeText.text = $"G x{Mathf.Max(0, count)}";
     }
 
     public void SetSelectedSlot(WeaponSlot selectedSlot)

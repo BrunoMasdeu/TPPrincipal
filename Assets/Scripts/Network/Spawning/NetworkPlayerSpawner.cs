@@ -18,6 +18,12 @@ public class NetworkPlayerSpawner : NetworkBehaviour
         new();
     private readonly Dictionary<TeamId, int> assignmentsByTeam = new();
 
+    [Header("Prefab por equipo")]
+    [Tooltip("Prefab del equipo rojo (PlayerPrefab).")]
+    [SerializeField] private GameObject redTeamPlayerPrefab;
+    [Tooltip("Prefab del equipo azul (Survivalist (3)).")]
+    [SerializeField] private GameObject blueTeamPlayerPrefab;
+
     private NetworkLobbySession lobbySession;
 
     private void Awake()
@@ -308,6 +314,29 @@ public class NetworkPlayerSpawner : NetworkBehaviour
         return true;
     }
 
+    /// <summary>
+    /// Devuelve el prefab de jugador según el equipo. Si el equipo no tiene
+    /// prefab asignado (o es None), usa el PlayerPrefab del NetworkManager.
+    /// </summary>
+    private GameObject ResolvePlayerPrefab(TeamId teamId)
+    {
+        GameObject teamPrefab = null;
+
+        switch (teamId)
+        {
+            case TeamId.Red:
+                teamPrefab = redTeamPlayerPrefab;
+                break;
+            case TeamId.Blue:
+                teamPrefab = blueTeamPlayerPrefab;
+                break;
+        }
+
+        return teamPrefab != null
+            ? teamPrefab
+            : NetworkManager.NetworkConfig.PlayerPrefab;
+    }
+
     private bool SpawnPlayer(LobbyPlayerData player)
     {
         if (!NetworkManager.ConnectedClients.TryGetValue(
@@ -317,8 +346,21 @@ public class NetworkPlayerSpawner : NetworkBehaviour
             return false;
         }
 
-        bool alreadyHasPlayerObject = client.PlayerObject != null ||
-            spawnedClientIds.Contains(player.ClientId);
+        if (spawnedClientIds.Contains(player.ClientId))
+            return true;
+
+        // El jugador del tutorial no debe reutilizarse como jugador de Race.
+        // Normalmente Single lo destruye, pero si sobrevivió en DDOL, se
+        // reemplaza ahora para que aparezca en el Respawn de GameScene.
+        if (lobbySession.SelectedGameModeId == GameModeId.Race &&
+            client.PlayerObject != null &&
+            client.PlayerObject.gameObject.scene.name !=
+                lobbySession.SelectedSceneName)
+        {
+            client.PlayerObject.Despawn(true);
+        }
+
+        bool alreadyHasPlayerObject = client.PlayerObject != null;
 
         if (!PlayerSpawnReadinessRules.CanSpawnPlayer(
                 IsServer,
@@ -345,12 +387,13 @@ public class NetworkPlayerSpawner : NetworkBehaviour
         if (spawnIndex < 0)
             return false;
 
-        GameObject playerPrefab = NetworkManager.NetworkConfig.PlayerPrefab;
+        GameObject playerPrefab = ResolvePlayerPrefab(player.TeamId);
 
         if (playerPrefab == null)
         {
             Debug.LogError(
-                "NetworkManager no tiene PlayerPrefab configurado."
+                $"No hay prefab de jugador para el equipo {player.TeamId}. " +
+                "Asignalo en NetworkPlayerSpawner o en el NetworkManager."
             );
             return false;
         }
@@ -420,7 +463,7 @@ public class NetworkPlayerSpawner : NetworkBehaviour
 
         TeamSpawnPoint point = points[index];
         position = point.transform.position;
-        GameObject playerPrefab = NetworkManager.NetworkConfig.PlayerPrefab;
+        GameObject playerPrefab = ResolvePlayerPrefab(teamId);
         rotation = playerPrefab != null
             ? point.transform.rotation * playerPrefab.transform.rotation
             : point.transform.rotation;

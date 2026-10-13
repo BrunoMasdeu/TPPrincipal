@@ -7496,13 +7496,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 352123680}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0.5, y: 0.5, z: 0.5, w: 0.5}
   m_LocalPosition: {x: 4.6, y: 0.26, z: -14.85}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 905391626}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 90, z: 0}
 --- !u!114 &352123682
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17299,6 +17299,7 @@ Transform:
   m_Children:
   - {fileID: 905391626}
   - {fileID: 1004000282}
+  - {fileID: 893997438}
   m_Father: {fileID: 207408191}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &814828718
@@ -18907,6 +18908,58 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 1d8c5fb2523c68243974af544e14168a, type: 3}
+--- !u!1 &893997437
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 893997438}
+  - component: {fileID: 893997439}
+  m_Layer: 0
+  m_Name: CtfFlagVisuals
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &893997438
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 893997437}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 814044083}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &893997439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 893997437}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c39fde54304da983d4e1b01751c9c2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::CtfFlagVisualController
+  redFlagPrefab: {fileID: 919132149155446097, guid: 49c310bed5dc3564fbe1475dddf1e629, type: 3}
+  blueFlagPrefab: {fileID: 919132149155446097, guid: b63405915e6700c499af3c3a38387ca3, type: 3}
+  redSpawnOverride: {fileID: 0}
+  blueSpawnOverride: {fileID: 0}
+  carriedLocalPosition: {x: 0, y: 0, z: 0}
+  carriedLocalEulerAngles: {x: 0, y: 0, z: 0}
+  droppedVerticalOffset: 0.02
+  droppedEulerAngles: {x: -90, y: 90, z: 0}
 --- !u!1 &898249923
 GameObject:
   m_ObjectHideFlags: 0
@@ -19822,13 +19875,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 930975886}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0.5, y: 0.5, z: 0.5, w: 0.5}
   m_LocalPosition: {x: -55.9, y: 0.05, z: -9.52}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 905391626}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 90, z: 0}
 --- !u!114 &930975888
 MonoBehaviour:
   m_ObjectHideFlags: 0

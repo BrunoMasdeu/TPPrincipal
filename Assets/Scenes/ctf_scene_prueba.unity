@@ -1287,6 +1287,51 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 596303776}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &642942190
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 642942191}
+  - component: {fileID: 642942192}
+  m_Layer: 0
+  m_Name: Blue_Flag_Anchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &642942191
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 642942190}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5, y: 0.5, z: 0.5, w: 0.5}
+  m_LocalPosition: {x: 69.23, y: -1.1432301, z: -3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1720972361}
+  m_LocalEulerAnglesHint: {x: -90, y: 90, z: 0}
+--- !u!114 &642942192
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 642942190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e074ae20932f1d46972f08b4777826f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game::FlagSpawnPoint
+  teamId: 2
 --- !u!1 &718104982
 GameObject:
   m_ObjectHideFlags: 0
@@ -2124,6 +2169,58 @@ Transform:
   - {fileID: 1823695540}
   m_Father: {fileID: 1462789411}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &842287490
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 842287491}
+  - component: {fileID: 842287492}
+  m_Layer: 0
+  m_Name: CtfFlagVisuals
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &842287491
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 842287490}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1462789411}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &842287492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 842287490}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2c39fde54304da983d4e1b01751c9c2, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game::CtfFlagVisualController
+  redFlagPrefab: {fileID: 919132149155446097, guid: 49c310bed5dc3564fbe1475dddf1e629, type: 3}
+  blueFlagPrefab: {fileID: 919132149155446097, guid: b63405915e6700c499af3c3a38387ca3, type: 3}
+  redSpawnOverride: {fileID: 0}
+  blueSpawnOverride: {fileID: 0}
+  carriedLocalPosition: {x: 0, y: 0, z: 0}
+  carriedLocalEulerAngles: {x: 0, y: 0, z: 0}
+  droppedVerticalOffset: 0.02
+  droppedEulerAngles: {x: -90, y: 90, z: 0}
 --- !u!1 &889652853
 GameObject:
   m_ObjectHideFlags: 0
@@ -2284,6 +2381,51 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 908771548}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &922591198
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 922591199}
+  - component: {fileID: 922591200}
+  m_Layer: 0
+  m_Name: Red_Flag_Anchor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &922591199
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 922591198}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.5, y: 0.5, z: 0.5, w: 0.5}
+  m_LocalPosition: {x: -4.98, y: -1.14, z: -3}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1720972361}
+  m_LocalEulerAnglesHint: {x: -90, y: 90, z: 0}
+--- !u!114 &922591200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 922591198}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e074ae20932f1d46972f08b4777826f, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game::FlagSpawnPoint
+  teamId: 1
 --- !u!1 &968972005
 GameObject:
   m_ObjectHideFlags: 0
@@ -2978,6 +3120,7 @@ Transform:
   - {fileID: 832487997}
   - {fileID: 788606231}
   - {fileID: 63180898}
+  - {fileID: 842287491}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1469451595
@@ -3316,6 +3459,8 @@ Transform:
   m_Children:
   - {fileID: 2120878395}
   - {fileID: 1927533901}
+  - {fileID: 922591199}
+  - {fileID: 642942191}
   m_Father: {fileID: 1462789411}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1740759608
@@ -3913,7 +4058,6 @@ GameObject:
   - component: {fileID: 1927533905}
   - component: {fileID: 1927533904}
   - component: {fileID: 1927533903}
-  - component: {fileID: 1927533902}
   m_Layer: 3
   m_Name: Spawn_Flag_Pad_Blue
   m_TagString: Ground
@@ -3936,19 +4080,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1720972361}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1927533902
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1927533900}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2e074ae20932f1d46972f08b4777826f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game::FlagSpawnPoint
-  teamId: 2
 --- !u!23 &1927533903
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -4234,7 +4365,6 @@ GameObject:
   - component: {fileID: 2120878398}
   - component: {fileID: 2120878397}
   - component: {fileID: 2120878396}
-  - component: {fileID: 2120878399}
   m_Layer: 3
   m_Name: Spawn_Flag_Pad_Red
   m_TagString: Ground
@@ -4337,19 +4467,6 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2120878394}
   m_Mesh: {fileID: 10206, guid: 0000000000000000e000000000000000, type: 0}
---- !u!114 &2120878399
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2120878394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2e074ae20932f1d46972f08b4777826f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game::FlagSpawnPoint
-  teamId: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

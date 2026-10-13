@@ -9,6 +9,7 @@ using UnityEngine;
 [RequireComponent(typeof(NetworkPlayerHealth))]
 [RequireComponent(typeof(NetworkPlayerInventory))]
 [RequireComponent(typeof(NetworkPlayerCombat))]
+[RequireComponent(typeof(NetworkPlayerGrenades))]
 public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
 {
     [SerializeField] private PlayerHudView view;
@@ -16,6 +17,7 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
     private NetworkPlayerHealth health;
     private NetworkPlayerInventory inventory;
     private NetworkPlayerCombat combat;
+    private NetworkPlayerGrenades grenades;
     private bool subscribed;
     private bool requestedVisible = true;
     private bool wasReloading;
@@ -29,6 +31,7 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
         health = GetComponent<NetworkPlayerHealth>();
         inventory = GetComponent<NetworkPlayerInventory>();
         combat = GetComponent<NetworkPlayerCombat>();
+        grenades = GetComponent<NetworkPlayerGrenades>();
         view ??= GetComponentInChildren<PlayerHudView>(true);
     }
 
@@ -78,18 +81,21 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
 
     public void RefreshAll()
     {
-        if (view == null || health == null || inventory == null || combat == null)
+        if (view == null || health == null || inventory == null ||
+            combat == null || grenades == null)
             return;
 
         view.SetHealth(health.CurrentHealth, health.MaxHealth);
         view.SetLifeState(health.LifeState);
         RefreshSelectedWeapon();
         RefreshAmmunition();
+        view.SetGrenades(grenades.GrenadeCount);
     }
 
     private void Subscribe()
     {
-        if (subscribed || health == null || inventory == null || combat == null)
+        if (subscribed || health == null || inventory == null ||
+            combat == null || grenades == null)
             return;
 
         health.HealthChanged += OnHealthChanged;
@@ -98,6 +104,7 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
         combat.AmmunitionChanged += OnAmmunitionChanged;
         combat.ReserveAmmunitionChanged += OnReserveAmmunitionChanged;
         combat.ReloadChanged += OnReloadChanged;
+        grenades.GrenadeCountChanged += OnGrenadeCountChanged;
         subscribed = true;
     }
 
@@ -121,6 +128,9 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
             combat.ReserveAmmunitionChanged -= OnReserveAmmunitionChanged;
             combat.ReloadChanged -= OnReloadChanged;
         }
+
+        if (grenades != null)
+            grenades.GrenadeCountChanged -= OnGrenadeCountChanged;
 
         subscribed = false;
     }
@@ -149,6 +159,8 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
     private void OnAmmunitionChanged(int _) => RefreshAmmunition();
     private void OnReserveAmmunitionChanged(int _) => RefreshAmmunition();
     private void OnReloadChanged() => RefreshAmmunition();
+    private void OnGrenadeCountChanged(int current) =>
+        view?.SetGrenades(current);
 
     private void RefreshSelectedWeapon()
     {

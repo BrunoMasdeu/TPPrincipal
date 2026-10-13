@@ -9,6 +9,7 @@ using Unity.Services.Core;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 /// <summary>
@@ -20,6 +21,9 @@ public partial class ConnectionManager : MonoBehaviour
 {
     [Header("Network session")]
     [SerializeField] private NetworkSessionBootstrap sessionBootstrap;
+
+    [Header("Local tutorial")]
+    [SerializeField] private string tutorialSceneName = "CentroEntrenamiento";
 
     [Header("Connection UI")]
     [SerializeField] private InputField joinCodeInput;
@@ -354,6 +358,111 @@ public partial class ConnectionManager : MonoBehaviour
                 isConnecting = false;
             RefreshMenuUI();
         }
+    }
+
+    public bool StartLocalTutorial()
+    {
+        ResolveSessionBootstrap();
+        NetworkManager networkManager = NetworkManager.Singleton;
+
+        if (isConnecting || networkManager == null || networkManager.IsListening)
+            return false;
+
+        if (sessionBootstrap == null)
+        {
+            Debug.LogError(
+                "ConnectionManager no tiene NetworkSessionBootstrap configurado."
+            );
+            SetStatus("LOCAL TUTORIAL CONFIGURATION ERROR");
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(tutorialSceneName))
+        {
+            Debug.LogError("No se configuró la escena del tutorial.");
+            SetStatus("TUTORIAL SCENE NOT CONFIGURED");
+            return false;
+        }
+
+        if (!sessionBootstrap.PrepareRoom(out string error))
+        {
+            Debug.LogError($"No se pudo preparar el tutorial local: {error}");
+            SetStatus("LOCAL TUTORIAL CONFIGURATION ERROR");
+            return false;
+        }
+
+        pendingGameModeDefinition = null;
+        pendingMatchPlayerCount = 0;
+        isLocalGameStarting = true;
+
+        UnityTransport transport = networkManager.GetComponent<UnityTransport>();
+
+        if (transport == null)
+        {
+            isLocalGameStarting = false;
+            sessionBootstrap.CancelPreparedSession();
+            SetStatus("UNITY TRANSPORT NOT FOUND");
+            return false;
+        }
+
+        ushort localPort = transport.ConnectionData.Port == 0
+            ? (ushort)7777
+            : transport.ConnectionData.Port;
+        transport.SetConnectionData("127.0.0.1", localPort, "127.0.0.1");
+
+        if (!networkManager.StartHost())
+        {
+            isLocalGameStarting = false;
+            sessionBootstrap.CancelPreparedSession();
+            SetStatus("LOCAL HOST COULD NOT START");
+            return false;
+        }
+
+        HideConnectionPanels();
+        StartCoroutine(LoadLocalTutorialWhenReady());
+        return true;
+    }
+
+    private IEnumerator LoadLocalTutorialWhenReady()
+    {
+        float deadline = Time.realtimeSinceStartup + 5f;
+
+        while (Time.realtimeSinceStartup < deadline)
+        {
+            ResolveSessionBootstrap();
+
+            NetworkManager networkManager = NetworkManager.Singleton;
+            NetworkLobbySession session = sessionBootstrap != null
+                ? sessionBootstrap.CurrentSession
+                : null;
+
+            if (networkManager != null && networkManager.IsHost &&
+                networkManager.SceneManager != null &&
+                session != null && session.IsSpawned)
+            {
+                SceneEventProgressStatus status =
+                    networkManager.SceneManager.LoadScene(
+                        tutorialSceneName,
+                        LoadSceneMode.Single
+                    );
+
+                if (status == SceneEventProgressStatus.Started)
+                    yield break;
+
+                Debug.LogError(
+                    $"No se pudo cargar el tutorial {tutorialSceneName}: {status}."
+                );
+                SetStatus("LOCAL TUTORIAL COULD NOT START");
+                CancelConnection();
+                yield break;
+            }
+
+            yield return null;
+        }
+
+        Debug.LogError("La sesión local del tutorial no quedó lista para cargar.");
+        SetStatus("LOCAL TUTORIAL NOT READY");
+        CancelConnection();
     }
 
     public bool StartLocalGame(GameModeDefinition definition)

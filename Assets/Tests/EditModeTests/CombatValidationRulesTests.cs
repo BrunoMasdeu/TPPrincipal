@@ -21,6 +21,8 @@ public class CombatValidationRulesTests
             GameModeId.Race), Is.True);
         Assert.That(CombatValidationRules.SupportsInventoryPreview(
             GameModeId.None), Is.False);
+        Assert.That(CombatValidationRules.SupportsInventoryPreview(
+            GameModeId.None, true), Is.True);
     }
 
     [Test]
