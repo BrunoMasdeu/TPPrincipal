@@ -6984,6 +6984,67 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1431151164}
   m_CullTransparentMesh: 1
+--- !u!1001 &1466958236
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2394543109986134714, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: sessionBootstrap
+      value:
+      objectReference: {fileID: 1630400821}
+    - target: {fileID: 2672140762340404290, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2672140762340404290, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2672140762340404290, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2672140762340404290, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2672140762340404290, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2672140762340404290, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2672140762340404290, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2672140762340404290, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2672140762340404290, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2672140762340404290, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5568591136290619525, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
+      propertyPath: m_Name
+      value: MenuCOG
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 89ef384e9c3e38f4b823e988df4d1867, type: 3}
 --- !u!1 &1478890981
 GameObject:
   m_ObjectHideFlags: 0
@@ -7482,7 +7543,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1559012516
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7495,6 +7556,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cd79f6836c8e5b47b4f171c4397072e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::ConnectionManager
+  menuManager: {fileID: 0}
+  hostButton: {fileID: 0}
+  joinButton: {fileID: 0}
+  singlePlayerButton: {fileID: 0}
+  connectionStatusDisplay: {fileID: 0}
+  tdmButton: {fileID: 0}
+  ctfButton: {fileID: 0}
+  playerCountControls: []
+  configurationDisplay: {fileID: 0}
+  nextMapButton: {fileID: 0}
+  mapNameDisplay: {fileID: 0}
+  mapDescriptionDisplay: {fileID: 0}
+  mapPreview: {fileID: 0}
+  redTeamButton: {fileID: 0}
+  blueTeamButton: {fileID: 0}
+  redTeamDisplay: {fileID: 0}
+  blueTeamDisplay: {fileID: 0}
+  unassignedPlayersDisplay: {fileID: 0}
+  readyButton: {fileID: 0}
+  lobbyHintDisplay: {fileID: 0}
   sessionBootstrap: {fileID: 1630400821}
   joinCodeInput: {fileID: 1792211954}
   connectionPanel: {fileID: 447742386}
@@ -9858,7 +9939,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1803797108539081233
 RectTransform:
   m_ObjectHideFlags: 0
@@ -9939,7 +10020,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &6893303364798390178
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10042,6 +10123,7 @@ MonoBehaviour:
   canvasRules: {fileID: 1410896419}
   panelExit: {fileID: 463174076}
   canvasMultiplayer: {fileID: 1732277359}
+  canvasLobby: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -10053,3 +10135,4 @@ SceneRoots:
   - {fileID: 1559012517}
   - {fileID: 1630400819}
   - {fileID: 1038934702}
+  - {fileID: 1466958236}
