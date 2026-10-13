@@ -11,6 +11,11 @@
 
 ## Configuración de escenas y prefabs
 
+- `MenuScene` instancia `Assets/Prefabs/MenuCOG.prefab`. Su raíz mantiene activos `MenuManager` y `ConnectionManager` mientras alterna los canvas principal, opciones, jugar y lobby. Los objetos del menú anterior quedan desactivados.
+- El lobby usa botones uGUI para TDM/CTF, 2/4/6/8 jugadores, siguiente mapa compatible, selección de equipo y listo. `INICIAR PARTIDA` pertenece al host y se habilita según `NetworkLobbySession.CanStartMatch()`. Las listas de equipos y el estado listo se actualizan con el estado replicado; ya no se dibujan controles temporales con `OnGUI`.
+- `JUGAR` abre conexión y entrenamiento. Relay inicializa Unity Services al crear o unirse a una sala; el entrenamiento usa el host local sin requerir autenticación. Los errores de conexión se muestran antes de entrar al lobby y `VOLVER` permite cancelar una operación pendiente.
+- Créditos y logros son placeholders sin contenido o sistema asociado en este prefab; sus botones permanecen deshabilitados.
+
 - `NetworkSessionRoot.prefab` está registrado en `DefaultNetworkPrefabs` y referenciado por `NetworkSessionBootstrap` en `MenuScene`.
 - `MultiplayerSessionLimits` separa la capacidad técnica de la sala de la cantidad de la próxima partida. La sala admite hasta 8 personas (host y 7 clientes), mientras `NetworkLobbySession.SelectedPlayerCount` conserva la cantidad elegida para aplicar reglas, balance, spawn y puntuación.
 - La sala nace sin modo, cantidad ni mapa definitivos. Elegir TDM o CTF selecciona automáticamente el primer mapa compatible; el host puede cambiar luego el mapa y elegir 2, 4, 6 u 8 jugadores según el modo.

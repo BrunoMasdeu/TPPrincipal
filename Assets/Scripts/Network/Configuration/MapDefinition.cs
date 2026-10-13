@@ -10,6 +10,7 @@ public sealed class MapDefinition : ScriptableObject
     [SerializeField] private MapId mapId;
     [SerializeField] private string displayName;
     [SerializeField] private string sceneName;
+    [SerializeField] private Sprite previewImage;
     [SerializeField] private GameModeId[] supportedGameModes =
     {
         GameModeId.TDM,
@@ -20,6 +21,7 @@ public sealed class MapDefinition : ScriptableObject
     public MapId MapId => mapId;
     public string DisplayName => displayName;
     public string SceneName => sceneName;
+    public Sprite PreviewImage => previewImage;
     public IReadOnlyList<GameModeId> SupportedGameModes => supportedGameModes;
     public bool Selectable => selectable;
 

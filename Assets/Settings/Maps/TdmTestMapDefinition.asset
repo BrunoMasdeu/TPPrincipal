@@ -15,5 +15,6 @@ MonoBehaviour:
   mapId: 1
   displayName: Mapa de prueba TDM
   sceneName: tdm_scene_prueba
+  previewImage: {fileID: 21300000, guid: 223273ea7f528544cb28e07061dcb440, type: 3}
   supportedGameModes: 01
   selectable: 1

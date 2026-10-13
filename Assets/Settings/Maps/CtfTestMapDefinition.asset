@@ -15,5 +15,6 @@ MonoBehaviour:
   mapId: 2
   displayName: Mapa de prueba CTF
   sceneName: ctf_scene_prueba
+  previewImage: {fileID: 21300000, guid: 223273ea7f528544cb28e07061dcb440, type: 3}
   supportedGameModes: 02
   selectable: 1
