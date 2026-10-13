@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &12979853901203435
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4322996736921847721}
+  m_Layer: 0
+  m_Name: Trow
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4322996736921847721
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 12979853901203435}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: -0, w: -1}
+  m_LocalPosition: {x: 0.048, y: 1.363, z: -0.946}
+  m_LocalScale: {x: 1.1111109, y: 1.1111112, z: 1.1111109}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8454067315323432492}
+  m_LocalEulerAnglesHint: {x: 0, y: 360, z: 0}
 --- !u!1 &81589491215384822
 GameObject:
   m_ObjectHideFlags: 0
@@ -563,7 +594,7 @@ Transform:
   m_GameObject: {fileID: 2406847081440669670}
   serializedVersion: 2
   m_LocalRotation: {x: 0.00000008146034, y: -0.00000019470718, z: 1.5922146e-14, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0.85}
   m_LocalScale: {x: 0.7118392, y: 0.7118392, z: 0.7118392}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1929,6 +1960,8 @@ GameObject:
   - component: {fileID: 5239097955346510620}
   - component: {fileID: 5225828390091857571}
   - component: {fileID: -404201642656342299}
+  - component: {fileID: 5913136140874139545}
+  - component: {fileID: 3043745809929808542}
   m_Layer: 0
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -1958,6 +1991,7 @@ Transform:
   - {fileID: 6870693027120682118}
   - {fileID: 7841251349317399326}
   - {fileID: 8617967544210279961}
+  - {fileID: 4322996736921847721}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!95 &8333738095510534989
@@ -2094,8 +2128,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Move
   anim: {fileID: 8333738095510534989}
-  speed: 6
-  runSpeed: 10
+  speed: 5
+  runSpeed: 7
   acceleration: 55
   jumpForce: 7
   groundCheck: {fileID: 1230401407693510311}
@@ -2123,9 +2157,9 @@ MonoBehaviour:
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
-  wallRunForce: 20
+  wallRunForce: 7
   wallJumpUpForce: 0
-  wallJumpSideForce: 5
+  wallJumpSideForce: 3
   wallClimbSpeed: 0
   maxWallRunTime: 2
   upwardsRunKey: 51
@@ -2181,7 +2215,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 377557317
+  GlobalObjectIdHash: 3814868959
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -2417,6 +2451,41 @@ MonoBehaviour:
   - Label: Pistola
     Weapon: {fileID: 11400000, guid: 86d321765143bf84c829903a87b9b7b0, type: 2}
     Price: 150
+--- !u!114 &5913136140874139545
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5de745cabc6e18241a63658a2aca1a2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  capsule: {fileID: 4798153279018658864}
+  playerCamera: {fileID: 6870693027120682118}
+  crouchHeight: 1.2
+  cameraOffset: 0.5
+  transitionSpeed: 10
+  crouchKey: 55
+--- !u!114 &3043745809929808542
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0bd6d898e29e994181fa0c86f22f34a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  grenadePrefab: {fileID: 827108577975428029, guid: 2ba638468ef3ff945b58b5a256da0e48, type: 3}
+  throwPoint: {fileID: 4322996736921847721}
+  throwForce: 20
+  upwardForce: 4
+  grenades: 1000
 --- !u!1 &6349465550390264369
 GameObject:
   m_ObjectHideFlags: 0
