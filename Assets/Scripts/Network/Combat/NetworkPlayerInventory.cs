@@ -180,9 +180,9 @@ public class NetworkPlayerInventory : NetworkBehaviour
     {
         slot = number switch
         {
-            1 => WeaponSlot.Melee,
+            1 => WeaponSlot.Primary,
             2 => WeaponSlot.Secondary,
-            3 => WeaponSlot.Primary,
+            3 => WeaponSlot.Melee,
             4 => WeaponSlot.Utility,
             _ => WeaponSlot.None
         };
