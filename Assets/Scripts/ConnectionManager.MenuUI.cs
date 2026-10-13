@@ -107,8 +107,12 @@ public partial class ConnectionManager
                 : map.MapId == MapId.ArenaIndustrial
                     ? "Combate en un complejo industrial con vagones, edificaciones y múltiples rutas."
                     : "Escenario de prueba de combate por equipos.";
-        if (mapPreview != null)
-            mapPreview.enabled = map != null && map.MapId == MapId.ArenaIndustrial;
+        if (mapPreview != null) {
+            mapPreview.sprite = map != null ? map.PreviewImage : null;
+            mapPreview.enabled = true;
+        }
+            
+
 
         bool complete = inLobby && lobbySession.HasCompleteMatchConfiguration;
         LobbyPlayerData local = default;
