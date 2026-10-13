@@ -19,15 +19,21 @@ public class CanvasTdmIntegrationTests
     [TearDown]
     public void ReleaseHud() => PrefabUtility.UnloadPrefabContents(hud);
 
-    [Test]
-    public void PlayerReferencesMatchHudWithoutAddingRemotePlayerCanvases()
+    [TestCase("redTeamPlayerPrefab")]
+    [TestCase("blueTeamPlayerPrefab")]
+    public void EachConfiguredTeamReferencesTheSameMatchHud(string teamPrefabField)
     {
         Assert.That(view, Is.Not.Null);
         Assert.That(view.HasRequiredReferences, Is.True);
-        GameObject player = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/PlayerPrefab.prefab");
+        GameObject session = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/NetworkSessionRoot.prefab");
+        var spawner = new SerializedObject(session.GetComponent<NetworkPlayerSpawner>());
+        GameObject player = spawner.FindProperty(teamPrefabField).objectReferenceValue as GameObject;
+        Assert.That(player, Is.Not.Null, teamPrefabField);
+        Assert.That(player.GetComponent<NetworkPlayerHudPresenter>(), Is.Not.Null, player.name);
         var presenter = new SerializedObject(player.GetComponent<NetworkPlayerHudPresenter>());
         Assert.That(presenter.FindProperty("matchHudPrefab").objectReferenceValue,
-            Is.EqualTo(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/CanvasTDM.prefab").GetComponent<MatchHudPresenter>()));
+            Is.EqualTo(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/CanvasTDM.prefab").GetComponent<MatchHudPresenter>()),
+            $"{player.name} debe mostrar el mismo HUD que el otro equipo.");
         Assert.That(player.GetComponentsInChildren<Canvas>(true), Has.Length.EqualTo(1),
             "CanvasTDM se crea sólo para el propietario; PlayerUI continúa dentro del jugador.");
         Assert.That(hud.GetComponent<Canvas>().renderMode, Is.EqualTo(RenderMode.ScreenSpaceOverlay));

@@ -48,6 +48,8 @@ No se envía el cronómetro por red cada frame. Los clientes calculan el tiempo 
 
 `PlayerPrefab` referencia `CanvasTDM` desde `NetworkPlayerHudPresenter.matchHudPrefab`. Al aparecer el PlayerObject propietario en una sesión TDM/CTF, el presentador crea un canvas local en la escena de juego, separado de `PlayerUI`. No hace falta colocarlo manualmente en ArenaIndustrial ni en las escenas de prueba; tampoco se crea para jugadores remotos o para el entrenamiento individual. `PlayerUI` mantiene vida, armas y munición.
 
+El spawner elige un prefab por equipo: rojo usa `PlayerPrefab` y azul usa `Survivalist (3)`. Ambos deben referenciar el mismo `CanvasTDM` en `matchHudPrefab`; esa referencia se incluye en cada build y no se transmite desde el host. Las pruebas de configuración y flujo revisan los prefabs asignados en `NetworkSessionRoot`, incluyendo el jugador azul.
+
 `MatchHudView` contiene las referencias visuales serializadas y `MatchHudPresenter` conecta los eventos de la sesión y el jugador. CanvasTDM muestra marcador y límite oficiales, tiempo sincronizado, dinero local, tres avisos de muerte durante cinco segundos y la tabla mientras se mantiene Tab. Las filas usan el ID estable y el equipo replicado. En CTF muestra capturas por equipo y estado de las banderas; sus estadísticas individuales no se publican y se muestran como `--`.
 
 Al finalizar se muestra el resultado oficial y se libera el cursor. `VOLVER AL LOBBY` usa `TryReturnToLobbyAfterMatch`, sólo para el host, conservando la sala para configurar otra partida. `VOLVER AL MENU` cierra la conexión local antes de cargar MenuScene. El placeholder de votación de revancha se reemplaza por el flujo que existe actualmente.
