@@ -286,7 +286,13 @@ public class NetworkPlayerInventory : NetworkBehaviour
     private bool SupportsInventoryPreview() =>
         NetworkLobbySession.Instance != null &&
         CombatValidationRules.SupportsInventoryPreview(
-            NetworkLobbySession.Instance.SelectedGameModeId);
+            NetworkLobbySession.Instance.SelectedGameModeId,
+            IsTutorialTraining());
+
+    private static bool IsTutorialTraining() =>
+        NetworkLobbySession.Instance != null &&
+        NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.None &&
+        TutorialManager.IsTutorialLoaded;
 
     private static WeaponId GetConfiguredId(
         WeaponDefinition definition,

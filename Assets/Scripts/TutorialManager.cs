@@ -8,6 +8,10 @@ using UnityEngine.SceneManagement;
 
 public class TutorialManager : MonoBehaviour
 {
+    public static bool IsTutorialLoaded =>
+        FindAnyObjectByType<TutorialManager>(
+            FindObjectsInactive.Include) != null;
+
     public enum TaskType { KeyPress, MouseClick, GameEvent }
     public enum MouseButtonType { LeftClick, RightClick }
 

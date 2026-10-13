@@ -7496,6 +7496,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::ConnectionManager
   sessionBootstrap: {fileID: 1630400821}
+  tutorialSceneName: CentroEntrenamiento
   joinCodeInput: {fileID: 1792211954}
   connectionPanel: {fileID: 447742386}
   lobbyPanel: {fileID: 87284718}
