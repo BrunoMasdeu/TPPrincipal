@@ -346,8 +346,21 @@ public class NetworkPlayerSpawner : NetworkBehaviour
             return false;
         }
 
-        bool alreadyHasPlayerObject = client.PlayerObject != null ||
-            spawnedClientIds.Contains(player.ClientId);
+        if (spawnedClientIds.Contains(player.ClientId))
+            return true;
+
+        // El jugador del tutorial no debe reutilizarse como jugador de Race.
+        // Normalmente Single lo destruye, pero si sobrevivió en DDOL, se
+        // reemplaza ahora para que aparezca en el Respawn de GameScene.
+        if (lobbySession.SelectedGameModeId == GameModeId.Race &&
+            client.PlayerObject != null &&
+            client.PlayerObject.gameObject.scene.name !=
+                lobbySession.SelectedSceneName)
+        {
+            client.PlayerObject.Despawn(true);
+        }
+
+        bool alreadyHasPlayerObject = client.PlayerObject != null;
 
         if (!PlayerSpawnReadinessRules.CanSpawnPlayer(
                 IsServer,
