@@ -438,14 +438,12 @@ public class NetworkPlayerCombat : NetworkBehaviour
                 return;
             }
 
-            if (victim.ApplyDamageFromPlayer(
-                OwnerClientId,
+            if (TryApplyDamageToPlayerOnServer(
+                victim,
                 weapon.Damage,
                 out int applied,
                 out ulong deathId))
             {
-                ApplyCombatRewards(victim, applied, deathId);
-
                 Debug.Log(
                     $"[Combat] Impacto confirmado con {weapon.DisplayName}: " +
                     $"{OwnerClientId} -> {victim.OwnerClientId}, " +
@@ -467,6 +465,33 @@ public class NetworkPlayerCombat : NetworkBehaviour
         }
 
         ShotFeedbackRpc(ShotOutcome.Miss, 0UL, 0, 0UL);
+    }
+
+    /// <summary>
+    /// Punto comun y exclusivo del servidor para aplicar dano causado por
+    /// cualquier arma del jugador, incluidas las granadas.
+    /// </summary>
+    public bool TryApplyDamageToPlayerOnServer(
+        NetworkPlayerHealth victim,
+        int damage,
+        out int appliedDamage,
+        out ulong deathEventId)
+    {
+        appliedDamage = 0;
+        deathEventId = 0UL;
+
+        if (!IsServer || !IsSpawned || victim == null || victim == health)
+            return false;
+
+        if (!victim.ApplyDamageFromPlayer(
+                OwnerClientId,
+                damage,
+                out appliedDamage,
+                out deathEventId))
+            return false;
+
+        ApplyCombatRewards(victim, appliedDamage, deathEventId);
+        return true;
     }
 
     private void ApplyCombatRewards(

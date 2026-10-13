@@ -727,6 +727,7 @@ MonoBehaviour:
   healthIcon: {fileID: 3972536099588948331}
   healthText: {fileID: 6095414382124818636}
   ammunitionText: {fileID: 7669848342320972039}
+  grenadeText: {fileID: 110480771044291524}
   meleeHighlight: {fileID: 5978070561919037654}
   secondaryHighlight: {fileID: 2312655472066549464}
   primaryHighlight: {fileID: 2901206103771559969}
@@ -735,6 +736,37 @@ MonoBehaviour:
   activeSlotAlpha: 0.65
   normalHealthColor: {r: 1, g: 1, b: 1, a: 1}
   lowHealthColor: {r: 1, g: 0.25, b: 0.25, a: 1}
+--- !u!1 &742302409757821336
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4037538739251824608}
+  m_Layer: 0
+  m_Name: GrenadeThrowPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4037538739251824608
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 742302409757821336}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.043, y: 1.271, z: -0.468}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8454067315323432492}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1262123266696340803
 GameObject:
   m_ObjectHideFlags: 0
@@ -4524,6 +4556,8 @@ GameObject:
   - component: {fileID: 5239097955346510620}
   - component: {fileID: 5225828390091857571}
   - component: {fileID: -404201642656342299}
+  - component: {fileID: 1478910759170137402}
+  - component: {fileID: 7206682935859174468}
   m_Layer: 0
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -4554,6 +4588,7 @@ Transform:
   - {fileID: 7841251349317399326}
   - {fileID: 8617967544210279961}
   - {fileID: 4458332024902764487}
+  - {fileID: 4037538739251824608}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!95 &8333738095510534989
@@ -4877,6 +4912,8 @@ MonoBehaviour:
   playerUI: {fileID: 1594491992525566247}
   inventory: {fileID: 5239097955346510620}
   combat: {fileID: 5872981868638926398}
+  crouch: {fileID: 7206682935859174468}
+  grenades: {fileID: 1478910759170137402}
   hudPresenter: {fileID: 5225828390091857571}
 --- !u!114 &2846013524569081734
 MonoBehaviour:
@@ -5013,6 +5050,48 @@ MonoBehaviour:
   - Label: Pistola
     Weapon: {fileID: 11400000, guid: 86d321765143bf84c829903a87b9b7b0, type: 2}
     Price: 150
+--- !u!114 &1478910759170137402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3dd33bef82c4bdc9a60d7e57291aab6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::NetworkPlayerGrenades
+  ShowTopMostFoldoutHeaderGroup: 1
+  grenadePrefab: {fileID: 6904559123129269140, guid: 72298189f58c96e4a9c69e4f6ecd0c0b, type: 3}
+  throwPoint: {fileID: 4037538739251824608}
+  aimCamera: {fileID: 8424079443320761598}
+  throwForce: 12
+  upwardForce: 4
+  throwCooldownSeconds: 0.5
+  startingGrenades: 3
+--- !u!114 &7206682935859174468
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1027bf48491f4c0a80b9c7f2033da3bb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::NetworkPlayerCrouch
+  ShowTopMostFoldoutHeaderGroup: 1
+  capsule: {fileID: 4798153279018658864}
+  playerCamera: {fileID: 6870693027120682118}
+  crouchHeight: 1.2
+  cameraOffset: 0.5
+  transitionSpeed: 10
+  crouchKey: 55
+  standUpCollisionMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!1 &6349465550390264369
 GameObject:
   m_ObjectHideFlags: 0

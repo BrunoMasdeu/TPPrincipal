@@ -924,6 +924,7 @@ MonoBehaviour:
   healthIcon: {fileID: 605262082541652954}
   healthText: {fileID: 7768807440004000381}
   ammunitionText: {fileID: 6140618848898632630}
+  grenadeText: {fileID: 8999498719935549832}
   meleeHighlight: {fileID: 7904175383063673447}
   secondaryHighlight: {fileID: 2260571474196765801}
   primaryHighlight: {fileID: 1658518413665727120}
