@@ -899,7 +899,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4035904569179689877}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
   m_Name: 
@@ -924,6 +924,7 @@ MonoBehaviour:
   healthIcon: {fileID: 605262082541652954}
   healthText: {fileID: 7768807440004000381}
   ammunitionText: {fileID: 6140618848898632630}
+  grenadeText: {fileID: 8999498719935549832}
   meleeHighlight: {fileID: 7904175383063673447}
   secondaryHighlight: {fileID: 2260571474196765801}
   primaryHighlight: {fileID: 1658518413665727120}

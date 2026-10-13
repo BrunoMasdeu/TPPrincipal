@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: RaceGameModeDefinition
   m_EditorClassIdentifier: Game::GameModeDefinition
   gameModeId: 3
-  sceneName: CentroEntrenamiento
+  sceneName: GameScene
   durationSeconds: 120
   scoreLimit: 1
   allowedPlayerCounts:

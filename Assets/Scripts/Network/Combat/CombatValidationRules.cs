@@ -3,10 +3,12 @@ public static class CombatValidationRules
     public static bool IsCombatMode(GameModeId mode) =>
         mode == GameModeId.TDM || mode == GameModeId.CTF;
 
-    // Compatibilidad temporal: Race abre hoy CentroEntrenamiento. Esto permite
-    // probar el inventario allí sin convertirlo en un modo competitivo.
-    public static bool SupportsInventoryPreview(GameModeId mode) =>
-        IsCombatMode(mode) || mode == GameModeId.Race;
+    // Race conserva el inventario para el equipamiento de parkour. El tutorial
+    // lo habilita mediante un contexto explícito, sin fingir que es Race.
+    public static bool SupportsInventoryPreview(
+        GameModeId mode,
+        bool tutorialActive = false) =>
+        IsCombatMode(mode) || mode == GameModeId.Race || tutorialActive;
 
     public static bool CanFire(
         MatchPhase phase,

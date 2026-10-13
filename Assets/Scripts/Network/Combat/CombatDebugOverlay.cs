@@ -143,7 +143,7 @@ public class CombatDebugOverlay : NetworkBehaviour
                 : $"Dinero: ${combat.Money}", label);
         GUILayout.Label($"Último ataque: {combat.LastShotSummary}", label);
         GUILayout.Label($"Última muerte: #{health.LastDeathEventId}  |  Respawn: {health.RespawnRemaining:0.0}s", label);
-        GUILayout.Label("1: cuchillo  |  2: secundaria  |  3: principal  |  4: gancho", label);
+        GUILayout.Label("1: principal  |  2: secundaria  |  3: cuchillo  |  4: gancho", label);
         GUILayout.Label(weapon != null &&
             weapon.AttackType == WeaponAttackType.Utility
                 ? "Clic derecho: usar gancho"

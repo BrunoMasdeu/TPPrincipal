@@ -235,13 +235,13 @@ public class CtfMatchManager : NetworkBehaviour
             return;
         }
 
-        // Sólo el cruce de fuera hacia dentro cuenta como interacción.
-        if (!inside.Add(playerId))
-            return;
+        bool entered = inside.Add(playerId);
 
         CtfMatchState next;
         if (playerTeam == zone.TeamId)
         {
+            // La captura se reevalúa mientras el portador espera en su base.
+            // Así puede puntuar apenas su propia bandera vuelve a AtBase.
             if (!CtfRules.TryCapture(serverState, zone.TeamId, playerTeam,
                     playerId, commonMatch.Phase, out next))
                 return;
@@ -256,6 +256,10 @@ public class CtfMatchManager : NetworkBehaviour
         }
         else
         {
+            // La bandera enemiga sólo se recoge al cruzar hacia la base.
+            if (!entered)
+                return;
+
             // La base no recoge una bandera que está caída en otro lugar.
             if (serverState.GetFlag(zone.TeamId).State != FlagState.AtBase ||
                 !CtfRules.TryPickUpFlag(serverState, zone.TeamId,

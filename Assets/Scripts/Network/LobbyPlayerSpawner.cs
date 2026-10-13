@@ -7,8 +7,8 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(NetworkManager))]
 public class LobbyPlayerSpawner : MonoBehaviour
 {
-    // Puente temporal para la carrera. La sesión y el spawn por equipos
-    // pertenecen a NetworkLobbySession y NetworkPlayerSpawner.
+    // Puente del tutorial local. Las partidas con modo seleccionado usan
+    // NetworkLobbySession y NetworkPlayerSpawner.
     [SerializeField] private GameObject networkPlayerPrefab;
     [SerializeField] private string gameSceneName = "GameScene";
     [SerializeField] private string spawnPointName = "Respawn";
@@ -19,7 +19,6 @@ public class LobbyPlayerSpawner : MonoBehaviour
     private NetworkSessionBootstrap sessionBootstrap;
     private NetworkPlayerSpawner teamSpawner;
     private readonly HashSet<ulong> loadedClientIds = new();
-    private bool gameSceneLoadCompletedWithoutTimeout;
 
     private void Awake()
     {
@@ -110,7 +109,6 @@ public class LobbyPlayerSpawner : MonoBehaviour
         }
 
         loadedClientIds.Clear();
-        gameSceneLoadCompletedWithoutTimeout = false;
         teamSpawner = null;
     }
 
@@ -134,12 +132,16 @@ public class LobbyPlayerSpawner : MonoBehaviour
                 loadedClientIds.Add(clientId);
         }
 
-        gameSceneLoadCompletedWithoutTimeout = clientsTimedOut.Count == 0;
+        if (clientsTimedOut.Count > 0)
+        {
+            Debug.LogError(
+                "El tutorial local no puede iniciar porque la carga agotó el tiempo."
+            );
+            return;
+        }
 
         foreach (ulong clientId in loadedClientIds)
             SpawnPlayer(clientId);
-
-        TryStartRace();
     }
 
     private void OnClientConnected(ulong clientId)
@@ -152,7 +154,6 @@ public class LobbyPlayerSpawner : MonoBehaviour
             SceneManager.GetActiveScene().name == gameSceneName)
         {
             SpawnPlayer(clientId);
-            TryStartRace();
         }
     }
 
@@ -210,61 +211,6 @@ public class LobbyPlayerSpawner : MonoBehaviour
             playerInstance.GetComponent<NetworkObject>();
 
         networkObject.SpawnAsPlayerObject(clientId, true);
-    }
-
-    private void TryStartRace()
-    {
-        if (!networkManager.IsServer ||
-            (NetworkLobbySession.Instance != null &&
-             NetworkLobbySession.Instance.SelectedGameModeId != GameModeId.None) ||
-            !gameSceneLoadCompletedWithoutTimeout)
-        {
-            return;
-        }
-
-        IReadOnlyList<ulong> connectedClientIds =
-            networkManager.ConnectedClientsIds;
-
-        int loadedPlayerCount = 0;
-        int spawnedPlayerCount = 0;
-
-        foreach (ulong clientId in connectedClientIds)
-        {
-            if (loadedClientIds.Contains(clientId))
-                loadedPlayerCount++;
-
-            if (!networkManager.ConnectedClients.TryGetValue(
-                    clientId, out NetworkClient client))
-            {
-                continue;
-            }
-
-            NetworkObject playerObject = client.PlayerObject;
-
-            if (playerObject != null &&
-                playerObject.IsSpawned &&
-                playerObject.gameObject.scene.name == gameSceneName)
-            {
-                spawnedPlayerCount++;
-            }
-        }
-
-        if (!PlayerSpawnReadinessRules.ArePlayersReady(
-                requiredPlayerCount,
-                connectedClientIds.Count,
-                loadedPlayerCount,
-                spawnedPlayerCount,
-                0))
-        {
-            return;
-        }
-
-        GameManager gameManager = FindFirstObjectByType<GameManager>();
-
-        if (gameManager == null || !gameManager.IsSpawned)
-            return;
-
-        gameManager.IniciarCarrera();
     }
 
     private void OnDestroy()

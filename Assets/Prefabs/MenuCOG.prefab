@@ -9714,6 +9714,7 @@ MonoBehaviour:
   readyButton: {fileID: 6561829931491273335}
   lobbyHintDisplay: {fileID: 5901839599205231257}
   sessionBootstrap: {fileID: 0}
+  tutorialSceneName: CentroEntrenamiento
   joinCodeInput: {fileID: 3060641436264642472}
   connectionPanel: {fileID: 6570382467898895565}
   lobbyPanel: {fileID: 6839794531278972221}

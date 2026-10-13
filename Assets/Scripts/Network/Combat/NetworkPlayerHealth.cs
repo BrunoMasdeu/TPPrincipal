@@ -23,6 +23,8 @@ public class NetworkPlayerHealth : NetworkBehaviour
 
     private PlayerNetworkSetup playerSetup;
     private NetworkPlayerCombat combat;
+    private NetworkPlayerCrouch crouch;
+    private NetworkPlayerGrenades grenades;
     private bool combatMode;
     private ulong respawnSequence;
 
@@ -42,6 +44,8 @@ public class NetworkPlayerHealth : NetworkBehaviour
     {
         playerSetup = GetComponent<PlayerNetworkSetup>();
         combat = GetComponent<NetworkPlayerCombat>();
+        crouch = GetComponent<NetworkPlayerCrouch>();
+        grenades = GetComponent<NetworkPlayerGrenades>();
     }
 
     public override void OnNetworkSpawn()
@@ -167,6 +171,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
         lifeState.Value = PlayerLifeState.Dead;
         respawnAt.Value = NetworkManager.ServerTime.Time + respawnDelaySeconds;
         combat?.CancelReloadForDeath();
+        crouch?.ForceStandingOnServer();
 
         if (match.TryRegisterPlayerDeath(
             OwnerClientId, attackerClientId, out PlayerDeathInfo death))
@@ -207,6 +212,8 @@ public class NetworkPlayerHealth : NetworkBehaviour
 
         currentHealth.Value = maxHealth;
         combat?.ResetForRespawn();
+        grenades?.ResetForRespawnOnServer();
+        crouch?.ForceStandingOnServer();
         lifeState.Value = PlayerLifeState.Alive;
         Debug.Log($"[Combat] Cliente {OwnerClientId} reapareció con {maxHealth} HP.");
     }

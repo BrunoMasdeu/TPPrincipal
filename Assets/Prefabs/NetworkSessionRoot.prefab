@@ -50,7 +50,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3547126103
+  GlobalObjectIdHash: 822863583
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -100,6 +100,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::NetworkPlayerSpawner
   ShowTopMostFoldoutHeaderGroup: 1
+  redTeamPlayerPrefab: {fileID: 6347219428683018967, guid: 34cab5dfd181d7649a96c42238c445a4, type: 3}
+  blueTeamPlayerPrefab: {fileID: 2382877052538718719, guid: e697c4ca5bcc96844b1d3742796b0de6, type: 3}
 --- !u!114 &8400006
 MonoBehaviour:
   m_ObjectHideFlags: 0

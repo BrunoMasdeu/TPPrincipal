@@ -47,21 +47,48 @@ public class CtfRulesTests
     }
 
     [Test]
-    public void CarrierCapturesAtOwnBaseEvenWhenOwnFlagIsStolen()
+    public void CarrierCannotCaptureUntilOwnStolenFlagReturnsToBase()
     {
         CtfMatchState state = PickUp(new CtfMatchState(),
             TeamId.Red, TeamId.Blue, 1UL);
         state = PickUp(state, TeamId.Blue, TeamId.Red, 0UL);
 
         Assert.That(CtfRules.TryCapture(state, TeamId.Red, TeamId.Red, 0UL,
+            MatchPhase.Playing, out CtfMatchState blocked), Is.False);
+        Assert.That(blocked, Is.SameAs(state));
+        Assert.That(blocked.RedCaptures, Is.Zero);
+        Assert.That(blocked.RedFlag.State, Is.EqualTo(FlagState.Carried));
+        Assert.That(blocked.BlueFlag.State, Is.EqualTo(FlagState.Carried));
+
+        Assert.That(CtfRules.TryReturnDisconnectedCarrier(state, 1UL,
+            MatchPhase.Playing, out CtfMatchState returned), Is.True);
+        Assert.That(returned.RedFlag.State, Is.EqualTo(FlagState.AtBase));
+        Assert.That(CtfRules.TryCapture(returned, TeamId.Red, TeamId.Red, 0UL,
             MatchPhase.Playing, out CtfMatchState scored), Is.True);
         Assert.That(scored.RedCaptures, Is.EqualTo(1));
         Assert.That(scored.BlueFlag.State, Is.EqualTo(FlagState.AtBase));
-        Assert.That(scored.RedFlag.State, Is.EqualTo(FlagState.Carried));
-        Assert.That(scored.RedFlag.CarrierClientId, Is.EqualTo(1UL));
+        Assert.That(scored.RedFlag.State, Is.EqualTo(FlagState.AtBase));
         Assert.That(state.RedCaptures, Is.Zero);
-        Assert.That(CtfRules.TryCapture(scored, TeamId.Red, TeamId.Red, 0UL,
-            MatchPhase.Playing, out _), Is.False);
+    }
+
+    [Test]
+    public void CarrierCannotCaptureWhileOwnFlagIsDropped()
+    {
+        CtfMatchState state = PickUp(new CtfMatchState(),
+            TeamId.Red, TeamId.Blue, 1UL);
+        var death = new PlayerDeathInfo(20UL, 1UL, TeamId.Blue,
+            false, 0UL, TeamId.None, PlayerDeathCause.Environmental);
+        Assert.That(CtfRules.TryDropCarriedFlag(state, death,
+            Vector3.zero, 10d, MatchPhase.Playing,
+            out CtfMatchState dropped), Is.True);
+
+        dropped = PickUp(dropped, TeamId.Blue, TeamId.Red, 0UL, 11d);
+        Assert.That(CtfRules.TryCapture(dropped, TeamId.Red, TeamId.Red, 0UL,
+            MatchPhase.Playing, out CtfMatchState blocked), Is.False);
+        Assert.That(blocked, Is.SameAs(dropped));
+        Assert.That(blocked.RedCaptures, Is.Zero);
+        Assert.That(blocked.RedFlag.State, Is.EqualTo(FlagState.Dropped));
+        Assert.That(blocked.BlueFlag.State, Is.EqualTo(FlagState.Carried));
     }
 
     [Test]

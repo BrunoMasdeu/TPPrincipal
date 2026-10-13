@@ -14,6 +14,8 @@ public class PlayerNetworkSetup : NetworkBehaviour
     [SerializeField] private Canvas playerUI;
     [SerializeField] private NetworkPlayerInventory inventory;
     [SerializeField] private NetworkPlayerCombat combat;
+    [SerializeField] private NetworkPlayerCrouch crouch;
+    [SerializeField] private NetworkPlayerGrenades grenades;
     [SerializeField] private NetworkPlayerHudPresenter hudPresenter;
 
     [Header("Checkpoint")]
@@ -35,6 +37,8 @@ public class PlayerNetworkSetup : NetworkBehaviour
         networkTransform = GetComponent<NetworkTransform>();
         inventory ??= GetComponent<NetworkPlayerInventory>();
         combat ??= GetComponent<NetworkPlayerCombat>();
+        crouch ??= GetComponent<NetworkPlayerCrouch>();
+        grenades ??= GetComponent<NetworkPlayerGrenades>();
         hudPresenter ??= GetComponent<NetworkPlayerHudPresenter>();
         GuardarCheckpointInicial();
     }
@@ -194,6 +198,8 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
         inventory?.SetLocalInputEnabled(localGameplay);
         combat?.SetLocalInputEnabled(localGameplay);
+        crouch?.SetLocalInputEnabled(localGameplay);
+        grenades?.SetLocalInputEnabled(localGameplay);
         ApplyHudState();
 
         if (!localGameplay && playerRigidbody != null && IsOwner)

@@ -5,8 +5,8 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Combate autoritativo para TDM/CTF y vista previa temporal de inventario en
-/// CentroEntrenamiento. El cliente solo solicita atacar o recargar.
+/// Combate autoritativo para TDM/CTF y práctica local explícita en el tutorial.
+/// El cliente solo solicita atacar o recargar.
 /// </summary>
 [DisallowMultipleComponent]
 public class NetworkPlayerCombat : NetworkBehaviour
@@ -201,7 +201,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
         if (combatMode || !IsSpawned ||
             NetworkLobbySession.Instance == null ||
             !CombatValidationRules.SupportsInventoryPreview(
-                NetworkLobbySession.Instance.SelectedGameModeId))
+                NetworkLobbySession.Instance.SelectedGameModeId,
+                IsTutorialTraining()))
             return;
 
         combatMode = true;
@@ -269,11 +270,15 @@ public class NetworkPlayerCombat : NetworkBehaviour
         }
 
         double now = NetworkManager.ServerTime.Time;
+        bool trainingPreview = IsTutorialTraining();
         MatchPhase phase = NetworkMatchManager.Instance != null
             ? NetworkMatchManager.Instance.Phase
             : MatchPhase.WaitingForPlayers;
+        MatchPhase effectivePhase = trainingPreview
+            ? MatchPhase.Playing
+            : phase;
 
-        if (phase != MatchPhase.Playing)
+        if (effectivePhase != MatchPhase.Playing)
         {
             ShotFeedbackRpc(ShotOutcome.NotPlaying, 0UL, 0, 0UL);
             return;
@@ -313,7 +318,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
         }
 
         if (!CombatValidationRules.CanAttack(
-            phase,
+            effectivePhase,
             health.LifeState,
             weapon.UsesAmmunition,
             state.MagazineAmmunition,
@@ -338,13 +343,14 @@ public class NetworkPlayerCombat : NetworkBehaviour
             $"{OwnerClientId}; cargador={state.MagazineAmmunition}, " +
             $"reserva={state.ReserveAmmunition}."
         );
-        ResolveAttack(weapon, aimOrigin, direction);
+        ResolveAttack(weapon, aimOrigin, direction, trainingPreview);
     }
 
     private void ResolveAttack(
         WeaponDefinition weapon,
         Vector3 origin,
-        Vector3 direction)
+        Vector3 direction,
+        bool trainingPreview)
     {
         RaycastHit[] hits = Physics.RaycastAll(
             origin,
@@ -356,8 +362,6 @@ public class NetworkPlayerCombat : NetworkBehaviour
             left.distance.CompareTo(right.distance));
 
         NetworkLobbySession lobby = NetworkLobbySession.Instance;
-        bool trainingPreview = lobby != null &&
-            lobby.SelectedGameModeId == GameModeId.Race;
 
         LobbyPlayerData attacker = default;
         if (!trainingPreview && (lobby == null ||
@@ -435,14 +439,12 @@ public class NetworkPlayerCombat : NetworkBehaviour
                 return;
             }
 
-            if (victim.ApplyDamageFromPlayer(
-                OwnerClientId,
+            if (TryApplyDamageToPlayerOnServer(
+                victim,
                 weapon.Damage,
                 out int applied,
                 out ulong deathId))
             {
-                ApplyCombatRewards(victim, applied, deathId);
-
                 Debug.Log(
                     $"[Combat] Impacto confirmado con {weapon.DisplayName}: " +
                     $"{OwnerClientId} -> {victim.OwnerClientId}, " +
@@ -464,6 +466,33 @@ public class NetworkPlayerCombat : NetworkBehaviour
         }
 
         ShotFeedbackRpc(ShotOutcome.Miss, 0UL, 0, 0UL);
+    }
+
+    /// <summary>
+    /// Punto comun y exclusivo del servidor para aplicar dano causado por
+    /// cualquier arma del jugador, incluidas las granadas.
+    /// </summary>
+    public bool TryApplyDamageToPlayerOnServer(
+        NetworkPlayerHealth victim,
+        int damage,
+        out int appliedDamage,
+        out ulong deathEventId)
+    {
+        appliedDamage = 0;
+        deathEventId = 0UL;
+
+        if (!IsServer || !IsSpawned || victim == null || victim == health)
+            return false;
+
+        if (!victim.ApplyDamageFromPlayer(
+                OwnerClientId,
+                damage,
+                out appliedDamage,
+                out deathEventId))
+            return false;
+
+        ApplyCombatRewards(victim, appliedDamage, deathEventId);
+        return true;
     }
 
     private void ApplyCombatRewards(
@@ -496,12 +525,16 @@ public class NetworkPlayerCombat : NetworkBehaviour
             !weapon.UsesAmmunition)
             return;
 
+        bool trainingPreview = IsTutorialTraining();
         MatchPhase phase = NetworkMatchManager.Instance != null
             ? NetworkMatchManager.Instance.Phase
             : MatchPhase.WaitingForPlayers;
+        MatchPhase effectivePhase = trainingPreview
+            ? MatchPhase.Playing
+            : phase;
 
         if (health == null || !CombatValidationRules.CanReload(
-            phase,
+            effectivePhase,
             health.LifeState,
             state.MagazineAmmunition,
             weapon.MagazineSize,
@@ -513,6 +546,11 @@ public class NetworkPlayerCombat : NetworkBehaviour
             NetworkManager.ServerTime.Time + weapon.ReloadSeconds;
         PublishSelectedWeaponState();
     }
+
+    private static bool IsTutorialTraining() =>
+        NetworkLobbySession.Instance != null &&
+        NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.None &&
+        TutorialManager.IsTutorialLoaded;
 
     private void CompleteReloadWhenReady()
     {

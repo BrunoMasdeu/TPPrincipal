@@ -2,9 +2,9 @@ using NUnit.Framework;
 
 public class NetworkPlayerInventoryTests
 {
-    [TestCase(1, WeaponSlot.Melee)]
+    [TestCase(1, WeaponSlot.Primary)]
     [TestCase(2, WeaponSlot.Secondary)]
-    [TestCase(3, WeaponSlot.Primary)]
+    [TestCase(3, WeaponSlot.Melee)]
     [TestCase(4, WeaponSlot.Utility)]
     public void NumerosValidosSeleccionanSuRanura(
         int number,
