@@ -13,7 +13,7 @@ public class CombatDebugOverlay : NetworkBehaviour
     private readonly List<DeathNotice> deathNotices = new();
     private ulong lastDisplayedDeathEventId;
     private bool resultsCursorEnabled;
-    private bool visible = true;
+    private bool visible;
 
     private struct DeathNotice
     {

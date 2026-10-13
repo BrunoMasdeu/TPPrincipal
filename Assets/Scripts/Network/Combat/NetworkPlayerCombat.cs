@@ -76,6 +76,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
     public event Action<int> AmmunitionChanged;
     public event Action<int> ReserveAmmunitionChanged;
     public event Action ReloadChanged;
+    public event Action<int> MoneyChanged;
     public event Action<WeaponId, WeaponAttackType> AttackPresented;
 
     public int Ammunition => ammunition.Value;
@@ -721,6 +722,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
     {
         if (!IsOwner)
             return;
+
+        MoneyChanged?.Invoke(current);
 
         Debug.Log(
             $"[Dinero][Local] Cliente {OwnerClientId}: " +

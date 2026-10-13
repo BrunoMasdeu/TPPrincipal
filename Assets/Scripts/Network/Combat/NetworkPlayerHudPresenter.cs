@@ -12,6 +12,8 @@ using UnityEngine;
 public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
 {
     [SerializeField] private PlayerHudView view;
+    [SerializeField] private MatchHudPresenter matchHudPrefab;
+    private MatchHudPresenter matchHudInstance;
 
     private NetworkPlayerHealth health;
     private NetworkPlayerInventory inventory;
@@ -21,6 +23,7 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
     private bool wasReloading;
 
     public PlayerHudView View => view;
+    public MatchHudPresenter MatchHudInstance => matchHudInstance;
     public bool IsHudVisible =>
         view != null && view.HudCanvas != null && view.HudCanvas.enabled;
 
@@ -41,11 +44,13 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
 
         Subscribe();
         RefreshAll();
+        EnsureMatchHud();
     }
 
     public override void OnNetworkDespawn()
     {
         Unsubscribe();
+        ReleaseMatchHud();
         if (view != null)
             view.SetVisible(false);
     }
@@ -53,11 +58,13 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
     public override void OnDestroy()
     {
         Unsubscribe();
+        ReleaseMatchHud();
         base.OnDestroy();
     }
 
     private void Update()
     {
+        EnsureMatchHud();
         if (!IsSpawned || !IsOwner || view == null || combat == null)
             return;
 
@@ -74,6 +81,32 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
         requestedVisible = visible;
         if (view != null)
             view.SetVisible(IsSpawned && IsOwner && visible);
+        if (matchHudInstance != null)
+            matchHudInstance.SetVisible(IsSpawned && IsOwner && visible);
+    }
+
+    private void EnsureMatchHud()
+    {
+        NetworkLobbySession session = NetworkLobbySession.Instance;
+        NetworkMatchManager match = NetworkMatchManager.Instance;
+        if (!IsSpawned || !IsOwner || matchHudInstance != null || matchHudPrefab == null ||
+            session == null || match == null || session.Phase != SessionPhase.InMatch ||
+            !CombatValidationRules.IsCombatMode(session.SelectedGameModeId))
+            return;
+        matchHudInstance = Instantiate(matchHudPrefab);
+        matchHudInstance.name = "CanvasTDM (Local)";
+        matchHudInstance.Initialize(GetComponent<PlayerNetworkSetup>(), combat, health, session, match);
+        matchHudInstance.SetVisible(requestedVisible);
+    }
+
+    private void ReleaseMatchHud()
+    {
+        if (matchHudInstance == null)
+            return;
+        matchHudInstance.Detach();
+        if (!matchHudInstance.IsLeaving)
+            Destroy(matchHudInstance.gameObject);
+        matchHudInstance = null;
     }
 
     public void RefreshAll()
