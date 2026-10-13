@@ -121,6 +121,8 @@ public class MenuCogFlowTests
         Assert.That(NetworkLobbySession.Instance.SelectedPlayerCount, Is.EqualTo(0));
         Assert.That(NetworkLobbySession.Instance.Phase, Is.EqualTo(SessionPhase.Lobby));
         Assert.That(NetworkManager.Singleton.LocalClient.PlayerObject, Is.Not.Null);
+        Assert.That(NetworkManager.Singleton.LocalClient.PlayerObject.GetComponent<NetworkPlayerHudPresenter>().MatchHudInstance,
+            Is.Null, "CanvasTDM sólo pertenece a partidas de combate.");
     }
 
     [UnityTest]

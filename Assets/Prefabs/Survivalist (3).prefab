@@ -3670,6 +3670,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game::NetworkPlayerHudPresenter
   ShowTopMostFoldoutHeaderGroup: 1
   view: {fileID: 3221399559167807117}
+  matchHudPrefab: {fileID: 5723103437063067765, guid: 0c22209e7b1bc9c4abbaa953cfdb9cd1, type: 3}
 --- !u!114 &-404201642656342299
 MonoBehaviour:
   m_ObjectHideFlags: 0

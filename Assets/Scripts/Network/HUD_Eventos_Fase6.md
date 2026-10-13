@@ -12,6 +12,7 @@ Esta guía es para conectar una interfaz visual sin modificar las reglas de la p
 | Vida y estado del jugador local | `NetworkPlayerHealth.CurrentHealth`, `MaxHealth`, `LifeState` | `HealthChanged`, `LifeStateChanged` |
 | Tiempo para reaparecer | `NetworkPlayerHealth.RespawnRemaining` | `LifeStateChanged`; refrescar sólo el texto local periódicamente. |
 | Balas y recarga del jugador local | `NetworkPlayerCombat.Ammunition`, `MagazineSize`, `ReloadRemaining` | `AmmunitionChanged`, `ReloadChanged` |
+| Dinero del jugador local | `NetworkPlayerCombat.Money` | `MoneyChanged` (sólo propietario) |
 | Aviso temporal de muerte | `PlayerDeathInfo` recibido por `NetworkMatchManager.DeathAnnounced` | `DeathAnnounced` |
 
 El ID identifica al jugador mientras no exista un nombre replicado. El orden de `PlayerStatsCount` no es una identidad permanente: para una fila estable, usar `PlayerMatchStats.ClientId`. `TdmMatchManager` sólo ofrece datos TDM; su componente permanece inactivo para otros modos.
@@ -41,4 +42,16 @@ Las funciones `RefreshScore`, `RefreshPlayerTable` y otras son responsabilidad d
 
 Leandro puede escuchar `CountdownSecondChanged`, `PhaseChanged`, `DeathAnnounced`, `ScoreChanged` y `MatchFinished` para reproducir audio o efectos. `ServerDeathConfirmed` **no** es un evento de UI/audio: solamente se emite en el servidor para las reglas. `DeathAnnounced` es la notificación de presentación que reciben host y clientes y trae un `EventId` para reconocer duplicados. El receptor visual o de audio no debe volver a sumar eliminaciones.
 
-No se envía el cronómetro por red cada frame. Los clientes calculan el tiempo visible con el reloj sincronizado de Netcode. Tampoco hay todavía nombres de jugador, HUD definitivo, sonidos ni integración con las armas futuras.
+No se envía el cronómetro por red cada frame. Los clientes calculan el tiempo visible con el reloj sincronizado de Netcode. Los jugadores todavía se identifican por ID; no hay nombres replicados.
+
+## CanvasTDM integrado
+
+`PlayerPrefab` referencia `CanvasTDM` desde `NetworkPlayerHudPresenter.matchHudPrefab`. Al aparecer el PlayerObject propietario en una sesión TDM/CTF, el presentador crea un canvas local en la escena de juego, separado de `PlayerUI`. No hace falta colocarlo manualmente en ArenaIndustrial ni en las escenas de prueba; tampoco se crea para jugadores remotos o para el entrenamiento individual. `PlayerUI` mantiene vida, armas y munición.
+
+El spawner elige un prefab por equipo: rojo usa `PlayerPrefab` y azul usa `Survivalist (3)`. Ambos deben referenciar el mismo `CanvasTDM` en `matchHudPrefab`; esa referencia se incluye en cada build y no se transmite desde el host. Las pruebas de configuración y flujo revisan los prefabs asignados en `NetworkSessionRoot`, incluyendo el jugador azul.
+
+`MatchHudView` contiene las referencias visuales serializadas y `MatchHudPresenter` conecta los eventos de la sesión y el jugador. CanvasTDM muestra marcador y límite oficiales, tiempo sincronizado, dinero local, tres avisos de muerte durante cinco segundos y la tabla mientras se mantiene Tab. Las filas usan el ID estable y el equipo replicado. En CTF muestra capturas por equipo y estado de las banderas; sus estadísticas individuales no se publican y se muestran como `--`.
+
+Al finalizar se muestra el resultado oficial y se libera el cursor. `VOLVER AL LOBBY` usa `TryReturnToLobbyAfterMatch`, sólo para el host, conservando la sala para configurar otra partida. `VOLVER AL MENU` cierra la conexión local antes de cargar MenuScene. El placeholder de votación de revancha se reemplaza por el flujo que existe actualmente.
+
+El HUD se desuscribe y destruye al despawnear el propietario o cambiar de escena. La rutina de salida al menú conserva temporalmente su instancia para completar el cierre aunque Netcode destruya el jugador. Si la escena no tiene EventSystem, el HUD crea uno local para sus botones. El overlay de combate de prueba empieza oculto y continúa disponible con F8.
