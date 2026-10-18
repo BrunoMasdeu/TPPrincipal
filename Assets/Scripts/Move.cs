@@ -14,6 +14,10 @@ public class Move : MonoBehaviour
     public float runSpeed = 10f;
     public float acceleration = 20f;
 
+    [Header("Salud")]
+    private float playerHealth = 100f;
+    public float presentHealth;
+
     [Header("Salto")]
     public float jumpForce = 7f;
 
@@ -52,6 +56,11 @@ public class Move : MonoBehaviour
 
         if (anim == null)
             anim = GetComponentInChildren<Animator>();
+    }
+
+    private void Start()
+    {
+        presentHealth = playerHealth;
     }
 
     private void Update()
@@ -350,5 +359,19 @@ public class Move : MonoBehaviour
             groundCheck.position,
             groundDistance
         );
+    }
+    public void playerHitDamage(float TakeDamage)
+    {
+        presentHealth -= TakeDamage;
+
+        if(presentHealth <= 0)
+        {
+            playerDie();
+        }
+    }
+
+    private void playerDie()
+    {
+        Object.Destroy(gameObject, 1.0f);
     }
 }
