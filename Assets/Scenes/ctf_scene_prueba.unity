@@ -3859,6 +3859,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 2382877052538718719, guid: e697c4ca5bcc96844b1d3742796b0de6, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2452430793790427197, guid: e697c4ca5bcc96844b1d3742796b0de6, type: 3}
       propertyPath: m_Layer
       value: 6
@@ -6603,6 +6607,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::Zombie
   giveDamage: 5
+  presentHealth: 0
   zombieAgent: {fileID: 4268611601813275293}
   LookPoint: {fileID: 1881723123}
   AttackingRaycastArea: {fileID: 264211768131957134}

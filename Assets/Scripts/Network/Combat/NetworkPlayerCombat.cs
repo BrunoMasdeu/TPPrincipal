@@ -25,7 +25,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
         Cooldown,
         InvalidAim,
         InvalidWeapon,
-        TrainingHit
+        TrainingHit,
+        ZombieHit
     }
 
     private sealed class WeaponRuntimeState
@@ -412,6 +413,20 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
                 return;
             }
+            if (victim == null && IsCtfMatch())
+            {
+                Zombie zombie = hit.collider.GetComponentInParent<Zombie>();
+                if (zombie != null)
+                {
+                    zombie.zombieHitDamage(weapon.Damage);
+                    ShotFeedbackRpc(
+                    ShotOutcome.ZombieHit,
+                    0UL,
+                    weapon.Damage,
+                    0UL);
+                    return;
+                }
+            }
 
             if (victim == null)
             {
@@ -551,6 +566,9 @@ public class NetworkPlayerCombat : NetworkBehaviour
         NetworkLobbySession.Instance != null &&
         NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.None &&
         TutorialManager.IsTutorialLoaded;
+    private static bool IsCtfMatch() =>
+        CtfMatchManager.Instance != null &&
+        CtfMatchManager.Instance.IsCtf;
 
     private void CompleteReloadWhenReady()
     {
@@ -790,6 +808,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
                 $"Impacto confirmado: jugador {victimClientId}, -{appliedDamage} HP",
             ShotOutcome.Kill =>
                 $"Muerte confirmada: jugador {victimClientId}, evento #{deathEventId}",
+            ShotOutcome.ZombieHit =>
+                $"Zombie impactado: -{appliedDamage} HP",
             ShotOutcome.FriendlyBlocked => "Aliado delante: sin dano",
             ShotOutcome.Blocked => "Impacto en obstaculo / objetivo invulnerable",
             ShotOutcome.Miss => "Ataque sin impacto",
