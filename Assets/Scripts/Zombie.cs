@@ -11,6 +11,7 @@ public class Zombie : MonoBehaviour
     public Camera AttackingRaycastArea;
     public Transform playerBody;
     public LayerMask PlayerLayer;
+    private bool isDead;
 
     public GameObject[] walkPoints;
     int currentZombiePosition = 0;
@@ -104,19 +105,25 @@ private void AttackPlayer()
   {
     previouslyAttack = false;
   }
-  public void zombieHitDamage(float takeDamage)
+  public bool zombieHitDamage(float takeDamage)
   {
+    if (isDead) return false; 
+
     presentHealth -= takeDamage;
 
     if(presentHealth <= 0)
     {
+        isDead = true; 
+
         anim.SetBool("Walking", false);
         anim.SetBool("Running", false);
         anim.SetBool("Attacking", false);
         anim.SetBool("Died", true);
 
         zombieDie();
+        return true;
     }
+    return false;  
   }
 
   private void zombieDie()

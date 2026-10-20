@@ -26,7 +26,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
         InvalidAim,
         InvalidWeapon,
         TrainingHit,
-        ZombieHit
+        ZombieHit,
+        ZombieKill
     }
 
     private sealed class WeaponRuntimeState
@@ -42,6 +43,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
     [Header("Economia provisional")]
     [SerializeField, Min(0)] private int moneyLostOnDeath = 100;
+    [SerializeField, Min(0)] private int moneyPerZombieKill = 100;
 
     private readonly NetworkVariable<int> ammunition = new(
         0,
@@ -418,9 +420,11 @@ public class NetworkPlayerCombat : NetworkBehaviour
                 Zombie zombie = hit.collider.GetComponentInParent<Zombie>();
                 if (zombie != null)
                 {
-                    zombie.zombieHitDamage(weapon.Damage);
+                    bool killed = zombie.zombieHitDamage(weapon.Damage);
+                    if (killed)
+                        AwardMoneyOnServer(moneyPerZombieKill, "eliminacion de zombie");
                     ShotFeedbackRpc(
-                    ShotOutcome.ZombieHit,
+                    killed ? ShotOutcome.ZombieKill : ShotOutcome.ZombieHit,
                     0UL,
                     weapon.Damage,
                     0UL);
@@ -527,6 +531,18 @@ public class NetworkPlayerCombat : NetworkBehaviour
         Debug.Log(
             $"[Dinero][Servidor] Cliente {OwnerClientId}: " +
             $"+200 por eliminacion | Total: ${money.Value}"
+        );
+    }
+    private void AwardMoneyOnServer(int amount, string reason)
+    {
+        if (!IsServer || amount <= 0)
+            return;
+
+        money.Value += amount;
+
+        Debug.Log(
+            $"[Dinero][Servidor] Cliente {OwnerClientId}: " +
+            $"+{amount} por {reason} | Total: ${money.Value}"
         );
     }
 
@@ -810,6 +826,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
                 $"Muerte confirmada: jugador {victimClientId}, evento #{deathEventId}",
             ShotOutcome.ZombieHit =>
                 $"Zombie impactado: -{appliedDamage} HP",
+            ShotOutcome.ZombieKill =>
+                $"Zombie eliminado: +${moneyPerZombieKill}",
             ShotOutcome.FriendlyBlocked => "Aliado delante: sin dano",
             ShotOutcome.Blocked => "Impacto en obstaculo / objetivo invulnerable",
             ShotOutcome.Miss => "Ataque sin impacto",
