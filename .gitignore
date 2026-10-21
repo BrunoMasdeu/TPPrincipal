@@ -26,3 +26,6 @@ Thumbs.db
 
 # Builds locales
 BuildTest/
+
+# Datos generados por Adaptive Probe Volumes
+Assets/Scenes/GameScene/*Baking Set*.bytes
