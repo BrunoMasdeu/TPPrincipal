@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: Cuchillo
   slot: 1
   attackType: 1
+  hudSprite: {fileID: 21300000, guid: c46013fe296f8694eba4285697ec08e2, type: 3}
   damage: 50
   range: 1.25
   secondsBetweenAttacks: 0.7

@@ -36,6 +36,14 @@ public class NetworkPlayerInventory : NetworkBehaviour
         WeaponId.None,
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
+    private readonly NetworkVariable<WeaponId> replicatedSidearmWeapon = new(
+        WeaponId.None,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+    private readonly NetworkVariable<WeaponId> replicatedPrimaryWeapon = new(
+        WeaponId.None,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
 
     private NetworkPlayerHealth health;
     private Grappling grappling;
@@ -47,9 +55,18 @@ public class NetworkPlayerInventory : NetworkBehaviour
     private bool localInputEnabled = true;
 
     public event Action<WeaponId> SelectedWeaponChanged;
+    public event Action LoadoutChanged;
 
     public WeaponId SelectedWeaponId => selectedWeapon.Value;
     public bool LocalInputEnabled => localInputEnabled;
+    public WeaponDefinition SidearmWeaponDefinition =>
+        TryGetDefinition(replicatedSidearmWeapon.Value, out WeaponDefinition definition)
+            ? definition
+            : null;
+    public WeaponDefinition PrimaryWeaponDefinition =>
+        TryGetDefinition(replicatedPrimaryWeapon.Value, out WeaponDefinition definition)
+            ? definition
+            : null;
     public WeaponDefinition SelectedWeaponDefinition =>
         TryGetDefinition(selectedWeapon.Value, out WeaponDefinition definition)
             ? definition
@@ -64,13 +81,18 @@ public class NetworkPlayerInventory : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         selectedWeapon.OnValueChanged += OnSelectedWeaponChanged;
+        replicatedSidearmWeapon.OnValueChanged += OnLoadoutWeaponChanged;
+        replicatedPrimaryWeapon.OnValueChanged += OnLoadoutWeaponChanged;
         TryActivateInventoryMode();
     }
 
     public override void OnNetworkDespawn()
     {
         selectedWeapon.OnValueChanged -= OnSelectedWeaponChanged;
+        replicatedSidearmWeapon.OnValueChanged -= OnLoadoutWeaponChanged;
+        replicatedPrimaryWeapon.OnValueChanged -= OnLoadoutWeaponChanged;
         SelectedWeaponChanged = null;
+        LoadoutChanged = null;
     }
 
     private void Update()
@@ -129,6 +151,7 @@ public class NetworkPlayerInventory : NetworkBehaviour
 
         sidearmWeaponId = sidearm;
         primaryWeaponId = primary;
+        PublishLoadoutWeapons();
 
         if (!IsInCurrentLoadout(selectedWeapon.Value))
             selectedWeapon.Value = sidearmWeaponId;
@@ -204,6 +227,7 @@ public class NetworkPlayerInventory : NetworkBehaviour
         sidearmWeaponId = GetConfiguredId(startingSidearm, WeaponSlot.Secondary);
         primaryWeaponId = GetConfiguredId(startingPrimary, WeaponSlot.Primary);
         utilityWeaponId = GetConfiguredId(startingUtility, WeaponSlot.Utility);
+        PublishLoadoutWeapons();
 
         if (sidearmWeaponId == WeaponId.None)
         {
@@ -252,6 +276,17 @@ public class NetworkPlayerInventory : NetworkBehaviour
 
         ApplyWeaponVisual(current);
         SelectedWeaponChanged?.Invoke(current);
+    }
+
+    private void OnLoadoutWeaponChanged(WeaponId previous, WeaponId current)
+    {
+        LoadoutChanged?.Invoke();
+    }
+
+    private void PublishLoadoutWeapons()
+    {
+        replicatedSidearmWeapon.Value = sidearmWeaponId;
+        replicatedPrimaryWeapon.Value = primaryWeaponId;
     }
 
     private void TryActivateInventoryMode()
@@ -382,6 +417,7 @@ public class NetworkPlayerInventory : NetworkBehaviour
                     return false;
             }
 
+            PublishLoadoutWeapons();
             selectedWeapon.Value = weaponId;
 
             Debug.Log(

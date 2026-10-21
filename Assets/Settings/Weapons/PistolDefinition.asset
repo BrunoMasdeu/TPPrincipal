@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: Pistola
   slot: 2
   attackType: 0
+  hudSprite: {fileID: 21300000, guid: 2e1e2b4b358b9354c98fabdc992b1e0e, type: 3}
   damage: 25
   range: 100
   secondsBetweenAttacks: 0.5

@@ -138,6 +138,26 @@ public class UnifiedPlayerPrefabTests
         Assert.That(grapple.Slot, Is.EqualTo(WeaponSlot.Utility));
     }
 
+    [TestCase("KnifeDefinition", "knife.png")]
+    [TestCase("PistolDefinition", "pistola.png")]
+    [TestCase("RevolverDefinition", "revolver.png")]
+    [TestCase("AkDefinition", "icon_weapon_rifle.png")]
+    [TestCase("M4Definition", "m4_icon.png")]
+    [TestCase("GrappleDefinition", "arpon (2).png")]
+    public void DefinicionesDeArmasTienenSpriteParaElHud(
+        string definitionName,
+        string spriteName)
+    {
+        WeaponDefinition definition = AssetDatabase.LoadAssetAtPath<WeaponDefinition>(
+            $"Assets/Settings/Weapons/{definitionName}.asset");
+        Sprite sprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+            $"Assets/UI/Icons/Armas/{spriteName}");
+
+        Assert.That(definition, Is.Not.Null, definitionName);
+        Assert.That(sprite, Is.Not.Null, spriteName);
+        Assert.That(definition.HudSprite, Is.SameAs(sprite), definitionName);
+    }
+
     [TestCase(PlayerPrefabPath)]
     [TestCase(BluePlayerPrefabPath)]
     public void PrefabsDeEquipoConfiguranAgachadoYGranadas(string prefabPath)

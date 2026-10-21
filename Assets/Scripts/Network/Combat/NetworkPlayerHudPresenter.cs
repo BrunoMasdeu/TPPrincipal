@@ -120,6 +120,7 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
 
         view.SetHealth(health.CurrentHealth, health.MaxHealth);
         view.SetLifeState(health.LifeState);
+        RefreshWeaponIcons();
         RefreshSelectedWeapon();
         RefreshAmmunition();
         view.SetGrenades(grenades.GrenadeCount);
@@ -134,6 +135,7 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
         health.HealthChanged += OnHealthChanged;
         health.LifeStateChanged += OnLifeStateChanged;
         inventory.SelectedWeaponChanged += OnSelectedWeaponChanged;
+        inventory.LoadoutChanged += OnLoadoutChanged;
         combat.AmmunitionChanged += OnAmmunitionChanged;
         combat.ReserveAmmunitionChanged += OnReserveAmmunitionChanged;
         combat.ReloadChanged += OnReloadChanged;
@@ -153,7 +155,10 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
         }
 
         if (inventory != null)
+        {
             inventory.SelectedWeaponChanged -= OnSelectedWeaponChanged;
+            inventory.LoadoutChanged -= OnLoadoutChanged;
+        }
 
         if (combat != null)
         {
@@ -189,6 +194,8 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
         RefreshAmmunition();
     }
 
+    private void OnLoadoutChanged() => RefreshWeaponIcons();
+
     private void OnAmmunitionChanged(int _) => RefreshAmmunition();
     private void OnReserveAmmunitionChanged(int _) => RefreshAmmunition();
     private void OnReloadChanged() => RefreshAmmunition();
@@ -199,6 +206,18 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
     {
         WeaponDefinition selected = inventory.SelectedWeaponDefinition;
         view.SetSelectedSlot(selected != null ? selected.Slot : WeaponSlot.None);
+    }
+
+    private void RefreshWeaponIcons()
+    {
+        if (view == null || inventory == null)
+            return;
+
+        WeaponDefinition sidearm = inventory.SidearmWeaponDefinition;
+        WeaponDefinition primary = inventory.PrimaryWeaponDefinition;
+        view.SetWeaponIcons(
+            sidearm != null ? sidearm.HudSprite : null,
+            primary != null ? primary.HudSprite : null);
     }
 
     private void RefreshAmmunition()

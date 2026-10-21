@@ -17,14 +17,12 @@ public sealed class PlayerHudView : MonoBehaviour
     [SerializeField] private TMP_Text grenadeText;
 
     [Header("Ranuras del equipamiento")]
-    [SerializeField] private Image meleeHighlight;
-    [SerializeField] private Image secondaryHighlight;
-    [SerializeField] private Image primaryHighlight;
-    [SerializeField] private Image utilityHighlight;
+    [SerializeField] private Image meleeIcon;
+    [SerializeField] private Image secondaryIcon;
+    [SerializeField] private Image primaryIcon;
+    [SerializeField] private Image utilityIcon;
 
     [Header("Presentacion")]
-    [SerializeField, Range(0f, 1f)] private float inactiveSlotAlpha = 0f;
-    [SerializeField, Range(0f, 1f)] private float activeSlotAlpha = 0.65f;
     [SerializeField] private Color normalHealthColor = Color.white;
     [SerializeField] private Color lowHealthColor = new(1f, 0.25f, 0.25f, 1f);
 
@@ -43,10 +41,10 @@ public sealed class PlayerHudView : MonoBehaviour
         healthText != null &&
         ammunitionText != null &&
         grenadeText != null &&
-        meleeHighlight != null &&
-        secondaryHighlight != null &&
-        primaryHighlight != null &&
-        utilityHighlight != null;
+        meleeIcon != null &&
+        secondaryIcon != null &&
+        primaryIcon != null &&
+        utilityIcon != null;
 
     private void Awake()
     {
@@ -83,10 +81,10 @@ public sealed class PlayerHudView : MonoBehaviour
             ? grenades.GetComponentInChildren<TMP_Text>(true)
             : null;
 
-        meleeHighlight ??= FindImage("Cuchillo");
-        secondaryHighlight ??= FindImage("ArmaSecundaria");
-        primaryHighlight ??= FindImage("ArmaPrincipal");
-        utilityHighlight ??= FindImage("Gancho");
+        meleeIcon ??= FindImage("CuchilloImage");
+        utilityIcon ??= FindImage("GanchoImage");
+        secondaryIcon ??= FindImage("ArmaSecundaria");
+        primaryIcon ??= FindImage("ArmaPrincipal");
     }
 
     public void SetVisible(bool visible)
@@ -150,10 +148,16 @@ public sealed class PlayerHudView : MonoBehaviour
 
     public void SetSelectedSlot(WeaponSlot selectedSlot)
     {
-        SetHighlight(meleeHighlight, selectedSlot == WeaponSlot.Melee);
-        SetHighlight(secondaryHighlight, selectedSlot == WeaponSlot.Secondary);
-        SetHighlight(primaryHighlight, selectedSlot == WeaponSlot.Primary);
-        SetHighlight(utilityHighlight, selectedSlot == WeaponSlot.Utility);
+        SetHighlight(meleeIcon, selectedSlot == WeaponSlot.Melee);
+        SetHighlight(secondaryIcon, selectedSlot == WeaponSlot.Secondary);
+        SetHighlight(primaryIcon, selectedSlot == WeaponSlot.Primary);
+        SetHighlight(utilityIcon, selectedSlot == WeaponSlot.Utility);
+    }
+
+    public void SetWeaponIcons(Sprite secondarySprite, Sprite primarySprite)
+    {
+        SetWeaponIcon(secondaryIcon, secondarySprite);
+        SetWeaponIcon(primaryIcon, primarySprite);
     }
 
     private Image FindImage(string objectName)
@@ -167,9 +171,22 @@ public sealed class PlayerHudView : MonoBehaviour
         if (image == null)
             return;
 
-        Color color = image.color;
-        color.a = active ? activeSlotAlpha : inactiveSlotAlpha;
+        Color color = active ? Color.white : Color.gray;
         image.color = color;
+    }
+
+    private static void SetWeaponIcon(Image image, Sprite sprite)
+    {
+        if (image == null)
+            return;
+
+        image.sprite = sprite;
+        image.type = Image.Type.Simple;
+        image.preserveAspect = true;
+        Color c = image.color;
+        c.a = 1f;
+        image.color = c;
+        image.enabled = sprite != null;
     }
 
     private static Transform FindDescendant(Transform root, string objectName)

@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: Gancho
   slot: 4
   attackType: 2
+  hudSprite: {fileID: 21300000, guid: c416d719d22d682419451a44979d35bd, type: 3}
   damage: 1
   range: 0.1
   secondsBetweenAttacks: 0

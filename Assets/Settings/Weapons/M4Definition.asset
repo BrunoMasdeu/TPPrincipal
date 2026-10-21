@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: M4
   slot: 3
   attackType: 0
+  hudSprite: {fileID: 21300000, guid: 168498254f079604e83aef6e2176de08, type: 3}
   damage: 35
   range: 1000
   secondsBetweenAttacks: 0.4

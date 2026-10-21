@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: AK
   slot: 3
   attackType: 0
+  hudSprite: {fileID: 21300000, guid: e453c26ace0199a4788cd9d97ce86e70, type: 3}
   damage: 30
   range: 1000
   secondsBetweenAttacks: 0.5

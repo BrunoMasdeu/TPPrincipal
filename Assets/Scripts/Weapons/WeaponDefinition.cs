@@ -14,6 +14,7 @@ public class WeaponDefinition : ScriptableObject
     [SerializeField] private string displayName;
     [SerializeField] private WeaponSlot slot = WeaponSlot.None;
     [SerializeField] private WeaponAttackType attackType = WeaponAttackType.Hitscan;
+    [SerializeField] private Sprite hudSprite;
 
     [Header("Ataque")]
     [SerializeField, Min(1)] private int damage = 25;
@@ -33,6 +34,7 @@ public class WeaponDefinition : ScriptableObject
         : displayName;
     public WeaponSlot Slot => slot;
     public WeaponAttackType AttackType => attackType;
+    public Sprite HudSprite => hudSprite;
     public int Damage => damage;
     public float Range => range;
     public float SecondsBetweenAttacks => secondsBetweenAttacks;

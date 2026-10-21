@@ -16,6 +16,7 @@ MonoBehaviour:
   displayName: Revolver
   slot: 2
   attackType: 0
+  hudSprite: {fileID: 21300000, guid: 84b52489ed4600a4aade69efd8b2bd83, type: 3}
   damage: 50
   range: 100
   secondsBetweenAttacks: 0.5
