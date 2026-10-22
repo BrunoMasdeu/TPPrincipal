@@ -15,6 +15,9 @@ public sealed class MatchHudView : MonoBehaviour
         public TMP_Text name;
         public TMP_Text kills;
         public TMP_Text deaths;
+        public TMP_Text nameFinal;
+        public TMP_Text killsFinal;
+        public TMP_Text deathsFinal;
     }
 
     [SerializeField] private TMP_Text redScore;
@@ -35,8 +38,10 @@ public sealed class MatchHudView : MonoBehaviour
     [SerializeField] private PlayerRow[] bluePlayers;
     [SerializeField] private GameObject resultPanel;
     [SerializeField] private TMP_Text resultTitle;
+    [SerializeField] private TMP_Text winningTeam;
     [SerializeField] private TMP_Text resultRedScore;
     [SerializeField] private TMP_Text resultBlueScore;
+    [SerializeField] private TMP_Text modeScore;
     [SerializeField] private TMP_Text resultHint;
     [SerializeField] private Button lobbyButton;
     [SerializeField] private Button leaveButton;
@@ -72,8 +77,9 @@ public sealed class MatchHudView : MonoBehaviour
         blueScore.text = tabBlueScore.text = Mathf.Max(0, blue).ToString();
         string units = mode == GameModeId.CTF ? "capturas" : "eliminaciones";
         scoreLimit.text = $"Meta: {limit} {units}";
-        resultRedScore.text = $"{red} {units}";
-        resultBlueScore.text = $"{blue} {units}";
+        resultRedScore.text = $"{red}";
+        resultBlueScore.text = $"{blue}";
+        modeScore.text = $"{units}";
     }
 
     public void SetPlayers(IReadOnlyList<PlayerMatchStats> players, ulong localClientId, bool hasStats)
@@ -91,7 +97,8 @@ public sealed class MatchHudView : MonoBehaviour
         SetTableVisible(false);
         resultTitle.text = result.IsPending ? "Esperando resultado..."
             : result.IsDraw ? "EMPATE"
-            : $"VICTORIA DEL EQUIPO {(result.WinningTeam == TeamId.Red ? "ROJO" : "AZUL")}";
+            : $"VICTORIA";
+        winningTeam.text = $"EQUIPO {(result.WinningTeam == TeamId.Red ? "ROJO" : "AZUL")}";
         lobbyButton.interactable = isHost && !result.IsPending;
         leaveButton.interactable = true;
         resultHint.text = isHost ? "Volvé al lobby para configurar la próxima partida."
@@ -133,6 +140,9 @@ public sealed class MatchHudView : MonoBehaviour
             row.name.text = $"Jugador {player.ClientId + 1}{(player.ClientId == localClientId ? " (vos)" : "")}";
             row.kills.text = hasStats ? player.Kills.ToString() : "--";
             row.deaths.text = hasStats ? player.Deaths.ToString() : "--";
+            row.nameFinal.text = $"Jugador {player.ClientId + 1}{(player.ClientId == localClientId ? " (vos)" : "")}";
+            row.killsFinal.text = hasStats ? player.Kills.ToString() : "--";
+            row.deathsFinal.text = hasStats ? player.Deaths.ToString() : "--";
         }
         while (slot < rows.Length)
             rows[slot++].root.SetActive(false);
