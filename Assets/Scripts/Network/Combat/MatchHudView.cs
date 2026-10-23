@@ -20,6 +20,7 @@ public sealed class MatchHudView : MonoBehaviour
         public TMP_Text deathsFinal;
     }
 
+    [SerializeField] private GameObject principalPanel; 
     [SerializeField] private TMP_Text redScore;
     [SerializeField] private TMP_Text blueScore;
     [SerializeField] private TMP_Text tabRedScore;
@@ -94,6 +95,7 @@ public sealed class MatchHudView : MonoBehaviour
         tableHint.SetActive(!finished);
         if (!finished)
             return;
+        principalPanel.SetActive(false);
         SetTableVisible(false);
         resultTitle.text = result.IsPending ? "Esperando resultado..."
             : result.IsDraw ? "EMPATE"
