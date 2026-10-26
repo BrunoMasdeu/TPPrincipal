@@ -14,10 +14,10 @@ OcclusionCullingSettings:
 RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
-  m_Fog: 0
-  m_FogColor: {r: 0.49056602, g: 0.49056602, b: 0.49056602, a: 1}
+  m_Fog: 1
+  m_FogColor: {r: 0.3490566, g: 0.3490566, b: 0.3490566, a: 1}
   m_FogMode: 2
-  m_FogDensity: 0.041
+  m_FogDensity: 0.005
   m_LinearFogStart: 0
   m_LinearFogEnd: 30
   m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
@@ -33808,6 +33808,7 @@ GameObject:
   - component: {fileID: 1382718543}
   - component: {fileID: 1382718545}
   - component: {fileID: 1382718544}
+  - component: {fileID: 1382718546}
   m_Layer: 3
   m_Name: Road_set_v1_road_up_2m_HD_f (1)
   m_TagString: Untagged
@@ -33886,6 +33887,28 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1382718542}
+  m_Mesh: {fileID: 4300102, guid: c7f7a9ec09a97d144963b6dd16448dc3, type: 3}
+--- !u!64 &1382718546
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1382718542}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
   m_Mesh: {fileID: 4300102, guid: c7f7a9ec09a97d144963b6dd16448dc3, type: 3}
 --- !u!1001 &1384797814
 PrefabInstance:
@@ -49155,7 +49178,7 @@ MonoBehaviour:
     e00: 1
     e01: 0
     e02: 0
-    e03: -32.443558
+    e03: -32.14229
     e10: 0
     e11: 1
     e12: 0
@@ -49168,7 +49191,7 @@ MonoBehaviour:
     e31: 0
     e32: 0
     e33: 1
-  cachedHashCode: 464003684
+  cachedHashCode: 590197540
   fillEmptySpaces: 0
 --- !u!4 &2016880981
 Transform:
