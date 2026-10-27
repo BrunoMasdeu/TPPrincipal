@@ -367,7 +367,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &353787721842438113
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2144,7 +2144,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &6986953440482954525
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12230,6 +12230,7 @@ MonoBehaviour:
   tableHint: {fileID: 803993663651306172}
   redPlayers:
   - root: {fileID: 6627203553414059747}
+    rootFinal: {fileID: 6302439548091283125}
     name: {fileID: 5009367702575295088}
     kills: {fileID: 8232226013610293445}
     deaths: {fileID: 1863531681327392978}
@@ -12237,6 +12238,7 @@ MonoBehaviour:
     killsFinal: {fileID: 4611392740974018527}
     deathsFinal: {fileID: 5911441811602321812}
   - root: {fileID: 9136078966494455933}
+    rootFinal: {fileID: 4350909133896707707}
     name: {fileID: 8274645185625288744}
     kills: {fileID: 7152266426707801412}
     deaths: {fileID: 5649450513578105995}
@@ -12244,6 +12246,7 @@ MonoBehaviour:
     killsFinal: {fileID: 2970221242158944451}
     deathsFinal: {fileID: 7556229250076215520}
   - root: {fileID: 236298430325050077}
+    rootFinal: {fileID: 4274668490336671804}
     name: {fileID: 6657258899169234889}
     kills: {fileID: 1254548416157735423}
     deaths: {fileID: 538334065823031982}
@@ -12251,6 +12254,7 @@ MonoBehaviour:
     killsFinal: {fileID: 5369374318574960103}
     deathsFinal: {fileID: 1056234681651095376}
   - root: {fileID: 5396569077438363800}
+    rootFinal: {fileID: 2744893738693611574}
     name: {fileID: 425713876124002446}
     kills: {fileID: 7500861597321898952}
     deaths: {fileID: 1747261226804507122}
@@ -12259,6 +12263,7 @@ MonoBehaviour:
     deathsFinal: {fileID: 1401040294037471362}
   bluePlayers:
   - root: {fileID: 1038835081796732558}
+    rootFinal: {fileID: 971209505742960139}
     name: {fileID: 5705111212204092022}
     kills: {fileID: 3303065356697240366}
     deaths: {fileID: 6269944537855006100}
@@ -12266,6 +12271,7 @@ MonoBehaviour:
     killsFinal: {fileID: 7353793022971026051}
     deathsFinal: {fileID: 2407868959393303045}
   - root: {fileID: 6762272418920244620}
+    rootFinal: {fileID: 2005630776246563400}
     name: {fileID: 2270236553838510790}
     kills: {fileID: 2576021579597301324}
     deaths: {fileID: 122218264541727292}
@@ -12273,6 +12279,7 @@ MonoBehaviour:
     killsFinal: {fileID: 8391672383272256543}
     deathsFinal: {fileID: 7227007426794596934}
   - root: {fileID: 7303476358038818782}
+    rootFinal: {fileID: 749972772454440425}
     name: {fileID: 565259129383525995}
     kills: {fileID: 4440835700178236519}
     deaths: {fileID: 5955796388218629700}
@@ -12280,6 +12287,7 @@ MonoBehaviour:
     killsFinal: {fileID: 5463440111375262527}
     deathsFinal: {fileID: 8120817400090200592}
   - root: {fileID: 1820158267157237501}
+    rootFinal: {fileID: 224282954228468958}
     name: {fileID: 7649774161439673907}
     kills: {fileID: 2362694989069498088}
     deaths: {fileID: 1146249539485319433}

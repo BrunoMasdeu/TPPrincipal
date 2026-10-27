@@ -12,6 +12,7 @@ public sealed class MatchHudView : MonoBehaviour
     private class PlayerRow
     {
         public GameObject root;
+        public GameObject rootFinal;
         public TMP_Text name;
         public TMP_Text kills;
         public TMP_Text deaths;
@@ -139,6 +140,8 @@ public sealed class MatchHudView : MonoBehaviour
                 continue;
             PlayerRow row = rows[slot++];
             row.root.SetActive(true);
+            if (row.rootFinal != null)
+                row.rootFinal.SetActive(true);
             row.name.text = $"Jugador {player.ClientId + 1}{(player.ClientId == localClientId ? " (vos)" : "")}";
             row.kills.text = hasStats ? player.Kills.ToString() : "--";
             row.deaths.text = hasStats ? player.Deaths.ToString() : "--";
@@ -147,6 +150,11 @@ public sealed class MatchHudView : MonoBehaviour
             row.deathsFinal.text = hasStats ? player.Deaths.ToString() : "--";
         }
         while (slot < rows.Length)
-            rows[slot++].root.SetActive(false);
+        {
+            PlayerRow row = rows[slot++];
+            row.root.SetActive(false);
+            if (row.rootFinal != null)
+                row.rootFinal.SetActive(false);
+        }
     }
 }

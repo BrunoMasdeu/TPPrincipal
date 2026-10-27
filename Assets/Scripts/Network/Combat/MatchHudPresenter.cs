@@ -65,7 +65,10 @@ public sealed class MatchHudPresenter : MonoBehaviour
             tdm.PlayerStatsChanged += RefreshPlayers;
         }
         if (ctf != null)
+        {
             ctf.ScoreChanged += RefreshScores;
+            ctf.PlayerStatsChanged += RefreshPlayers;
+        }
         if (EventSystem.current == null)
         {
             var events = new GameObject("MatchEventSystem", typeof(EventSystem));
@@ -124,8 +127,16 @@ public sealed class MatchHudPresenter : MonoBehaviour
     private void RefreshPlayers()
     {
         players.Clear();
-        bool hasStats = lobby.SelectedGameModeId == GameModeId.TDM && tdm != null && tdm.PlayerStatsCount > 0;
-        if (hasStats)
+        bool isCtf = lobby.SelectedGameModeId == GameModeId.CTF;
+        bool hasStats = isCtf ? ctf != null && ctf.PlayerStatsCount > 0
+            : tdm != null && tdm.PlayerStatsCount > 0;
+        if (hasStats && isCtf)
+        {
+            for (int i = 0; i < ctf.PlayerStatsCount; i++)
+                if (ctf.TryGetPlayerStats(i, out PlayerMatchStats stats))
+                    players.Add(stats);
+        }
+        else if (hasStats)
         {
             for (int i = 0; i < tdm.PlayerStatsCount; i++)
                 if (tdm.TryGetPlayerStats(i, out PlayerMatchStats stats))
@@ -157,6 +168,7 @@ public sealed class MatchHudPresenter : MonoBehaviour
         view.SetResult(finished, match.Result, player.IsHost);
         RefreshScores();
         RefreshClock();
+        RefreshPlayers();
         if (finished == resultsOpen)
             return;
         resultsOpen = finished;
@@ -234,7 +246,11 @@ public sealed class MatchHudPresenter : MonoBehaviour
             tdm.ScoreChanged -= RefreshScores;
             tdm.PlayerStatsChanged -= RefreshPlayers;
         }
-        if (ctf != null) ctf.ScoreChanged -= RefreshScores;
+        if (ctf != null)
+        {
+            ctf.ScoreChanged -= RefreshScores;
+            ctf.PlayerStatsChanged -= RefreshPlayers;
+        }
         player = null;
         combat = null;
         health = null;

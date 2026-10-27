@@ -35,11 +35,28 @@ public class CtfMatchManager : NetworkBehaviour
     private NetworkLobbySession lobby;
     private NetworkMatchManager commonMatch;
     private CtfMatchState serverState;
+    private NetworkList<PlayerMatchStats> playerStats;
+    // Reutiliza el conteo validado de bajas/muertes, sin aplicar límites ni
+    // resultados de TDM: en CTF la victoria sigue dependiendo de las capturas.
+    private TdmMatchState individualStatsState;
     private CtfBaseZone redBase;
     private CtfBaseZone blueBase;
 
     public event Action ScoreChanged;
     public event Action FlagsChanged;
+    public event Action PlayerStatsChanged;
+    public int PlayerStatsCount => playerStats?.Count ?? 0;
+
+    public bool TryGetPlayerStats(int index, out PlayerMatchStats stats)
+    {
+        if (playerStats != null && index >= 0 && index < playerStats.Count)
+        {
+            stats = playerStats[index];
+            return true;
+        }
+        stats = default;
+        return false;
+    }
 
     public bool IsCtf => lobby != null &&
         lobby.SelectedGameModeId == GameModeId.CTF;
@@ -72,11 +89,15 @@ public class CtfMatchManager : NetworkBehaviour
     {
         lobby = GetComponent<NetworkLobbySession>();
         commonMatch = GetComponent<NetworkMatchManager>();
+        playerStats = new NetworkList<PlayerMatchStats>(null,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server);
     }
 
     public override void OnNetworkSpawn()
     {
         Instance = this;
+        playerStats.OnListChanged += OnPlayerStatsChanged;
         redCaptures.OnValueChanged += OnScoreChanged;
         blueCaptures.OnValueChanged += OnScoreChanged;
         redFlag.OnValueChanged += OnFlagChanged;
@@ -100,6 +121,7 @@ public class CtfMatchManager : NetworkBehaviour
         blueCaptures.OnValueChanged -= OnScoreChanged;
         redFlag.OnValueChanged -= OnFlagChanged;
         blueFlag.OnValueChanged -= OnFlagChanged;
+        playerStats.OnListChanged -= OnPlayerStatsChanged;
 
         if (commonMatch != null)
         {
@@ -113,6 +135,7 @@ public class CtfMatchManager : NetworkBehaviour
         ClearSceneState();
         ScoreChanged = null;
         FlagsChanged = null;
+        PlayerStatsChanged = null;
     }
 
     private void Update()
@@ -161,6 +184,7 @@ public class CtfMatchManager : NetworkBehaviour
             phase == MatchPhase.Countdown)
         {
             ClearSceneState();
+            playerStats.Clear();
             baseZonesReady.Value = false;
             redCaptures.Value = 0;
             blueCaptures.Value = 0;
@@ -173,6 +197,12 @@ public class CtfMatchManager : NetworkBehaviour
             return;
 
         serverState = new CtfMatchState();
+        var initialPlayers = new List<PlayerMatchStats>(lobby.Players.Count);
+        foreach (LobbyPlayerData player in lobby.Players)
+            if (TdmRules.IsPlayableTeam(player.TeamId))
+                initialPlayers.Add(new PlayerMatchStats(player.ClientId, player.TeamId));
+        individualStatsState = new TdmMatchState(initialPlayers);
+        PublishPlayerStats();
         DiscoverBaseZones();
         PublishState();
         Debug.Log("[CTF] Estado iniciado: ambas banderas en sus bases.");
@@ -299,8 +329,22 @@ public class CtfMatchManager : NetworkBehaviour
     private void OnServerDeathConfirmed(PlayerDeathInfo death)
     {
         if (!IsServer || !IsCtf || serverState == null ||
-            commonMatch.Phase != MatchPhase.Playing ||
-            !NetworkManager.ConnectedClients.TryGetValue(death.VictimClientId,
+            commonMatch.Phase != MatchPhase.Playing)
+            return;
+
+        // Cuenta también las muertes de jugadores que no llevan una bandera.
+        if (individualStatsState != null)
+        {
+            TdmDeathResult applied = TdmRules.ApplyDeath(
+                individualStatsState, death, commonMatch.Phase);
+            if (applied.WasCounted)
+            {
+                individualStatsState = applied.State;
+                PublishPlayerStats();
+            }
+        }
+
+        if (!NetworkManager.ConnectedClients.TryGetValue(death.VictimClientId,
                 out NetworkClient victim) || victim.PlayerObject == null ||
             !CtfRules.TryDropCarriedFlag(serverState, death,
                 victim.PlayerObject.transform.position,
@@ -343,6 +387,7 @@ public class CtfMatchManager : NetworkBehaviour
     private void ClearSceneState()
     {
         serverState = null;
+        individualStatsState = null;
         redBase = null;
         blueBase = null;
         insideRedBase.Clear();
@@ -351,6 +396,23 @@ public class CtfMatchManager : NetworkBehaviour
 
     private void OnScoreChanged(int previous, int current) =>
         ScoreChanged?.Invoke();
+    private void OnPlayerStatsChanged(NetworkListEvent<PlayerMatchStats> change) =>
+        PlayerStatsChanged?.Invoke();
+
+    private void PublishPlayerStats()
+    {
+        IReadOnlyList<PlayerMatchStats> stats = individualStatsState.Players;
+        if (playerStats.Count != stats.Count)
+        {
+            playerStats.Clear();
+            foreach (PlayerMatchStats player in stats)
+                playerStats.Add(player);
+            return;
+        }
+        for (int i = 0; i < stats.Count; i++)
+            if (playerStats[i] != stats[i])
+                playerStats[i] = stats[i];
+    }
     private void OnFlagChanged(CtfFlagSnapshot previous,
         CtfFlagSnapshot current) => FlagsChanged?.Invoke();
 
