@@ -29,3 +29,4 @@ BuildTest/
 
 # Datos generados por Adaptive Probe Volumes
 Assets/Scenes/GameScene/*Baking Set*.bytes
+/ProjectSettings/TimelineSettings.asset
