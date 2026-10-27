@@ -41,6 +41,18 @@ public class WeaponShotAudio : MonoBehaviour
     [Header("Cargador vacío (opcional)")]
     [SerializeField] private AudioClip[] emptyClips;
 
+    [System.Serializable]
+    public class ReloadStep
+    {
+        public AudioClip clip;
+        [Tooltip("Segundos desde que empieza la recarga hasta que suena este clip.")]
+        public float delay;
+    }
+
+    [Header("Recarga (opcional)")]
+    [Tooltip("Sonidos de la recarga en orden. Cada uno suena a los 'delay' segundos de empezar.")]
+    [SerializeField] private ReloadStep[] reloadSteps;
+
     [Header("Cuándo es 'lejos'")]
     [Tooltip("Si el disparo es de otro jugador y está a más metros que esto, se usa el clip 'Far'.")]
     [SerializeField] private float farDistance = 30f;
@@ -63,6 +75,7 @@ public class WeaponShotAudio : MonoBehaviour
 
     private AudioSource audioSource;
     private AudioListener listener;
+    private Coroutine reloadRoutine;
 
     private void Awake()
     {
@@ -108,6 +121,45 @@ public class WeaponShotAudio : MonoBehaviour
     /// <summary>Reproduce el 'click' de cargador vacío.</summary>
     public void PlayEmpty() => Play(emptyClips);
 
+    /// <summary>Reproduce la secuencia de sonidos de la recarga.</summary>
+    public void PlayReload()
+    {
+        StopReload();
+        if (reloadSteps == null || reloadSteps.Length == 0) return;
+        reloadRoutine = StartCoroutine(ReloadRoutine());
+    }
+
+    /// <summary>Corta la secuencia de recarga (por si se cancela o se cambia de arma).</summary>
+    public void StopReload()
+    {
+        if (reloadRoutine != null)
+        {
+            StopCoroutine(reloadRoutine);
+            reloadRoutine = null;
+        }
+    }
+
+    private System.Collections.IEnumerator ReloadRoutine()
+    {
+        float elapsed = 0f;
+        foreach (ReloadStep step in reloadSteps)
+        {
+            if (step == null || step.clip == null) continue;
+
+            float wait = step.delay - elapsed;
+            if (wait > 0f)
+            {
+                yield return new WaitForSeconds(wait);
+                elapsed = step.delay;
+            }
+
+            Play(new[] { step.clip });
+        }
+        reloadRoutine = null;
+    }
+
+    private void OnDisable() => StopReload();
+
     // --- Pruebas rápidas desde el Editor -------------------------------
     // Clic derecho sobre el título del componente en el Inspector (o en los
     // tres puntos de arriba a la derecha) y elegí una de estas opciones.
@@ -118,6 +170,9 @@ public class WeaponShotAudio : MonoBehaviour
 
     [ContextMenu("Probar: disparo de otro jugador (3P o lejano)")]
     private void TestRemoteShot() => PlayShot(false);
+
+    [ContextMenu("Probar: recarga")]
+    private void TestReload() => PlayReload();
 
     private float DistanceToListener()
     {

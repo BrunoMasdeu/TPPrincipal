@@ -2346,6 +2346,7 @@ MonoBehaviour:
   shotFar:
   - {fileID: 8300000, guid: 4ef847b9581f57a43a2ed14ab7e6d52e, type: 3}
   emptyClips: []
+  reloadSteps: []
   farDistance: 30
   volumeMin: 0.9
   volumeMax: 1
@@ -2668,7 +2669,7 @@ AudioSource:
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 1
   m_Volume: 1
-  m_Pitch: 1.0157449
+  m_Pitch: 0.99133235
   Loop: 0
   Mute: 0
   Spatialize: 0
@@ -2764,12 +2765,27 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::WeaponShotAudio
   shot1P:
-  - {fileID: 8300000, guid: be64544bade297e4d872dd74c66256d2, type: 3}
+  - {fileID: 8300000, guid: 99348524f0ef5b3469b6d1976f17370c, type: 3}
+  - {fileID: 8300000, guid: 0910b552636052c42a5d5fb6d168dc27, type: 3}
+  - {fileID: 8300000, guid: 8115c336b0fa59f41b1cb0af599a2271, type: 3}
   shot3P:
-  - {fileID: 8300000, guid: 230d59294c9857140b63dd308ea4bd63, type: 3}
+  - {fileID: 8300000, guid: 99348524f0ef5b3469b6d1976f17370c, type: 3}
+  - {fileID: 8300000, guid: 0910b552636052c42a5d5fb6d168dc27, type: 3}
+  - {fileID: 8300000, guid: 8115c336b0fa59f41b1cb0af599a2271, type: 3}
   shotFar:
-  - {fileID: 8300000, guid: 4ef847b9581f57a43a2ed14ab7e6d52e, type: 3}
+  - {fileID: 8300000, guid: 99348524f0ef5b3469b6d1976f17370c, type: 3}
+  - {fileID: 8300000, guid: 0910b552636052c42a5d5fb6d168dc27, type: 3}
+  - {fileID: 8300000, guid: 8115c336b0fa59f41b1cb0af599a2271, type: 3}
   emptyClips: []
+  reloadSteps:
+  - clip: {fileID: 8300000, guid: 6e95c1f9872c66348afdabf419de6f7a, type: 3}
+    delay: 0
+  - clip: {fileID: 8300000, guid: d715b7c425963954b8732277063971ee, type: 3}
+    delay: 0.6
+  - clip: {fileID: 8300000, guid: 8a6916b0948e95a458df68134a4ec9ae, type: 3}
+    delay: 1.1
+  - clip: {fileID: 8300000, guid: 0691163014aba1549afecc26fec14ab4, type: 3}
+    delay: 1.6
   farDistance: 30
   volumeMin: 0.9
   volumeMax: 1
@@ -6013,6 +6029,7 @@ MonoBehaviour:
   weaponSounds:
   - weapon: 2
     sound: {fileID: 8832165760127870160}
+  inventory: {fileID: 0}
   debugLog: 1
 --- !u!1 &6409884032029496950
 GameObject:

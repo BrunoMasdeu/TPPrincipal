@@ -44,12 +44,21 @@ public class PlayerWeaponAudio : NetworkBehaviour
     [Header("Sonido por arma")]
     [SerializeField] private WeaponSound[] weaponSounds;
 
+    [Header("Recarga")]
+    [Tooltip("Si queda vacío, se busca solo en este objeto o en sus padres.")]
+    [SerializeField] private NetworkPlayerInventory inventory;
+
     [Header("Debug")]
     [Tooltip("Escribe en la Console cada ataque que llega y si tiene sonido configurado. Desactivalo antes de la entrega final.")]
     [SerializeField] private bool debugLog = true;
 
+    private bool wasReloading;
+
     public override void OnNetworkSpawn()
     {
+        if (inventory == null)
+            inventory = GetComponentInParent<NetworkPlayerInventory>();
+
         if (combat == null)
             combat = GetComponentInParent<NetworkPlayerCombat>();
 
@@ -69,6 +78,40 @@ public class PlayerWeaponAudio : NetworkBehaviour
     {
         if (combat != null)
             combat.AttackPresented -= OnAttackPresented;
+    }
+
+    // Misma forma de detectar la recarga que usa NetworkPlayerHudPresenter:
+    // ReloadRemaining > 0 significa "recargando". Cuando pasa de falso a
+    // verdadero, empezó una recarga y suena la secuencia del arma elegida.
+    private void Update()
+    {
+        if (!IsSpawned || !IsOwner || combat == null)
+            return;
+
+        bool reloading = combat.ReloadRemaining > 0f;
+        if (reloading == wasReloading)
+            return;
+
+        wasReloading = reloading;
+        if (!reloading)
+            return;
+
+        WeaponDefinition selected = inventory != null ? inventory.SelectedWeaponDefinition : null;
+        if (selected == null)
+            return;
+
+        WeaponShotAudio sound = FindSound(selected.Id);
+
+        if (debugLog)
+        {
+            Debug.Log(
+                $"[PlayerWeaponAudio] Empezó la recarga de '{selected.Id}' | " +
+                $"sonido configurado: {sound != null}",
+                this);
+        }
+
+        if (sound != null)
+            sound.PlayReload();
     }
 
     private void OnAttackPresented(WeaponId weaponId, WeaponAttackType attackType)
