@@ -239,4 +239,24 @@ public class NetworkPlayerHealth : NetworkBehaviour
             playerSetup.SetMatchControlsEnabled(
                 lifeState.Value == PlayerLifeState.Alive);
     }
+
+    public bool Heal(int amount)
+    {
+        if (!IsSpawned || !IsServer ||
+            !combatMode ||
+            lifeState.Value != PlayerLifeState.Alive ||
+            amount <= 0)
+        {
+            return false;
+        }
+
+        int previousHealth = currentHealth.Value;
+
+        currentHealth.Value = Mathf.Min(
+            maxHealth,
+            currentHealth.Value + amount
+        );
+
+        return currentHealth.Value > previousHealth;
+    }
 }
