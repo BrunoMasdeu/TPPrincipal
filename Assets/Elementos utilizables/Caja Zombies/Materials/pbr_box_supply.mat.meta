@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 4102637f8a1988249a72d5c764610765
+timeCreated: 1459162926
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 32717
+  packageName: Boxes pack
+  packageVersion: 1.1
+  assetPath: Assets/boxes_pack/Materials/pbr_box_supply.mat
+  uploadId: 110047

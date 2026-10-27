@@ -1,6 +1,6 @@
 fileFormatVersion: 2
-guid: 8763502436213a942851460236cd07e4
-timeCreated: 1459167900
+guid: 9d8321b5eef8aa6499e40b19cf84de25
+timeCreated: 1459162915
 licenseType: Store
 NativeFormatImporter:
   userData: 
@@ -11,5 +11,5 @@ AssetOrigin:
   productId: 32717
   packageName: Boxes pack
   packageVersion: 1.1
-  assetPath: Assets/boxes_pack/Prefab/pbr_box_ammo.prefab
+  assetPath: Assets/boxes_pack/Materials/pbr_box_med.mat
   uploadId: 110047
