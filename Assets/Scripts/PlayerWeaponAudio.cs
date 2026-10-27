@@ -53,9 +53,11 @@ public class PlayerWeaponAudio : NetworkBehaviour
     [SerializeField] private bool debugLog = true;
 
     private bool wasReloading;
+    private WeaponShotAudio reloadingSound;
 
     public override void OnNetworkSpawn()
     {
+        wasReloading = false;
         if (inventory == null)
             inventory = GetComponentInParent<NetworkPlayerInventory>();
 
@@ -78,6 +80,8 @@ public class PlayerWeaponAudio : NetworkBehaviour
     {
         if (combat != null)
             combat.AttackPresented -= OnAttackPresented;
+        StopReloadAudio();
+        wasReloading = false;
     }
 
     // Misma forma de detectar la recarga que usa NetworkPlayerHudPresenter:
@@ -85,7 +89,8 @@ public class PlayerWeaponAudio : NetworkBehaviour
     // verdadero, empezó una recarga y suena la secuencia del arma elegida.
     private void Update()
     {
-        if (!IsSpawned || !IsOwner || combat == null)
+        // ReloadRemaining viene del servidor y se replica a todos los clientes.
+        if (!IsSpawned || !IsClient || combat == null)
             return;
 
         bool reloading = combat.ReloadRemaining > 0f;
@@ -96,6 +101,7 @@ public class PlayerWeaponAudio : NetworkBehaviour
         if (!reloading)
             return;
 
+        StopReloadAudio();
         WeaponDefinition selected = inventory != null ? inventory.SelectedWeaponDefinition : null;
         if (selected == null)
             return;
@@ -111,7 +117,17 @@ public class PlayerWeaponAudio : NetworkBehaviour
         }
 
         if (sound != null)
+        {
+            reloadingSound = sound;
             sound.PlayReload();
+        }
+    }
+
+    private void StopReloadAudio()
+    {
+        if (reloadingSound != null)
+            reloadingSound.StopReload();
+        reloadingSound = null;
     }
 
     private void OnAttackPresented(WeaponId weaponId, WeaponAttackType attackType)
