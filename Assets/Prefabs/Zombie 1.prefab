@@ -5380,10 +5380,10 @@ MonoBehaviour:
   walkPoints:
   - {fileID: 0}
   - {fileID: 0}
-  zombieSpeed: 0.3
-  timeBtwAttack: 1
+  zombieSpeed: 0.5
+  timeBtwAttack: 1000
   anim: {fileID: 1025460886878452708}
-  visionRadius: 1000
+  visionRadius: 5
   attackingRadius: 1.4
   playerInvisionRadius: 0
   playerInattackingRadius: 0
