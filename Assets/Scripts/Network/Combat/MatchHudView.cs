@@ -21,7 +21,7 @@ public sealed class MatchHudView : MonoBehaviour
         public TMP_Text deathsFinal;
     }
 
-    [SerializeField] private GameObject principalPanel; 
+    [SerializeField] private GameObject principalPanel;
     [SerializeField] private TMP_Text redScore;
     [SerializeField] private TMP_Text blueScore;
     [SerializeField] private TMP_Text tabRedScore;
@@ -47,7 +47,9 @@ public sealed class MatchHudView : MonoBehaviour
     [SerializeField] private TMP_Text resultHint;
     [SerializeField] private Button lobbyButton;
     [SerializeField] private Button leaveButton;
-
+    [SerializeField] private GameObject quitPanel;
+    [SerializeField] private Button stayInGameButton;
+    [SerializeField] private Button leaveMatchButton;
     public bool HasRequiredReferences => redScore != null && blueScore != null &&
         tabRedScore != null && tabBlueScore != null && timeText != null && scoreLimit != null &&
         moneyText != null && modeTitle != null && phaseText != null && deathFeed != null &&
@@ -156,5 +158,10 @@ public sealed class MatchHudView : MonoBehaviour
             if (row.rootFinal != null)
                 row.rootFinal.SetActive(false);
         }
+    }
+    public void SetQuitPanel(bool isQuitPanel, bool isHost)
+    {
+       if (quitPanel != null && isHost) 
+            quitPanel.SetActive(isQuitPanel);
     }
 }

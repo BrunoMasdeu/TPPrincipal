@@ -35,8 +35,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 24}
-  m_SizeDelta: {x: 230, y: 60}
+  m_AnchoredPosition: {x: 0.0000092983, y: 30}
+  m_SizeDelta: {x: 240, y: 72}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &550367806322775284
 CanvasRenderer:
@@ -2562,7 +2562,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Equipo Azul
+  m_text: EQUIPO AZUL
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4d1b14f25a2848b46b1769193f11ff59, type: 2}
   m_sharedMaterial: {fileID: 5628918989638417699, guid: 4d1b14f25a2848b46b1769193f11ff59, type: 2}
@@ -2589,13 +2589,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
+  m_fontSize: 28.5
   m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 16
   m_fontSizeMax: 30
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -3451,8 +3451,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -34}
-  m_SizeDelta: {x: 230, y: 36}
+  m_AnchoredPosition: {x: -0.0000092983, y: -29}
+  m_SizeDelta: {x: 240, y: 46}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1928450337069439393
 CanvasRenderer:
@@ -7688,8 +7688,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 244.9989, y: 0.000030517578}
-  m_SizeDelta: {x: -490.04553, y: 0}
+  m_AnchoredPosition: {x: 249.98807, y: 7}
+  m_SizeDelta: {x: -500.024, y: -14}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7854084337399111900
 CanvasRenderer:
@@ -11916,8 +11916,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -245.0011, y: 0}
-  m_SizeDelta: {x: -490.04553, y: 0}
+  m_AnchoredPosition: {x: -249.9892, y: 7}
+  m_SizeDelta: {x: -500.022, y: -14}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4730597996359065065
 CanvasRenderer:
@@ -12303,6 +12303,9 @@ MonoBehaviour:
   resultHint: {fileID: 8051786163366759059}
   lobbyButton: {fileID: 1861917941709591115}
   leaveButton: {fileID: 2298120135120863918}
+  quitPanel: {fileID: 7105178042964086087}
+  stayInGameButton: {fileID: 4964649584171459576}
+  leaveMatchButton: {fileID: 5742772560851019111}
 --- !u!114 &5723103437063067765
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17439,7 +17442,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Equipo Rojo
+  m_text: EQUIPO ROJO
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4d1b14f25a2848b46b1769193f11ff59, type: 2}
   m_sharedMaterial: {fileID: 5628918989638417699, guid: 4d1b14f25a2848b46b1769193f11ff59, type: 2}
@@ -17466,13 +17469,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30
+  m_fontSize: 27.9
   m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 16
   m_fontSizeMax: 30
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -17735,6 +17738,34 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6396969395861343996}
     m_Modifications:
+    - target: {fileID: 568050534731343780, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 5723103437063067765}
+    - target: {fileID: 568050534731343780, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: LeaveToMenu
+      objectReference: {fileID: 0}
+    - target: {fileID: 568050534731343780, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MatchHudPresenter, Game
+      objectReference: {fileID: 0}
+    - target: {fileID: 915789531743510843, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 915789531743510843, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 5723103437063067765}
+    - target: {fileID: 915789531743510843, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ToggleQuitPanel
+      objectReference: {fileID: 0}
+    - target: {fileID: 915789531743510843, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: MatchHudPresenter, Game
+      objectReference: {fileID: 0}
     - target: {fileID: 3083516644635758468, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
       propertyPath: m_Name
       value: QuitGamePanel
@@ -17828,6 +17859,33 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+--- !u!114 &4964649584171459576 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 915789531743510843, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+  m_PrefabInstance: {fileID: 5210792054824846019}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!114 &5742772560851019111 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 568050534731343780, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+  m_PrefabInstance: {fileID: 5210792054824846019}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+--- !u!1 &7105178042964086087 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3083516644635758468, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}
+  m_PrefabInstance: {fileID: 5210792054824846019}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &8556133169939990668 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4534295849759836751, guid: 8c790fc47ac1a6a4784315dac747ebb9, type: 3}

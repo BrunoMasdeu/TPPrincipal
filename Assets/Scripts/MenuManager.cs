@@ -27,6 +27,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject panelExit;
     [SerializeField] private GameObject canvasMultiplayer;
     [SerializeField] private GameObject canvasLobby;
+    [SerializeField] private GameObject canvasAchieves;
     private bool sobreBoton = false;
     private void Start()
     {
@@ -158,6 +159,7 @@ public class MenuManager : MonoBehaviour
     public void ShowMainMenu() => ShowCanvas(canvasMain);
     public void ShowConnectionMenu() => ShowCanvas(canvasMultiplayer);
     public void ShowLobbyMenu() => ShowCanvas(canvasLobby);
+    public void ShowAchieves() => ShowCanvas(canvasAchieves);
     public void HideMenu() => ShowCanvas(null);
 
     private void ShowCanvas(GameObject selected)
@@ -166,6 +168,7 @@ public class MenuManager : MonoBehaviour
         SetCanvasActive(canvasSettings, selected);
         SetCanvasActive(canvasRules, selected);
         SetCanvasActive(canvasMultiplayer, selected);
+        SetCanvasActive(canvasAchieves, selected);
         SetCanvasActive(canvasLobby, selected);
         if (playModesLayout != null && playModesLayout != canvasMultiplayer)
             playModesLayout.SetActive(false);

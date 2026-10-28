@@ -29,6 +29,7 @@ public sealed class MatchHudPresenter : MonoBehaviour
     private readonly List<DeathNotice> deaths = new();
     private ulong lastDeathEventId;
     private bool resultsOpen;
+    private bool quitPanelOpen = false;
     private bool visible = true;
     private float nextRefresh;
 
@@ -95,6 +96,10 @@ public sealed class MatchHudPresenter : MonoBehaviour
         bool finished = match.Phase == MatchPhase.Finished;
         view.SetTableVisible(visible && !finished && !MatchDebugConsole.IsInputCaptured &&
             !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null && Keyboard.current.tabKey.isPressed);
+        if(visible && !finished && !MatchDebugConsole.IsInputCaptured &&
+            !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            ToggleQuitPanel(!quitPanelOpen);
+
         if (Time.unscaledTime < nextRefresh)
             return;
         nextRefresh = Time.unscaledTime + .1f;
@@ -204,7 +209,7 @@ public sealed class MatchHudPresenter : MonoBehaviour
 
     public void LeaveToMenu()
     {
-        if (IsLeaving || match == null || match.Phase != MatchPhase.Finished)
+        if (IsLeaving || match == null)
             return;
         IsLeaving = true;
         view.SetLeaving();
@@ -258,6 +263,16 @@ public sealed class MatchHudPresenter : MonoBehaviour
         match = null;
         tdm = null;
         ctf = null;
+    }
+    public void ToggleQuitPanel(bool isQuitOpen)
+    {
+        view.SetQuitPanel(isQuitOpen, player.IsHost);
+        if (isQuitOpen == quitPanelOpen)
+            return;
+        quitPanelOpen = isQuitOpen;
+        player.SetPresentationControlsEnabled(!isQuitOpen);
+        Cursor.lockState = isQuitOpen ? CursorLockMode.None : CursorLockMode.Locked;
+        Cursor.visible = isQuitOpen;
     }
 
     private void OnDestroy() => Detach();
