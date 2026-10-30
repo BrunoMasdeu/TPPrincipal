@@ -471,6 +471,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8249470007398157293}
+  - component: {fileID: 2496449143494315480}
   m_Layer: 0
   m_Name: Knife
   m_TagString: Untagged
@@ -1705,6 +1706,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1353147085919433566}
+  - component: {fileID: 8522381637314428573}
   m_Layer: 0
   m_Name: AK
   m_TagString: Untagged
@@ -2632,6 +2634,7 @@ GameObject:
   - component: {fileID: 3065087886534131941}
   - component: {fileID: 8805434413100176487}
   - component: {fileID: 8832165760127870160}
+  - component: {fileID: 6104697128383305644}
   m_Layer: 0
   m_Name: Pistol1
   m_TagString: Untagged
@@ -5067,6 +5070,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6729388536735246233}
+  - component: {fileID: 2103594573668763320}
   m_Layer: 0
   m_Name: Revolver
   m_TagString: Untagged
@@ -5459,6 +5463,9 @@ GameObject:
   - component: {fileID: 7206682935859174468}
   - component: {fileID: 7282457623695713565}
   - component: {fileID: 4253114359977387943}
+  - component: {fileID: 2209955388978311753}
+  - component: {fileID: 7284846310470545478}
+  - component: {fileID: 2881368682759907554}
   m_Layer: 0
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -6813,6 +6820,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6744739106992470409}
+  - component: {fileID: 8969561343904179747}
   m_Layer: 0
   m_Name: M4
   m_TagString: Untagged
@@ -9193,3 +9201,230 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5250689135558853800, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
   m_PrefabInstance: {fileID: 3572106934630420870}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6104697128383305644
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3897430477208202812}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 103c8f466b714c645b8195a40aac40af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::GunSystem
+  damage: 25
+  timeBetweenShooting: 0.5
+  spread: 0.01
+  range: 100
+  reloadTime: 1.3
+  timeBetweenShots: 0.1
+  magazineSize: 12
+  bulletsPerTap: 1
+  allowButtonHold: 0
+  IsPrimary: 0
+  ExtraBullets: 30
+  fpsCam: {fileID: 8424079443320761598}
+  attackPoint: {fileID: 0}
+  whatIsEnemy:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 0
+  canZoom: 0
+  normalFOV: 60
+  zoomFOV: 15
+  zoomSpeed: 10
+  muzzleFlash: {fileID: 0}
+  bulletHoleGraphic: {fileID: 0}
+  camShakeMagnitude: 0
+  camShakeDuration: 0
+  text: {fileID: 0}
+--- !u!114 &2103594573668763320
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5873560315021595388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 103c8f466b714c645b8195a40aac40af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::GunSystem
+  damage: 50
+  timeBetweenShooting: 0.5
+  spread: 0.01
+  range: 100
+  reloadTime: 1.3
+  timeBetweenShots: 0.1
+  magazineSize: 6
+  bulletsPerTap: 1
+  allowButtonHold: 0
+  IsPrimary: 0
+  ExtraBullets: 30
+  fpsCam: {fileID: 8424079443320761598}
+  attackPoint: {fileID: 0}
+  whatIsEnemy:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 0
+  canZoom: 0
+  normalFOV: 60
+  zoomFOV: 15
+  zoomSpeed: 10
+  muzzleFlash: {fileID: 0}
+  bulletHoleGraphic: {fileID: 0}
+  camShakeMagnitude: 0
+  camShakeDuration: 0
+  text: {fileID: 0}
+--- !u!114 &8522381637314428573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2584598831880150076}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 103c8f466b714c645b8195a40aac40af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::GunSystem
+  damage: 30
+  timeBetweenShooting: 0.5
+  spread: 0.02
+  range: 1000
+  reloadTime: 1
+  timeBetweenShots: 0.01
+  magazineSize: 30
+  bulletsPerTap: 1
+  allowButtonHold: 1
+  IsPrimary: 1
+  ExtraBullets: 30
+  fpsCam: {fileID: 8424079443320761598}
+  attackPoint: {fileID: 0}
+  whatIsEnemy:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 0
+  canZoom: 0
+  normalFOV: 60
+  zoomFOV: 15
+  zoomSpeed: 10
+  muzzleFlash: {fileID: 0}
+  bulletHoleGraphic: {fileID: 0}
+  camShakeMagnitude: 0
+  camShakeDuration: 0
+  text: {fileID: 0}
+--- !u!114 &8969561343904179747
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6837759388257052603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 103c8f466b714c645b8195a40aac40af, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::GunSystem
+  damage: 35
+  timeBetweenShooting: 0.4
+  spread: 0.02
+  range: 1000
+  reloadTime: 1
+  timeBetweenShots: 0.5
+  magazineSize: 30
+  bulletsPerTap: 1
+  allowButtonHold: 1
+  IsPrimary: 1
+  ExtraBullets: 30
+  fpsCam: {fileID: 8424079443320761598}
+  attackPoint: {fileID: 0}
+  whatIsEnemy:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  whatIsGround:
+    serializedVersion: 2
+    m_Bits: 0
+  canZoom: 0
+  normalFOV: 60
+  zoomFOV: 15
+  zoomSpeed: 10
+  muzzleFlash: {fileID: 0}
+  bulletHoleGraphic: {fileID: 0}
+  camShakeMagnitude: 0
+  camShakeDuration: 0
+  text: {fileID: 0}
+--- !u!114 &2496449143494315480
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 814909403170476530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 310adb5daa9ee3d47b2189150080585b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::KnifeSystem
+  fpsCam: {fileID: 8424079443320761598}
+  range: 1.25
+  damage: 50
+  attackCooldown: 0.7
+--- !u!114 &2209955388978311753
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aec702eafcc68a743a3a9942324a2546, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Inventory
+  knife: {fileID: 814909403170476530}
+  pistol: {fileID: 3897430477208202812}
+  rifle: {fileID: 2584598831880150076}
+  Gancho: {fileID: 312362995853433359}
+--- !u!114 &7284846310470545478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0bd6d898e29e994181fa0c86f22f34a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Grenade
+  grenadePrefab: {fileID: 2437517766519964124, guid: 72298189f58c96e4a9c69e4f6ecd0c0b, type: 3}
+  throwPoint: {fileID: 4037538739251824608}
+  throwForce: 12
+  upwardForce: 4
+  grenades: 3
+--- !u!114 &2881368682759907554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5de745cabc6e18241a63658a2aca1a2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::Crouch
+  capsule: {fileID: 4798153279018658864}
+  playerCamera: {fileID: 6870693027120682118}
+  crouchHeight: 1.2
+  cameraOffset: 0.5
+  transitionSpeed: 10
+  crouchKey: 55

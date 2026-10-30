@@ -120,19 +120,13 @@ public class CombatDebugOverlay : NetworkBehaviour
         }
         else
         {
-            string attackMode = weapon.AttackType switch
-            {
-                WeaponAttackType.Melee => "Melee",
-                WeaponAttackType.Utility => "Utility",
-                _ => weapon.Automatic ? "Automatica" : "Semiautomatica"
-            };
             GUILayout.Label(
                 $"Arma: {weapon.DisplayName}  |  Ranura: {weapon.Slot}  |  " +
-                attackMode,
+                weapon.AttackType,
                 label);
 
-            GUILayout.Label(weapon.UsesAmmunition
-                ? $"Cargador: {combat.Ammunition}/{weapon.MagazineSize}  |  " +
+            GUILayout.Label(combat.SelectedWeaponUsesAmmunition
+                ? $"Cargador: {combat.Ammunition}/{combat.MagazineSize}  |  " +
                   $"Reserva: {combat.ReserveAmmunition}  |  " +
                   $"Recarga: {combat.ReloadRemaining:0.0}s"
                 : "Municion: no aplica", label);

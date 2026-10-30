@@ -84,7 +84,9 @@ public static class PlayerPrefabUnificationTool
                     "El prefab PlayerUI no tiene PlayerHudView y Canvas configurados.");
             }
 
-            RemoveLegacyComponents<GunSystem>(root);
+            // Los GunSystem de Felipe van en cada arma (objetos hijos), no en
+            // la raíz. ShootingAi no se usa en el jugador: su vida en red es
+            // NetworkPlayerHealth.
             RemoveLegacyComponents<ShootingAi>(root);
 
             NetworkPlayerInventory inventory =
