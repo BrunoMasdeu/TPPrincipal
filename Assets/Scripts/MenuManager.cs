@@ -28,6 +28,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject canvasMultiplayer;
     [SerializeField] private GameObject canvasLobby;
     [SerializeField] private GameObject canvasAchieves;
+    [SerializeField] private GameObject canvasLoading;
     private bool sobreBoton = false;
     private void Start()
     {
@@ -88,10 +89,47 @@ public class MenuManager : MonoBehaviour
             return;
         }
 
-        if (!connectionManager.StartLocalTutorial())
-            return;
+        ShowCanvas(canvasLoading);
 
-        HideMenu();
+        StartCoroutine(StartTutorialWithDelay());
+    }
+
+    private System.Collections.IEnumerator StartTutorialWithDelay()
+    {
+        // Obliga a Unity a esperar al siguiente fotograma. 
+        // Esto garantiza que el Canvas de carga ya esté visible en la pantalla del jugador.
+        yield return null;
+
+        // 3. Iniciar la lógica de red local del tutorial
+        if (!connectionManager.StartLocalTutorial())
+        {
+            // Si falla la conexión, volvemos al menú
+            ShowMainMenu();
+        }
+    }
+
+    public void StartGame()
+    {
+        if (connectionManager == null)
+        {
+            Debug.LogError("Falta configurar ConnectionManager en el menú.");
+            return;
+        }
+
+        ShowCanvas(canvasLoading);
+
+        StartCoroutine(StartGameWithDelay());
+    }
+
+    private System.Collections.IEnumerator StartGameWithDelay()
+    {
+        yield return null;
+
+        if (!connectionManager.StartGame())
+        {
+            // Si falla la conexión, volvemos al menú
+            ShowMainMenu();
+        }
     }
 
     public void PlayParkour()
@@ -164,6 +202,7 @@ public class MenuManager : MonoBehaviour
 
     private void ShowCanvas(GameObject selected)
     {
+        SetCanvasActive(canvasLoading, selected);
         SetCanvasActive(canvasMain, selected);
         SetCanvasActive(canvasSettings, selected);
         SetCanvasActive(canvasRules, selected);

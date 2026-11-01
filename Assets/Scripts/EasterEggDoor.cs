@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -8,6 +9,7 @@ public class EasterEggDoor : MonoBehaviour
 
     [Header("Referencias de UI")]
     [SerializeField] private GameObject interactionPromptUI; // El texto en pantalla (ej: "Presiona E para interactuar")
+    [SerializeField] private GameObject canvasLoading;
     private bool playerIsNearby = false;
     private bool transitionInProgress;
     private TutorialManager tutorialManager;
@@ -31,7 +33,24 @@ public class EasterEggDoor : MonoBehaviour
 
         if (canInteract && Keyboard.current != null &&
             Keyboard.current[Key.E].wasPressedThisFrame)
-            TryEnterRace();
+            TryEnterEasterEgg();
+    }
+
+    public void TryEnterEasterEgg()
+    {
+        canvasLoading.SetActive(true);
+
+        StartCoroutine(StartRaceWithDelay());
+    }
+
+    private System.Collections.IEnumerator StartRaceWithDelay()
+    {
+        yield return null;
+
+        if (!TryEnterRace())
+        {
+            canvasLoading.SetActive(false);
+        }
     }
 
     // Detecta cuando el jugador entra al área de la puerta

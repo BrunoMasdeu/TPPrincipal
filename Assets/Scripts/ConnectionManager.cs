@@ -418,7 +418,6 @@ public partial class ConnectionManager : MonoBehaviour
             return false;
         }
 
-        HideConnectionPanels();
         StartCoroutine(LoadLocalTutorialWhenReady());
         return true;
     }
@@ -506,7 +505,6 @@ public partial class ConnectionManager : MonoBehaviour
             return false;
         }
 
-        HideConnectionPanels();
         StartCoroutine(StartLocalMatchWhenReady());
         return true;
     }
@@ -643,7 +641,7 @@ public partial class ConnectionManager : MonoBehaviour
         }
     }
 
-    public void StartGame()
+    public bool StartGame()
     {
         NetworkManager networkManager = NetworkManager.Singleton;
 
@@ -652,7 +650,7 @@ public partial class ConnectionManager : MonoBehaviour
             Debug.LogWarning(
                 "[Relay] StartGame ignorado porque esta instancia no es el host."
             );
-            return;
+            return false;
         }
 
         BindLobbySession();
@@ -663,7 +661,7 @@ public partial class ConnectionManager : MonoBehaviour
                 "[Relay] No existe NetworkLobbySession para iniciar la partida."
             );
             SetStatus("SESSION NOT AVAILABLE");
-            return;
+            return false;
         }
 
         NetworkLobbySession session = lobbySession;
@@ -673,7 +671,7 @@ public partial class ConnectionManager : MonoBehaviour
         {
             Debug.LogError("[Relay] La sesión no tiene una definición de modo válida.");
             SetStatus("GAME MODE NOT AVAILABLE");
-            return;
+            return false;
         }
 
         string sceneName = session.SelectedSceneName;
@@ -686,13 +684,14 @@ public partial class ConnectionManager : MonoBehaviour
             );
             SetStatus("PLAYERS MUST CHOOSE TEAM AND READY");
             UpdatePlayerCount();
-            return;
+            return false;
         }
-
+        
         Debug.Log(
             $"[Relay][HOST] Carga solicitada para {sceneName} " +
             $"mediante NetworkLobbySession."
         );
+        return true;
     }
 
     public void CancelConnection()
