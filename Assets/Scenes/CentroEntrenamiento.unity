@@ -19001,8 +19001,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   tipo: 1
-  movimiento: {fileID: 7020189118089650495, guid: 34cab5dfd181d7649a96c42238c445a4, type: 3}
-  vida: {fileID: 473741637287895018, guid: 34cab5dfd181d7649a96c42238c445a4, type: 3}
+  movimiento: {fileID: 0}
+  vida: {fileID: 0}
   arma: {fileID: 0}
   cantidadVida: 25
   multiplicadorVelocidad: 10
