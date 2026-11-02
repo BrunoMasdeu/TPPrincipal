@@ -18,6 +18,13 @@ public class PlayerNetworkSetup : NetworkBehaviour
     [SerializeField] private NetworkPlayerGrenades grenades;
     [SerializeField] private NetworkPlayerHudPresenter hudPresenter;
 
+    [Header("Minimapa de Felipe (solo en el jugador propio)")]
+    // [MULTIJUGADOR] Cada jugador trae su cámara de minimapa y su canvas.
+    // Solo se prenden los del jugador local: si no, todas las cámaras
+    // dibujarían en la misma textura y se verían varios minimapas.
+    [SerializeField] private Camera minimapCamera;
+    [SerializeField] private Canvas minimapCanvas;
+
     [Header("Checkpoint")]
     private Vector3 ultimoCheckpointPos;
     private Quaternion ultimoCheckpointRot = Quaternion.identity;
@@ -52,6 +59,12 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
         if (audioListener != null)
             audioListener.enabled = esPropietario;
+
+        if (minimapCamera != null)
+            minimapCamera.enabled = esPropietario;
+
+        if (minimapCanvas != null)
+            minimapCanvas.enabled = esPropietario;
 
         ApplyLocalState();
 

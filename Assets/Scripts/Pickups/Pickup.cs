@@ -63,8 +63,17 @@ public class Pickup : MonoBehaviour
         NetworkPlayerHealth vidaJugador =
             other.GetComponentInParent<NetworkPlayerHealth>();
 
-        GunSystem armaJugador =
-            other.GetComponentInParent<GunSystem>();
+        // [ADAPTADO] Ahora cada arma tiene su propio GunSystem: la munición
+        // va al arma que el jugador tiene en la mano (la que prendió su
+        // Inventory).
+        GunSystem armaJugador = null;
+        Inventory inventarioJugador = other.GetComponentInParent<Inventory>();
+
+        if (inventarioJugador != null && inventarioJugador.CurrentWeapon != null)
+        {
+            armaJugador =
+                inventarioJugador.CurrentWeapon.GetComponent<GunSystem>();
+        }
 
         if (movimientoJugador == null)
             movimientoJugador = movimiento;
