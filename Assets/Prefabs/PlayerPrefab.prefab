@@ -6168,7 +6168,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 377557317
+  GlobalObjectIdHash: 3814868959
   InScenePlacedSourceGlobalObjectIdHash: 377557317
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -6273,6 +6273,7 @@ MonoBehaviour:
   hudPresenter: {fileID: 5225828390091857571}
   minimapCamera: {fileID: 526158948288649635}
   minimapCanvas: {fileID: 7526616167456805013}
+  minimapIcon: {fileID: 7602893184101968571}
 --- !u!114 &2846013524569081734
 MonoBehaviour:
   m_ObjectHideFlags: 0
