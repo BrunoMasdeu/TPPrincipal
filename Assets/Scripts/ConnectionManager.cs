@@ -22,8 +22,9 @@ public partial class ConnectionManager : MonoBehaviour
     [Header("Network session")]
     [SerializeField] private NetworkSessionBootstrap sessionBootstrap;
 
-    [Header("Local tutorial")]
+    [Header("Local scenes")]
     [SerializeField] private string tutorialSceneName = "CentroEntrenamiento";
+    [SerializeField] private string zombiesSceneName = "MapaZombies";
 
     [Header("Connection UI")]
     [SerializeField] private InputField joinCodeInput;
@@ -362,6 +363,16 @@ public partial class ConnectionManager : MonoBehaviour
 
     public bool StartLocalTutorial()
     {
+        return StartLocalScene(tutorialSceneName, "tutorial");
+    }
+
+    public bool StartLocalZombies()
+    {
+        return StartLocalScene(zombiesSceneName, "zombies");
+    }
+
+    private bool StartLocalScene(string sceneName, string modeName)
+    {
         ResolveSessionBootstrap();
         NetworkManager networkManager = NetworkManager.Singleton;
 
@@ -373,21 +384,21 @@ public partial class ConnectionManager : MonoBehaviour
             Debug.LogError(
                 "ConnectionManager no tiene NetworkSessionBootstrap configurado."
             );
-            SetStatus("LOCAL TUTORIAL CONFIGURATION ERROR");
+            SetStatus("LOCAL SCENE CONFIGURATION ERROR");
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(tutorialSceneName))
+        if (string.IsNullOrWhiteSpace(sceneName))
         {
-            Debug.LogError("No se configuró la escena del tutorial.");
-            SetStatus("TUTORIAL SCENE NOT CONFIGURED");
+            Debug.LogError($"No se configuró la escena de {modeName}.");
+            SetStatus("LOCAL SCENE NOT CONFIGURED");
             return false;
         }
 
         if (!sessionBootstrap.PrepareRoom(out string error))
         {
-            Debug.LogError($"No se pudo preparar el tutorial local: {error}");
-            SetStatus("LOCAL TUTORIAL CONFIGURATION ERROR");
+            Debug.LogError($"No se pudo preparar {modeName} local: {error}");
+            SetStatus("LOCAL SCENE CONFIGURATION ERROR");
             return false;
         }
 
@@ -418,12 +429,11 @@ public partial class ConnectionManager : MonoBehaviour
             return false;
         }
 
-        HideConnectionPanels();
-        StartCoroutine(LoadLocalTutorialWhenReady());
+        StartCoroutine(LoadLocalSceneWhenReady(sceneName, modeName));
         return true;
     }
 
-    private IEnumerator LoadLocalTutorialWhenReady()
+    private IEnumerator LoadLocalSceneWhenReady(string sceneName, string modeName)
     {
         float deadline = Time.realtimeSinceStartup + 5f;
 
@@ -442,7 +452,7 @@ public partial class ConnectionManager : MonoBehaviour
             {
                 SceneEventProgressStatus status =
                     networkManager.SceneManager.LoadScene(
-                        tutorialSceneName,
+                        sceneName,
                         LoadSceneMode.Single
                     );
 
@@ -450,9 +460,9 @@ public partial class ConnectionManager : MonoBehaviour
                     yield break;
 
                 Debug.LogError(
-                    $"No se pudo cargar el tutorial {tutorialSceneName}: {status}."
+                    $"No se pudo cargar {modeName} ({sceneName}): {status}."
                 );
-                SetStatus("LOCAL TUTORIAL COULD NOT START");
+                SetStatus("LOCAL SCENE COULD NOT START");
                 CancelConnection();
                 yield break;
             }
@@ -460,8 +470,8 @@ public partial class ConnectionManager : MonoBehaviour
             yield return null;
         }
 
-        Debug.LogError("La sesión local del tutorial no quedó lista para cargar.");
-        SetStatus("LOCAL TUTORIAL NOT READY");
+        Debug.LogError($"La sesión local de {modeName} no quedó lista para cargar.");
+        SetStatus("LOCAL SCENE NOT READY");
         CancelConnection();
     }
 

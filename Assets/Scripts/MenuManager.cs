@@ -107,6 +107,26 @@ public class MenuManager : MonoBehaviour
         HideMenu();
     }
 
+    public void PlayZombies()
+    {
+        if (connectionManager == null)
+        {
+            Debug.LogError("Falta configurar ConnectionManager en el menú.");
+            return;
+        }
+
+        ShowCanvas(canvasLoading);
+        StartCoroutine(StartZombiesWithDelay());
+    }
+
+    private System.Collections.IEnumerator StartZombiesWithDelay()
+    {
+        yield return null;
+
+        if (!connectionManager.StartLocalZombies())
+            ShowMainMenu();
+    }
+
     public void Settings()
     {
         ShowCanvas(canvasSettings);

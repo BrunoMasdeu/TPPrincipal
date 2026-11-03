@@ -7,10 +7,11 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(NetworkManager))]
 public class LobbyPlayerSpawner : MonoBehaviour
 {
-    // Puente del tutorial local. Las partidas con modo seleccionado usan
+    // Puente de las escenas locales sin modo. Las partidas con modo seleccionado usan
     // NetworkLobbySession y NetworkPlayerSpawner.
     [SerializeField] private GameObject networkPlayerPrefab;
-    [SerializeField] private string gameSceneName = "GameScene";
+    [SerializeField] private string tutorialSceneName = "CentroEntrenamiento";
+    [SerializeField] private string zombiesSceneName = "MapaZombies";
     [SerializeField] private string spawnPointName = "Respawn";
     [SerializeField] private float playerSpacing = 1.5f;
     [SerializeField, Min(1)] private int requiredPlayerCount = 2;
@@ -121,7 +122,7 @@ public class LobbyPlayerSpawner : MonoBehaviour
         if (!networkManager.IsServer ||
             (NetworkLobbySession.Instance != null &&
              NetworkLobbySession.Instance.SelectedGameModeId != GameModeId.None) ||
-            sceneName != gameSceneName)
+            !IsLocalScene(sceneName))
             return;
 
         loadedClientIds.Clear();
@@ -151,7 +152,7 @@ public class LobbyPlayerSpawner : MonoBehaviour
         if (networkManager.IsServer &&
             (NetworkLobbySession.Instance == null ||
              NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.None) &&
-            SceneManager.GetActiveScene().name == gameSceneName)
+            IsLocalScene(SceneManager.GetActiveScene().name))
         {
             SpawnPlayer(clientId);
         }
@@ -160,6 +161,12 @@ public class LobbyPlayerSpawner : MonoBehaviour
     private void OnClientDisconnected(ulong clientId)
     {
         loadedClientIds.Remove(clientId);
+    }
+
+    private bool IsLocalScene(string sceneName)
+    {
+        return sceneName == tutorialSceneName ||
+            sceneName == zombiesSceneName;
     }
 
     private void SpawnPlayer(ulong clientId)
