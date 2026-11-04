@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -35,6 +36,7 @@ public class Move : MonoBehaviour
     private bool running;
     private bool keyboardInputEnabled = true;
     private float speedMultiplier = 1f;
+    private Coroutine speedBoostRoutine;
 
     private readonly List<Vector3> wallContactNormals = new List<Vector3>();
 
@@ -75,7 +77,6 @@ public class Move : MonoBehaviour
             return;
         }
 
-        // Movimiento
         Vector2 movementInput = Vector2.zero;
 
         if (Keyboard.current.wKey.isPressed)
@@ -90,13 +91,11 @@ public class Move : MonoBehaviour
         if (Keyboard.current.dKey.isPressed)
             movementInput.x += 1;
 
-        // Correr con Shift SOLO en el suelo
         SetMovementInput(
             movementInput,
             Keyboard.current.leftShiftKey.isPressed
         );
 
-        // Salto
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
             RequestJump();
     }
@@ -119,8 +118,6 @@ public class Move : MonoBehaviour
             return;
         }
 
-        // Mantener la carrera si el salto comenzó corriendo, pero no permitir
-        // que Shift active la carrera por primera vez mientras está en el aire.
         if (!wantsToRun)
             running = false;
     }
@@ -139,9 +136,7 @@ public class Move : MonoBehaviour
     private void FixedUpdate()
     {
         if (!wallrunning)
-        {
             MovePlayer();
-        }
 
         if (jumpPressed)
         {
@@ -156,14 +151,18 @@ public class Move : MonoBehaviour
 
     private void MovePlayer()
     {
+        if (orientation == null)
+            return;
+
         Vector3 moveDirection =
             orientation.right * input.x +
             orientation.forward * input.y;
 
         moveDirection.y = 0f;
+        moveDirection = Vector3.ClampMagnitude(moveDirection, 1f);
 
-        // Velocidad normal o de correr
-        float currentSpeed = (running ? runSpeed : speed) * speedMultiplier;
+        float currentSpeed =
+            (running ? runSpeed : speed) * speedMultiplier;
 
         Vector3 targetVelocity = ProjectVelocityAlongWalls(
             moveDirection * currentSpeed,
@@ -172,21 +171,37 @@ public class Move : MonoBehaviour
 
         Vector3 currentVelocity = rb.linearVelocity;
 
-        Vector3 horizontalVelocity =
-            new Vector3(currentVelocity.x, 0f, currentVelocity.z);
+        Vector3 horizontalVelocity = new Vector3(
+            currentVelocity.x,
+            0f,
+            currentVelocity.z
+        );
 
-        Vector3 velocityChange =
-            targetVelocity - horizontalVelocity;
+        Vector3 velocityChange = targetVelocity - horizontalVelocity;
 
         velocityChange = Vector3.ClampMagnitude(
             velocityChange,
             acceleration * Time.fixedDeltaTime
         );
 
-        rb.AddForce(
-            velocityChange,
-            ForceMode.VelocityChange
-        );
+        rb.AddForce(velocityChange, ForceMode.VelocityChange);
+    }
+
+    public void ApplySpeedBoost(float multiplier, float duration)
+    {
+        if (speedBoostRoutine != null)
+            StopCoroutine(speedBoostRoutine);
+
+        speedMultiplier = Mathf.Max(1.01f, multiplier);
+        speedBoostRoutine = StartCoroutine(ResetSpeedBoost(duration));
+    }
+
+    private IEnumerator ResetSpeedBoost(float duration)
+    {
+        yield return new WaitForSeconds(Mathf.Max(0.1f, duration));
+
+        speedMultiplier = 1f;
+        speedBoostRoutine = null;
     }
 
     public void SetSpeedMultiplier(float multiplier)
@@ -199,6 +214,17 @@ public class Move : MonoBehaviour
         return speedMultiplier;
     }
 
+    public void ResetSpeedMultiplier()
+    {
+        if (speedBoostRoutine != null)
+        {
+            StopCoroutine(speedBoostRoutine);
+            speedBoostRoutine = null;
+        }
+
+        speedMultiplier = 1f;
+    }
+
     public static Vector3 ProjectVelocityAlongWalls(
         Vector3 velocity,
         IList<Vector3> wallNormals
@@ -206,8 +232,6 @@ public class Move : MonoBehaviour
     {
         Vector3 projectedVelocity = velocity;
 
-        // Repetir la proyeccion permite resolver correctamente el contacto con
-        // mas de una pared (por ejemplo, una esquina) sin atravesar ninguna.
         for (int pass = 0; pass < wallNormals.Count; pass++)
         {
             bool velocityChanged = false;
@@ -259,8 +283,6 @@ public class Move : MonoBehaviour
         {
             Vector3 normal = collision.GetContact(i).normal.normalized;
 
-            // Ignorar suelo, pendientes transitables y techos. Solo las
-            // superficies suficientemente verticales deben modificar el avance.
             if (Mathf.Abs(Vector3.Dot(normal, Vector3.up)) > MaxWallNormalUpDot)
                 continue;
 
@@ -289,12 +311,7 @@ public class Move : MonoBehaviour
     private void Jump()
     {
         if (!IsGrounded())
-        {
-            // Debug.Log("NO ESTOY EN EL SUELO");
             return;
-        }
-
-        // Debug.Log("SALTANDO");
 
         rb.linearVelocity = new Vector3(
             rb.linearVelocity.x,
@@ -302,10 +319,7 @@ public class Move : MonoBehaviour
             rb.linearVelocity.z
         );
 
-        rb.AddForce(
-            Vector3.up * jumpForce,
-            ForceMode.Impulse
-        );
+        rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
         Jumped?.Invoke();
     }
@@ -332,11 +346,7 @@ public class Move : MonoBehaviour
             return;
 
         Gizmos.color = Color.red;
-
-        Gizmos.DrawWireSphere(
-            groundCheck.position,
-            groundDistance
-        );
+        Gizmos.DrawWireSphere(groundCheck.position, groundDistance);
     }
     public void playerHitDamage(float TakeDamage)
     {
@@ -353,3 +363,4 @@ public class Move : MonoBehaviour
         Object.Destroy(gameObject, 1.0f);
     }
 }
+

@@ -185,17 +185,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 2437517766519964124}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cec42580f82c43628198875399098d26, type: 3}
+  m_Script: {fileID: 11500000, guid: c36c3bcd3655adc4691c2b0e7d6d4f8c, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game::NetworkGrenadeProjectile
-  ShowTopMostFoldoutHeaderGroup: 1
+  m_EditorClassIdentifier: Game::GrenadeExplosion
   fuseTime: 3
   explosionRadius: 7
   damage: 100
   damageLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  obstructionLayers:
     serializedVersion: 2
     m_Bits: 4294967295
 --- !u!1001 &6411554720554447405
