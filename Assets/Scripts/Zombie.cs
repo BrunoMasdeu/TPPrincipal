@@ -12,7 +12,7 @@ public class Zombie : MonoBehaviour
     public Camera AttackingRaycastArea;
     public Transform playerBody;
     public LayerMask PlayerLayer;
-    private bool estaMuerto;
+    private bool isDead;
 
     public GameObject[] walkPoints;
     int currentZombiePosition = 0;
@@ -29,7 +29,8 @@ public class Zombie : MonoBehaviour
     public bool playerInvisionRadius;
     public bool playerInattackingRadius;
 
-    private Action muerto;
+    // Aviso al WaveManager cuando el zombie muere
+    private Action onDeath;
 
     private void Awake()
     {
@@ -37,6 +38,7 @@ public class Zombie : MonoBehaviour
         zombieAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
     }
 
+    // Lo llama el WaveManager justo después de instanciar el zombie
     public void Initialize(Transform player, GameObject[] points, float health, Action deathCallback)
     {
         playerBody = player;
@@ -46,14 +48,15 @@ public class Zombie : MonoBehaviour
         zombieHealth = health;
         presentHealth = health;
 
+        // Estilo Black Ops: siempre persiguen al jugador
         visionRadius = 1000f;
 
-        muerto = deathCallback;
+        onDeath = deathCallback;
     }
 
     private void Update()
     {
-        if (estaMuerto) return;
+        if (isDead) return;
 
         playerInvisionRadius = Physics.CheckSphere(transform.position, visionRadius, PlayerLayer);
         playerInattackingRadius = Physics.CheckSphere(transform.position, attackingRadius, PlayerLayer);
@@ -127,13 +130,13 @@ public class Zombie : MonoBehaviour
     }
     public bool zombieHitDamage(float takeDamage)
     {
-        if (estaMuerto) return false;
+        if (isDead) return false;
 
         presentHealth -= takeDamage;
 
         if(presentHealth <= 0)
         {
-            estaMuerto = true;
+            isDead = true;
 
             anim.SetBool("Walking", false);
             anim.SetBool("Running", false);
@@ -155,8 +158,8 @@ public class Zombie : MonoBehaviour
         playerInattackingRadius = false;
         playerInvisionRadius = false;
 
-        muerto?.Invoke();
-        muerto = null;
+        onDeath?.Invoke();   // avisa al WaveManager
+        onDeath = null;
 
         UnityEngine.Object.Destroy(gameObject, 1.5f);
     }
