@@ -9752,6 +9752,54 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8454067315323432492}
     m_Modifications:
+    - target: {fileID: 964828191143258971, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1348465677272341607, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 403.516
+      objectReference: {fileID: 0}
+    - target: {fileID: 1348465677272341607, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 20.709
+      objectReference: {fileID: 0}
+    - target: {fileID: 1348465677272341607, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1.27e-10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1348465677272341607, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 31.348
+      objectReference: {fileID: 0}
+    - target: {fileID: 1348465677272341607, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -13.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 1597293780683250142, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 29.65
+      objectReference: {fileID: 0}
+    - target: {fileID: 1597293780683250142, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 17.415
+      objectReference: {fileID: 0}
+    - target: {fileID: 2516752725366170098, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 64.689
+      objectReference: {fileID: 0}
+    - target: {fileID: 2516752725366170098, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -211.85
+      objectReference: {fileID: 0}
+    - target: {fileID: 2957645624624120856, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 2957645624624120856, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_Color.a
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4035904569179689877, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
       propertyPath: m_Name
       value: PlayerUI
@@ -9836,11 +9884,84 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6638883480397895446, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_text
+      value: "\xA1Logro debloqueado!"
+      objectReference: {fileID: 0}
+    - target: {fileID: 6638883480397895446, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_fontSize
+      value: 25.3
+      objectReference: {fileID: 0}
+    - target: {fileID: 7871637220649340736, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_text
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 7871637220649340736, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      propertyPath: m_fontSize
+      value: 36
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4035904569179689877, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2899092383923134051}
   m_SourcePrefab: {fileID: 100100000, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+--- !u!1 &689267923831734803 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4035904569179689877, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+  m_PrefabInstance: {fileID: 3572106934630420870}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2899092383923134051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 689267923831734803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dfdcffb19334bb74c842589646e0f6c4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::AchievementNotificationHUD
+  ShowTopMostFoldoutHeaderGroup: 1
+  notificationPanel: {fileID: 4391412556296321757}
+  achievementIcon: {fileID: 1772455980092528030}
+  achievementTitle: {fileID: 6678556826031038150}
+  displayDuration: 3
+  iconTutorial: {fileID: 21300000, guid: af71c191f8332944698fb3b0beb248c8, type: 3}
+  iconZombies: {fileID: 21300000, guid: 4ae9fe42b4bddf5409dd81c77e997183, type: 3}
+  iconTDM: {fileID: 21300000, guid: 40db88381d6c7d448acd0580c09f7c37, type: 3}
+  iconCTF: {fileID: 21300000, guid: a5c0b3a82612bd84f91290e0008d11ba, type: 3}
+  iconEasterEgg: {fileID: 21300000, guid: 0855418b1c3a0614ab8c5fb81f7b3bc2, type: 3}
+--- !u!114 &1772455980092528030 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2957645624624120856, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+  m_PrefabInstance: {fileID: 3572106934630420870}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+--- !u!1 &4391412556296321757 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 964828191143258971, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+  m_PrefabInstance: {fileID: 3572106934630420870}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6678556826031038150 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7871637220649340736, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
+  m_PrefabInstance: {fileID: 3572106934630420870}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!224 &8740534320703608110 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5250689135558853800, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}

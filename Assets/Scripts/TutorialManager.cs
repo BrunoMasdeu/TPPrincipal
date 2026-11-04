@@ -104,6 +104,8 @@ public class TutorialManager : MonoBehaviour
             TogglePause();
         }
 
+        if (IsCompleted) AchievementManager.Instance.UnlockAchievement("tutorial_done");
+
         // 2. Si el juego está pausado, o si estamos transicionando, o si ya terminó, no hacer nada más
         if (isPaused || isTransitioning || currentStepIndex >= tutorialSteps.Count)
             return;
