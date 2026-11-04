@@ -38,6 +38,10 @@ public class Move : MonoBehaviour
     private bool running;
     private bool keyboardInputEnabled = true;
     private float speedMultiplier = 1f;
+    public static event Action<Move> PlayerDied;
+
+    private Vector3 startPosition;
+    private Quaternion startRotation;
 
     private readonly List<Vector3> wallContactNormals = new List<Vector3>();
 
@@ -61,6 +65,9 @@ public class Move : MonoBehaviour
     private void Start()
     {
         presentHealth = playerHealth;
+        startPosition = transform.position;
+        startRotation = transform.rotation;
+
     }
 
     private void Update()
@@ -362,6 +369,7 @@ public class Move : MonoBehaviour
     }
     public void playerHitDamage(float TakeDamage)
     {
+
         presentHealth -= TakeDamage;
 
         if(presentHealth <= 0)
@@ -372,6 +380,19 @@ public class Move : MonoBehaviour
 
     private void playerDie()
     {
-        Object.Destroy(gameObject, 1.0f);
+        ClearMovementInput();
+        keyboardInputEnabled = false;
+        PlayerDied?.Invoke(this);   // el WaveManager reacciona a esto
     }
+    public void Respawn()
+{
+    presentHealth = playerHealth;
+    keyboardInputEnabled = true;
+
+    rb.linearVelocity = Vector3.zero;
+    rb.angularVelocity = Vector3.zero;
+    rb.position = startPosition;
+    rb.rotation = startRotation;
+    transform.SetPositionAndRotation(startPosition, startRotation);
+}
 }

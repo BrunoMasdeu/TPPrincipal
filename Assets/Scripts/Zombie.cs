@@ -19,6 +19,11 @@ public class Zombie : MonoBehaviour
     public float zombieSpeed;
     float walkingpointRadius = 2;
 
+    [Header("Persecución")]
+    public bool runsWhenPursuing = true;
+    public float walkSpeed = 1.5f;
+    public float runSpeed = 3.5f;
+
     public float timeBtwAttack;
     bool previouslyAttack;
 
@@ -79,10 +84,12 @@ public class Zombie : MonoBehaviour
     }
     private void Pursueplayer()
     {
-        if(zombieAgent.SetDestination(playerBody.position))
+        zombieAgent.speed = runsWhenPursuing ? runSpeed : walkSpeed;
+
+        if (zombieAgent.SetDestination(playerBody.position))
         {
-            anim.SetBool("Walking", false);
-            anim.SetBool("Running", true);
+            anim.SetBool("Walking", !runsWhenPursuing);
+            anim.SetBool("Running", runsWhenPursuing);
             anim.SetBool("Attacking", false);
             anim.SetBool("Died", false);
         }
@@ -94,6 +101,7 @@ public class Zombie : MonoBehaviour
             anim.SetBool("Died", true);
         }
     }
+
     private void AttackPlayer()
     {
         zombieAgent.SetDestination(transform.position);

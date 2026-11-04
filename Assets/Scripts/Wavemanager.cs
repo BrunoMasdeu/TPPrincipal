@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using UnityEngine.SceneManagement;
 
 public class WaveManager : MonoBehaviour
 {
@@ -29,6 +30,15 @@ public class WaveManager : MonoBehaviour
         new Wave { zombieCount = 30, specialZombieCount = 5, spawnDelay = 0.5f, zombieHealth = 350f },
     };
 
+    [Header("Dificultad (multiplicador de daño)")]
+    public float dificultadFacil = 1f;
+    public float dificultadNormal = 2f;
+    public float dificultadDificil = 3f;
+
+    private bool choosingDifficulty = false;
+    private float damageMultiplier = 1f;
+    private string difficultyName = "";
+
     [Header("Pruebas (sin armas)")]
     [Tooltip("Si es mayor que 0, cada zombie muere solo a los N segundos de aparecer. Poner 0 para desactivar.")]
     public float testAutoKillSeconds = 3f;
@@ -38,18 +48,45 @@ public class WaveManager : MonoBehaviour
     public float timeBetweenWaves = 10f;
     public float firstWaveDelay = 5f;
 
+    [Header("Game Over")]
+    [Tooltip("Nombre exacto de la escena del menú (debe estar en Build Settings).")]
+    public string menuSceneName = "MenuScene";
+
     private int currentWave = 0;
     private int zombiesAlive = 0;
     private int zombiesRemaining = 0;
     private bool started = false;
+    private bool gameOver = false;
+    private bool gameWon = false;
     private string hudMessage = "";
 
+<<<<<<< Updated upstream
+=======
+    private Move playerMove;
+    private readonly List<Zombie> spawnedZombies = new List<Zombie>();
+
+>>>>>>> Stashed changes
     public static bool IsLoaded =>
         FindAnyObjectByType<WaveManager>(FindObjectsInactive.Include) != null;
 
+    private void OnEnable()
+    {
+        Move.PlayerDied += OnPlayerDied;
+    }
+
+    private void OnDisable()
+    {
+        Move.PlayerDied -= OnPlayerDied;
+    }
+
     private void Start()
     {
-        if (autoStart) StartWaves();
+        if (autoStart) StartCoroutine(ShowMenuNextFrame());
+    }
+    private IEnumerator ShowMenuNextFrame()
+    {
+        yield return null;
+        ShowDifficultyMenu();
     }
 
     public void StartWaves()
@@ -99,6 +136,11 @@ public class WaveManager : MonoBehaviour
         }
 
         hudMessage = "¡Sobreviviste a todas las oleadas!";
+        gameWon = true;
+        started = false;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     private List<bool> BuildSpawnOrder(Wave wave)
@@ -153,9 +195,14 @@ public class WaveManager : MonoBehaviour
         }
 
         zombiesAlive++;
+<<<<<<< Updated upstream
+=======
+        spawnedZombies.Add(zombie);
+>>>>>>> Stashed changes
         string tipo = prefab == specialZombiePrefab ? "ESPECIAL" : "NORMAL";
         Debug.Log($"[Oleada {currentWave}] zombie {tipo} ({prefab.name}) spawneado por WaveManager. Vivos: {zombiesAlive}");
         zombie.Initialize(playerBody, walkPoints, health, OnZombieDied);
+        zombie.giveDamage *= damageMultiplier;
 
         if (testAutoKillSeconds > 0f)
             StartCoroutine(AutoKill(zombie, testAutoKillSeconds));
@@ -174,6 +221,63 @@ public class WaveManager : MonoBehaviour
     {
         zombiesAlive--;
         zombiesRemaining--;
+<<<<<<< Updated upstream
+=======
+    }
+
+    // ───────────── GAME OVER ─────────────
+
+    private void OnPlayerDied(Move player)
+    {
+        if (gameOver) return;
+        gameOver = true;
+        playerMove = player;
+
+        // Detiene oleadas, spawns pendientes y autokills
+        StopAllCoroutines();
+        started = false;
+
+        // Elimina todos los zombies
+        foreach (Zombie z in spawnedZombies)
+        {
+            if (z != null) Destroy(z.gameObject);
+        }
+        spawnedZombies.Clear();
+        zombiesAlive = 0;
+        zombiesRemaining = 0;
+
+        hudMessage = "Has muerto";
+
+        // Para poder usar los botones con el mouse
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    private void RestartGame()
+{
+    gameOver = false;
+    gameWon = false;
+    currentWave = 0;
+    zombiesAlive = 0;
+    zombiesRemaining = 0;
+    hudMessage = "";
+
+    if (playerMove == null && playerBody != null)
+        playerMove = playerBody.GetComponentInParent<Move>();
+
+    if (playerMove != null)
+        playerMove.Respawn();
+
+    ShowDifficultyMenu();
+}
+
+    private void GoToMenu()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(menuSceneName);
+>>>>>>> Stashed changes
     }
 
     private void OnGUI()
@@ -181,6 +285,85 @@ public class WaveManager : MonoBehaviour
         GUIStyle style = new GUIStyle(GUI.skin.label) { fontSize = 28, fontStyle = FontStyle.Bold };
         style.normal.textColor = Color.red;
         GUI.Label(new Rect(20, 20, 600, 40), hudMessage, style);
+<<<<<<< Updated upstream
         GUI.Label(new Rect(20, 60, 600, 40), "Zombies restantes: " + zombiesRemaining, style);
+=======
+
+        if (choosingDifficulty)
+        {
+            GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                fontSize = 32,
+                fontStyle = FontStyle.Bold,
+                alignment = TextAnchor.MiddleCenter
+            };
+            titleStyle.normal.textColor = Color.white;
+
+            GUIStyle diffButton = new GUIStyle(GUI.skin.button) { fontSize = 24, fontStyle = FontStyle.Bold };
+
+            float bw = 300f, bh = 60f, gap = 15f;
+            float bx = (Screen.width - bw) / 2f;
+            float by = (Screen.height - (bh * 3 + gap * 2)) / 2f;
+
+            GUI.Label(new Rect(bx - 100, by - 60, bw + 200, 50), "Elige la dificultad", titleStyle);
+
+            if (GUI.Button(new Rect(bx, by, bw, bh), "Fácil", diffButton))
+                SelectDifficulty("Fácil", dificultadFacil);
+            if (GUI.Button(new Rect(bx, by + bh + gap, bw, bh), "Normal", diffButton))
+                SelectDifficulty("Normal", dificultadNormal);
+            if (GUI.Button(new Rect(bx, by + (bh + gap) * 2, bw, bh), "Difícil", diffButton))
+                SelectDifficulty("Difícil", dificultadDificil);
+
+            return;
+        }
+
+        if (!gameOver && !gameWon)
+        {
+            GUI.Label(new Rect(20, 60, 600, 40), "Zombies restantes: " + zombiesRemaining, style);
+            GUI.Label(new Rect(20, 100, 600, 40), "Dificultad: " + difficultyName, style);
+            return;
+        }
+
+        GUIStyle buttonStyle = new GUIStyle(GUI.skin.button) { fontSize = 24, fontStyle = FontStyle.Bold };
+
+        float w = 300f, h = 60f, spacing = 15f;
+        float x = (Screen.width - w) / 2f;
+        float y = (Screen.height - (h * 2 + spacing)) / 2f;
+
+        if (GUI.Button(new Rect(x, y, w, h), "Reiniciar la partida", buttonStyle))
+            RestartGame();
+
+        if (GUI.Button(new Rect(x, y + h + spacing, w, h), "Volver al menú", buttonStyle))
+            GoToMenu();
+    }
+    private void ShowDifficultyMenu()
+    {
+        choosingDifficulty = true;
+        hudMessage = "";
+
+        if (playerMove == null)
+            playerMove = FindAnyObjectByType<Move>();
+
+        if (playerMove != null)
+            playerMove.SetKeyboardInputEnabled(false);
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
+
+    private void SelectDifficulty(string name, float multiplier)
+    {
+        difficultyName = name;
+        damageMultiplier = multiplier;
+        choosingDifficulty = false;
+
+        if (playerMove != null)
+            playerMove.SetKeyboardInputEnabled(true);
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        StartWaves();
+>>>>>>> Stashed changes
     }
 }

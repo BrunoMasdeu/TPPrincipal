@@ -5380,8 +5380,16 @@ MonoBehaviour:
   walkPoints:
   - {fileID: 0}
   - {fileID: 0}
+<<<<<<< Updated upstream
   zombieSpeed: 0.5
   timeBtwAttack: 1000
+=======
+  zombieSpeed: 0.3
+  runsWhenPursuing: 0
+  walkSpeed: 1.5
+  runSpeed: 3.5
+  timeBtwAttack: 1
+>>>>>>> Stashed changes
   anim: {fileID: 1025460886878452708}
   visionRadius: 5
   attackingRadius: 1.4

@@ -3913,10 +3913,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1000010076631458, guid: d803e729730d97a4e89edf13b602b3f4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1299303598}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d803e729730d97a4e89edf13b602b3f4, type: 3}
 --- !u!4 &132186609 stripped
 Transform:
@@ -4349,11 +4346,45 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 496200, guid: 08fbf63192859a8478ea10767d582048, type: 3}
   m_PrefabInstance: {fileID: 140652557}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< Updated upstream
 --- !u!1 &141039143 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1810843828704976, guid: 6a5bede2b731a0044949586a597664dd, type: 3}
   m_PrefabInstance: {fileID: 1978095522}
   m_PrefabAsset: {fileID: 0}
+=======
+--- !u!1 &141340985
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 141340986}
+  m_Layer: 0
+  m_Name: spawnPoint2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &141340986
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 141340985}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 38.58538, y: -17.14783, z: -18.0288}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+>>>>>>> Stashed changes
 --- !u!1001 &144050363
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14937,10 +14968,7 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4000012314437004, guid: dcbe0840d66f9134bb43e5ec41d86349, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1382718543}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1000013324406544, guid: dcbe0840d66f9134bb43e5ec41d86349, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1955167017}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dcbe0840d66f9134bb43e5ec41d86349, type: 3}
 --- !u!4 &598778706 stripped
 Transform:
@@ -19672,10 +19700,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 5283019392687864001, guid: bcb173da3a54db742bde06a100050549, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 322021623905235407, guid: bcb173da3a54db742bde06a100050549, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1235069062}
   m_SourcePrefab: {fileID: 100100000, guid: bcb173da3a54db742bde06a100050549, type: 3}
 --- !u!1001 &768390326
 PrefabInstance:
@@ -24640,11 +24672,6 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 4000013978381734, guid: fe9a19d4f0d796c40bf4fc6b69dd7b81, type: 3}
   m_PrefabInstance: {fileID: 988072697}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &989065899 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1000010076631458, guid: d803e729730d97a4e89edf13b602b3f4, type: 3}
-  m_PrefabInstance: {fileID: 1699097354}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &991746842
 PrefabInstance:
@@ -30856,6 +30883,24 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 484792, guid: aa36899a7c912734f9c08658de8b1d48, type: 3}
   m_PrefabInstance: {fileID: 1233866179}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1235069060 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 322021623905235407, guid: bcb173da3a54db742bde06a100050549, type: 3}
+  m_PrefabInstance: {fileID: 764434549}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1235069062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1235069060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cd059101d3dad484694ab7f5a16eb7ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::TeamSpawnPoint
+  teamId: 0
 --- !u!1001 &1236474212
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -42567,10 +42612,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1000010076631458, guid: d803e729730d97a4e89edf13b602b3f4, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1699097359}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d803e729730d97a4e89edf13b602b3f4, type: 3}
 --- !u!4 &1699097355 stripped
 Transform:
@@ -49256,6 +49298,7 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 400520, guid: 0b997373854a4d44b8ac8fe631cfd30e, type: 3}
   m_PrefabInstance: {fileID: 1945609139}
   m_PrefabAsset: {fileID: 0}
+<<<<<<< Updated upstream
 --- !u!1 &1946914111 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1000010076631458, guid: d803e729730d97a4e89edf13b602b3f4, type: 3}
@@ -49293,6 +49336,8 @@ MonoBehaviour:
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: 45ace3d6a56fe0c40ac068102f72a3cd, type: 2}
   m_BuildHeightMesh: 0
+=======
+>>>>>>> Stashed changes
 --- !u!1001 &1948947637
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -52957,10 +53002,7 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1000014219097406, guid: a4ea7ad660a6e4241aff4002d350fe80, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2089054537}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a4ea7ad660a6e4241aff4002d350fe80, type: 3}
 --- !u!4 &2089054533 stripped
 Transform:
@@ -53754,7 +53796,7 @@ MonoBehaviour:
   specialZombiePrefab: {fileID: 7586816188765469219, guid: f3091e7fe19efe644a006dab0526094d, type: 3}
   spawnPoints:
   - {fileID: 962194312}
-  - {fileID: 118995254}
+  - {fileID: 141340986}
   - {fileID: 1559340933}
   playerBody: {fileID: 0}
   walkPoints:
@@ -53763,7 +53805,11 @@ MonoBehaviour:
   waves:
   - zombieCount: 10
     specialZombieCount: 1
+<<<<<<< Updated upstream
     spawnDelay: 7
+=======
+    spawnDelay: 2
+>>>>>>> Stashed changes
     zombieHealth: 150
   - zombieCount: 20
     specialZombieCount: 3
@@ -53773,10 +53819,14 @@ MonoBehaviour:
     specialZombieCount: 5
     spawnDelay: 2
     zombieHealth: 350
-  testAutoKillSeconds: 3
+  dificultadFacil: 1
+  normalDamageMultiplier: 2
+  hardDamageMultiplier: 3
+  testAutoKillSeconds: 100
   autoStart: 1
   timeBetweenWaves: 10
-  firstWaveDelay: 5
+  firstWaveDelay: 10
+  menuSceneName: MenuScene
 --- !u!4 &2119514347
 Transform:
   m_ObjectHideFlags: 0
@@ -54836,10 +54886,13 @@ SceneRoots:
   - {fileID: 586097719}
   - {fileID: 962194312}
   - {fileID: 2119514347}
-  - {fileID: 118995254}
   - {fileID: 1559340933}
+<<<<<<< Updated upstream
   - {fileID: 1954477161}
   - {fileID: 1298503578}
   - {fileID: 121353472}
   - {fileID: 1705859936}
   - {fileID: 2090169006}
+=======
+  - {fileID: 141340986}
+>>>>>>> Stashed changes

@@ -2635,7 +2635,11 @@ GameObject:
   - component: {fileID: 3573768180596614474}
   - component: {fileID: 4583591984832252637}
   - component: {fileID: 4628992390960615733}
+<<<<<<< Updated upstream
   - component: {fileID: 3344951514246641506}
+=======
+  - component: {fileID: 6359708717116508016}
+>>>>>>> Stashed changes
   m_Layer: 0
   m_Name: Zombie1
   m_TagString: Untagged
@@ -2652,7 +2656,11 @@ Transform:
   m_GameObject: {fileID: 7586816188765469219}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+<<<<<<< Updated upstream
   m_LocalPosition: {x: 73.43429, y: -17.147823, z: 19.622026}
+=======
+  m_LocalPosition: {x: 25.537554, y: -17.156105, z: -13.038685}
+>>>>>>> Stashed changes
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2741,7 +2749,11 @@ CapsuleCollider:
   m_Height: 1.8685132
   m_Direction: 1
   m_Center: {x: -0.009707451, y: 0.91503614, z: -0.011086464}
+<<<<<<< Updated upstream
 --- !u!114 &3344951514246641506
+=======
+--- !u!114 &6359708717116508016
+>>>>>>> Stashed changes
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2765,9 +2777,15 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   zombieSpeed: 0.5
+<<<<<<< Updated upstream
   timeBtwAttack: 1000
   anim: {fileID: 3573768180596614474}
   visionRadius: 5
+=======
+  timeBtwAttack: 1
+  anim: {fileID: 3573768180596614474}
+  visionRadius: 1000
+>>>>>>> Stashed changes
   attackingRadius: 1.4
   playerInvisionRadius: 0
   playerInattackingRadius: 0
