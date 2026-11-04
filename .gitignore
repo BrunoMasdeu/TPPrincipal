@@ -29,8 +29,10 @@ BuildTest/
 
 # Datos generados por Adaptive Probe Volumes
 Assets/Scenes/GameScene/*Baking Set*.bytes
-/ProjectSettings/TimelineSettings.asset
 
 # Datos generados por Unity
 Assets/Resources/
-/ProjectSettings/ProjectSettings.asset
+ProjectSettings/
+
+# Recursos
+Assets/UI/Icons/
