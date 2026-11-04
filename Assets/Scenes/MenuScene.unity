@@ -617,7 +617,7 @@ GameObject:
   - component: {fileID: 124496592}
   - component: {fileID: 124496591}
   m_Layer: 5
-  m_Name: Image (6)
+  m_Name: LogroTutorialIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -655,7 +655,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1132,6 +1132,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 370285326}
   m_CullTransparentMesh: 1
+--- !u!1 &407246028
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 407246030}
+  - component: {fileID: 407246029}
+  m_Layer: 0
+  m_Name: AchievementManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &407246029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 407246028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d797bb785a717e4498f86b12515d959a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::AchievementManager
+--- !u!4 &407246030
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 407246028}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 511.09552, y: 301.78323, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &451133142
 GameObject:
   m_ObjectHideFlags: 0
@@ -1431,7 +1475,7 @@ GameObject:
   - component: {fileID: 762815646}
   - component: {fileID: 762815645}
   m_Layer: 5
-  m_Name: Image (8)
+  m_Name: LogroEasterEggIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1469,7 +1513,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1506,7 +1550,7 @@ GameObject:
   - component: {fileID: 782204914}
   - component: {fileID: 782204913}
   m_Layer: 5
-  m_Name: Image (2)
+  m_Name: LogroCTFIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1544,7 +1588,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2540,7 +2584,7 @@ GameObject:
   - component: {fileID: 1046234590}
   - component: {fileID: 1046234589}
   m_Layer: 5
-  m_Name: Image
+  m_Name: LogroZombiesIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2578,7 +2622,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4477,7 +4521,7 @@ GameObject:
   - component: {fileID: 1982207119}
   - component: {fileID: 1982207118}
   m_Layer: 5
-  m_Name: Image (4)
+  m_Name: LogroTDMIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4515,7 +4559,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -22801,6 +22845,11 @@ MonoBehaviour:
   canvasLobby: {fileID: 6839794532578157729}
   canvasAchieves: {fileID: 1496699675}
   canvasLoading: {fileID: 359510406}
+  logroTutorial: {fileID: 124496591}
+  logroEasterEgg: {fileID: 762815645}
+  logroWinTDM: {fileID: 1982207118}
+  logroWinCTF: {fileID: 782204913}
+  logroZombies: {fileID: 1046234589}
 --- !u!224 &6365232376346342820
 RectTransform:
   m_ObjectHideFlags: 0
@@ -31325,3 +31374,4 @@ SceneRoots:
   - {fileID: 1379986650}
   - {fileID: 1478890984}
   - {fileID: 1630400819}
+  - {fileID: 407246030}

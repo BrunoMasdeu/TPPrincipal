@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class MenuManager : MonoBehaviour
 {
@@ -29,11 +30,21 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject canvasLobby;
     [SerializeField] private GameObject canvasAchieves;
     [SerializeField] private GameObject canvasLoading;
+
+
+    [Header("Logros")]
+    [SerializeField] private Image logroTutorial;
+    [SerializeField] private Image logroEasterEgg;
+    [SerializeField] private Image logroWinTDM;
+    [SerializeField] private Image logroWinCTF;
+    [SerializeField] private Image logroZombies;
+
     private bool sobreBoton = false;
     private void Start()
     {
         // Establecer el cursor personalizado al iniciar la escena
         SetCursorDefault();
+        ActualizarMenuLogros();
     }
 
     private void Update()
@@ -239,5 +250,29 @@ public class MenuManager : MonoBehaviour
     {
         if (canvas != null)
             canvas.SetActive(canvas == selected);
+    }
+
+    public void ActualizarMenuLogros()
+    {
+        Achievement tutorialAch = AchievementManager.Instance.GetAchievement("tutorial_done");
+        Achievement zombiesAch = AchievementManager.Instance.GetAchievement("win_zombies");
+        Achievement ctfAch = AchievementManager.Instance.GetAchievement("win_ctf");
+        Achievement tdmAch = AchievementManager.Instance.GetAchievement("win_tdm");
+        Achievement easterEggAch = AchievementManager.Instance.GetAchievement("easter_egg");
+
+        if (tutorialAch != null && tutorialAch.isUnlocked) SetUnlocked(logroTutorial, true);
+        if (zombiesAch != null && zombiesAch.isUnlocked) SetUnlocked(logroZombies, true);
+        if (ctfAch != null && ctfAch.isUnlocked) SetUnlocked(logroWinCTF, true);
+        if (tdmAch != null && tdmAch.isUnlocked) SetUnlocked(logroWinTDM, true);
+        if (easterEggAch != null && easterEggAch.isUnlocked) SetUnlocked(logroEasterEgg, true);
+    }
+
+    private void SetUnlocked(Image image, bool unlocked)
+    {
+        if (image == null)
+            return;
+
+        Color color = unlocked ? Color.white : Color.black;
+        image.color = color;
     }
 }
