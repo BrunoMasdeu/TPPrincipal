@@ -195,12 +195,11 @@ public class UnifiedPlayerPrefabTests
         Assert.That(grenade.GetComponent<Rigidbody>(), Is.Not.Null);
         Assert.That(grenade.GetComponent<Collider>(), Is.Not.Null);
 
-        NetworkGrenadeProjectile projectile =
-            grenade.GetComponent<NetworkGrenadeProjectile>();
-        Assert.That(projectile, Is.Not.Null);
-        Assert.That(projectile.FuseTime, Is.GreaterThan(0f));
-        Assert.That(projectile.ExplosionRadius, Is.GreaterThan(0f));
-        Assert.That(projectile.Damage, Is.GreaterThan(0));
+        GrenadeExplosion explosion = grenade.GetComponent<GrenadeExplosion>();
+        Assert.That(explosion, Is.Not.Null);
+        Assert.That(explosion.fuseTime, Is.GreaterThan(0f));
+        Assert.That(explosion.explosionRadius, Is.GreaterThan(0f));
+        Assert.That(explosion.damage, Is.GreaterThan(0));
 
         Transform visual = grenade.transform.Find("Visual");
         Assert.That(visual, Is.Not.Null,

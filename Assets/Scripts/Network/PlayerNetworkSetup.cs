@@ -18,6 +18,17 @@ public class PlayerNetworkSetup : NetworkBehaviour
     [SerializeField] private NetworkPlayerGrenades grenades;
     [SerializeField] private NetworkPlayerHudPresenter hudPresenter;
 
+    [Header("Minimapa de Felipe (solo en el jugador propio)")]
+    // [MULTIJUGADOR] Cada jugador trae su cámara de minimapa y su canvas.
+    // Solo se prenden los del jugador local: si no, todas las cámaras
+    // dibujarían en la misma textura y se verían varios minimapas.
+    [SerializeField] private Camera minimapCamera;
+    [SerializeField] private Canvas minimapCanvas;
+
+    // [MULTIJUGADOR] El ícono de Felipe (el Quad sobre la cabeza) que ve la
+    // cámara del minimapa. Solo se muestra si este jugador es de mi equipo.
+    [SerializeField] private GameObject minimapIcon;
+
     [Header("Checkpoint")]
     private Vector3 ultimoCheckpointPos;
     private Quaternion ultimoCheckpointRot = Quaternion.identity;
@@ -53,10 +64,36 @@ public class PlayerNetworkSetup : NetworkBehaviour
         if (audioListener != null)
             audioListener.enabled = esPropietario;
 
+        if (minimapCamera != null)
+            minimapCamera.enabled = esPropietario;
+
+        if (minimapCanvas != null)
+            minimapCanvas.enabled = esPropietario;
+
         ApplyLocalState();
 
         // Al conectarse, actualiza el punto seguro con la posición de red definitiva.
         GuardarCheckpointInicial();
+    }
+
+    // [MULTIJUGADOR] En el minimapa solo se ven los aliados.
+    private void Update()
+    {
+        if (minimapIcon != null && IsSpawned)
+            minimapIcon.SetActive(IsOwner || EsAliado());
+    }
+
+    // ¿Este jugador es de mi mismo equipo? (sin equipos, como en el
+    // tutorial, los dos quedan en "None" y cuenta como aliado)
+    private bool EsAliado()
+    {
+        NetworkLobbySession lobby = NetworkLobbySession.Instance;
+        if (lobby == null)
+            return true;
+
+        lobby.TryGetPlayerData(OwnerClientId, out LobbyPlayerData este);
+        lobby.TryGetPlayerData(NetworkManager.LocalClientId, out LobbyPlayerData yo);
+        return este.TeamId == yo.TeamId;
     }
 
     public void Respawn(Vector3 position, Quaternion rotation)
