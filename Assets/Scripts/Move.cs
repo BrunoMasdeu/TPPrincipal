@@ -360,7 +360,7 @@ public class Move : MonoBehaviour
 
     private void playerDie()
     {
-        Object.Destroy(gameObject, 1.0f);
+        UnityEngine.Object.Destroy(gameObject, 1.0f);
     }
 }
 
