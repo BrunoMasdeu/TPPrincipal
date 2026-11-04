@@ -58,6 +58,7 @@ public class EasterEggDoor : MonoBehaviour
     {
         if (other.CompareTag("Player"))
             playerIsNearby = true;
+        AchievementManager.Instance.UnlockAchievement("easter_egg");
     }
 
     // Detecta cuando el jugador se aleja de la puerta
