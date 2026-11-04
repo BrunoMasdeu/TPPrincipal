@@ -266,7 +266,7 @@ public sealed class MatchHudPresenter : MonoBehaviour
     }
     public void ToggleQuitPanel(bool isQuitOpen)
     {
-        view.SetQuitPanel(isQuitOpen, player.IsHost);
+        view.SetQuitPanel(isQuitOpen);
         if (isQuitOpen == quitPanelOpen)
             return;
         quitPanelOpen = isQuitOpen;

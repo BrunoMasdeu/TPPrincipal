@@ -161,6 +161,18 @@ public class LobbyPlayerSpawner : MonoBehaviour
     private void OnClientDisconnected(ulong clientId)
     {
         loadedClientIds.Remove(clientId);
+
+        if (networkManager == null || networkManager.IsServer ||
+            clientId != networkManager.LocalClientId ||
+            SceneManager.GetActiveScene().name == "MenuScene")
+            return;
+
+        MatchHudPresenter hud = FindAnyObjectByType<MatchHudPresenter>(
+            FindObjectsInactive.Include);
+        if (hud != null && hud.IsLeaving)
+            return;
+
+        DisconnectedClientReturnToMenu.Begin(networkManager);
     }
 
     private bool IsLocalScene(string sceneName)

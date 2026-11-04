@@ -159,9 +159,9 @@ public sealed class MatchHudView : MonoBehaviour
                 row.rootFinal.SetActive(false);
         }
     }
-    public void SetQuitPanel(bool isQuitPanel, bool isHost)
+    public void SetQuitPanel(bool isQuitPanel)
     {
-       if (quitPanel != null && isHost) 
+        if (quitPanel != null)
             quitPanel.SetActive(isQuitPanel);
     }
 }
