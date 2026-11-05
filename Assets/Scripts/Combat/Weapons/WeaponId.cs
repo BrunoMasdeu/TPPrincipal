@@ -7,7 +7,8 @@ public enum WeaponId : byte
     Revolver = 3,
     AK = 4,
     M4 = 5,
-    Grapple = 6
+    Grapple = 6,
+    Sniper = 7
 }
 
 /// <summary>Ranura que ocupa un arma dentro del equipamiento.</summary>

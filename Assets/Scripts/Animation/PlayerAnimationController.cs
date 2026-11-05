@@ -265,8 +265,8 @@ public sealed class PlayerAnimationController : NetworkBehaviour
 
         int weaponPose = weaponId switch
         {
-            WeaponId.Pistol or WeaponId.Revolver => PistolWeaponPose,
-            WeaponId.AK or WeaponId.M4 => RifleWeaponPose,
+            WeaponId.Pistol or WeaponId.Revolver or WeaponId.Knife or WeaponId.Grapple => PistolWeaponPose,
+            WeaponId.AK or WeaponId.M4 or WeaponId.Sniper => RifleWeaponPose,
             _ => NeutralWeaponPose
         };
 
