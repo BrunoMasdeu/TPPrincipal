@@ -39,6 +39,8 @@ public class GunSystem : MonoBehaviour
     public float normalFOV = 60f;
     public float zoomFOV = 15f;
     public float zoomSpeed = 10f;
+    public GameObject scopeOverlay;
+    public GameObject normalScopeOverlay;
 
     private bool isZooming;
 
@@ -137,6 +139,8 @@ public class GunSystem : MonoBehaviour
             isZooming = false;
         }
 
+        ShowSniperScope(isZooming);
+
         float targetFOV = isZooming ? zoomFOV : normalFOV;
 
         fpsCam.fieldOfView = Mathf.Lerp(
@@ -144,6 +148,12 @@ public class GunSystem : MonoBehaviour
             targetFOV,
             Time.deltaTime * zoomSpeed
         );
+    }
+
+    private void ShowSniperScope(bool isZooming)
+    {
+        if (normalScopeOverlay != null) normalScopeOverlay.SetActive(!isZooming);
+        if (scopeOverlay != null) scopeOverlay.SetActive(isZooming);
     }
 
     private void Shoot()
