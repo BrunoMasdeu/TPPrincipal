@@ -1,4 +1,3 @@
-
 using System.Collections;
 using UnityEngine;
 
@@ -7,7 +6,6 @@ public class Pickup : MonoBehaviour
     public enum TipoPickup
     {
         Vida,
-        Velocidad,
         Municion
     }
 
@@ -15,19 +13,10 @@ public class Pickup : MonoBehaviour
     [SerializeField] private TipoPickup tipo;
 
     [Header("Jugador")]
-    [SerializeField] private Move movimiento;
     [SerializeField] private NetworkPlayerHealth vida;
-    [SerializeField] private GunSystem arma;
 
     [Header("Vida")]
     [SerializeField] private int cantidadVida = 25;
-
-    [Header("Velocidad")]
-    [Min(1.01f)]
-    [SerializeField] private float multiplicadorVelocidad = 1.5f;
-
-    [Min(0.1f)]
-    [SerializeField] private float duracionVelocidad = 5f;
 
     [Header("Municion")]
     [SerializeField] private int cantidadMunicion = 30;
@@ -51,38 +40,11 @@ public class Pickup : MonoBehaviour
         if (recogido)
             return;
 
-        Move movimientoJugador =
-            other.GetComponentInParent<Move>();
-
-        if (movimientoJugador == null)
-        {
-            movimientoJugador =
-                other.transform.root.GetComponentInChildren<Move>();
-        }
-
         NetworkPlayerHealth vidaJugador =
             other.GetComponentInParent<NetworkPlayerHealth>();
 
-        // [ADAPTADO] Ahora cada arma tiene su propio GunSystem: la munición
-        // va al arma que el jugador tiene en la mano (la que prendió su
-        // Inventory).
-        GunSystem armaJugador = null;
-        Inventory inventarioJugador = other.GetComponentInParent<Inventory>();
-
-        if (inventarioJugador != null && inventarioJugador.CurrentWeapon != null)
-        {
-            armaJugador =
-                inventarioJugador.CurrentWeapon.GetComponent<GunSystem>();
-        }
-
-        if (movimientoJugador == null)
-            movimientoJugador = movimiento;
-
         if (vidaJugador == null)
             vidaJugador = vida;
-
-        if (armaJugador == null)
-            armaJugador = arma;
 
         bool aplicado = false;
 
@@ -93,23 +55,21 @@ public class Pickup : MonoBehaviour
                     aplicado = vidaJugador.Heal(cantidadVida);
                 break;
 
-            case TipoPickup.Velocidad:
-                if (movimientoJugador != null)
-                {
-                    movimientoJugador.ApplySpeedBoost(
-                        multiplicadorVelocidad,
-                        duracionVelocidad
-                    );
-
-                    aplicado = true;
-                }
-                break;
-
             case TipoPickup.Municion:
-                if (armaJugador != null)
+                Inventory inventarioJugador =
+                    other.GetComponentInParent<Inventory>();
+
+                if (inventarioJugador != null &&
+                    inventarioJugador.CurrentWeapon != null)
                 {
-                    armaJugador.AddAmmo(cantidadMunicion);
-                    aplicado = true;
+                    GunSystem armaJugador =
+                        inventarioJugador.CurrentWeapon
+                        .GetComponent<GunSystem>();
+
+                    if (armaJugador != null)
+                    {
+                        aplicado = armaJugador.AddAmmo(cantidadMunicion);
+                    }
                 }
                 break;
         }
@@ -141,18 +101,6 @@ public class Pickup : MonoBehaviour
 
     private void OnValidate()
     {
-        multiplicadorVelocidad =
-            Mathf.Max(1.01f, multiplicadorVelocidad);
-
-        duracionVelocidad =
-            Mathf.Max(0.1f, duracionVelocidad);
-
-        tiempoReaparicion =
-            Mathf.Max(0.1f, tiempoReaparicion);
+        tiempoReaparicion = Mathf.Max(0.1f, tiempoReaparicion);
     }
 }
-
-
-
-
-
