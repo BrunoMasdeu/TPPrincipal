@@ -41,22 +41,23 @@ public class Inventory : MonoBehaviour
 
         // [COMO HOY] Teclas como hoy: 1 principal, 2 secundaria, 3 cuchillo,
         // 4 gancho. Antes: 1 cuchillo, 2 pistola, 3 rifle, 4 gancho.
-        if (Keyboard.current.digit1Key.wasPressedThisFrame)
+        // [TECLAS] Ahora las teclas salen de Controles (se cambian en Opciones).
+        if (Keyboard.current[Controles.Tecla(Accion.ArmaPrincipal)].wasPressedThisFrame)
         {
             SelectWeapon(rifle);
         }
 
-        if (Keyboard.current.digit2Key.wasPressedThisFrame)
+        if (Keyboard.current[Controles.Tecla(Accion.ArmaSecundaria)].wasPressedThisFrame)
         {
             SelectWeapon(pistol);
         }
 
-        if (Keyboard.current.digit3Key.wasPressedThisFrame)
+        if (Keyboard.current[Controles.Tecla(Accion.Cuchillo)].wasPressedThisFrame)
         {
             SelectWeapon(knife);
         }
 
-        if (Keyboard.current.digit4Key.wasPressedThisFrame)
+        if (Keyboard.current[Controles.Tecla(Accion.Gancho)].wasPressedThisFrame)
         {
             SelectWeapon(Gancho);
         }

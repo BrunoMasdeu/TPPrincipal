@@ -19,9 +19,9 @@ public class WallRun : MonoBehaviour
 
     private float wallRunTimer;
 
-    [Header("Input")]
-    public Key upwardsRunKey = Key.LeftShift;
-    public Key downwardsRunKey = Key.LeftCtrl;
+    // [TECLAS] Correr hacia arriba/abajo por la pared usa las mismas teclas
+    // que Correr y Agacharse (antes eran los campos upwardsRunKey y
+    // downwardsRunKey, con Shift y Ctrl).
 
     private bool upwardsRunning;
     private bool downwardsRunning;
@@ -92,20 +92,21 @@ public class WallRun : MonoBehaviour
         if (MatchDebugConsole.IsInputCaptured || Keyboard.current == null)
             return;
 
-        if (Keyboard.current.aKey.isPressed)
+        // [TECLAS] Las teclas salen de Controles (se cambian en Opciones).
+        if (Keyboard.current[Controles.Tecla(Accion.Izquierda)].isPressed)
             horizontalInput -= 1f;
 
-        if (Keyboard.current.dKey.isPressed)
+        if (Keyboard.current[Controles.Tecla(Accion.Derecha)].isPressed)
             horizontalInput += 1f;
 
-        if (Keyboard.current.wKey.isPressed)
+        if (Keyboard.current[Controles.Tecla(Accion.Adelante)].isPressed)
             verticalInput += 1f;
 
-        if (Keyboard.current.sKey.isPressed)
+        if (Keyboard.current[Controles.Tecla(Accion.Atras)].isPressed)
             verticalInput -= 1f;
 
-        upwardsRunning = Keyboard.current[upwardsRunKey].isPressed;
-        downwardsRunning = Keyboard.current[downwardsRunKey].isPressed;
+        upwardsRunning = Keyboard.current[Controles.Tecla(Accion.Correr)].isPressed;
+        downwardsRunning = Keyboard.current[Controles.Tecla(Accion.Agacharse)].isPressed;
     }
 
     private void CheckForWall()
@@ -157,8 +158,9 @@ public class WallRun : MonoBehaviour
                     exitWallTimer = exitWallTime;
                 }
 
+                // [TECLAS] Salto desde la pared con la tecla de Saltar.
                 if (Keyboard.current != null &&
-                    Keyboard.current.spaceKey.wasPressedThisFrame)
+                    Keyboard.current[Controles.Tecla(Accion.Saltar)].wasPressedThisFrame)
                 {
                     WallJump();
                 }

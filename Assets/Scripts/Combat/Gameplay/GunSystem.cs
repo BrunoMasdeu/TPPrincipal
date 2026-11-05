@@ -101,8 +101,9 @@ public class GunSystem : MonoBehaviour
             }
         }
 
+        // [TECLAS] La tecla de recargar sale de Controles.
         if (Keyboard.current != null &&
-            Keyboard.current.rKey.wasPressedThisFrame &&
+            Keyboard.current[Controles.Tecla(Accion.Recargar)].wasPressedThisFrame &&
             bulletsLeft < magazineSize &&
             extraBulletsLeft > 0 &&
             !reloading)

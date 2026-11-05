@@ -147,7 +147,8 @@ public class NetworkPlayerShop : NetworkBehaviour
             Keyboard.current == null)
             return;
 
-        if (Keyboard.current.bKey.wasPressedThisFrame)
+        // [TECLAS] La tecla de la tienda sale de Controles.
+        if (Keyboard.current[Controles.Tecla(Accion.Tienda)].wasPressedThisFrame)
         {
             if (menuOpen)
                 CloseMenu();

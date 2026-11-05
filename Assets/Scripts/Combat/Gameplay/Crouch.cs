@@ -11,7 +11,7 @@ public class Crouch : MonoBehaviour
     public float crouchHeight = 1.2f;
     public float cameraOffset = 0.5f;
     public float transitionSpeed = 10f;
-    public Key crouchKey = Key.LeftCtrl;
+    // [TECLAS] La tecla ya no es un campo (crouchKey): sale de Controles.
 
     private float originalHeight;
     private Vector3 originalCenter;
@@ -49,7 +49,7 @@ public class Crouch : MonoBehaviour
         // copias de los demás jugadores no leen el teclado de esta PC.
         if (network == null || network.IsOwner)
         {
-            if (Keyboard.current[crouchKey].isPressed)
+            if (Keyboard.current[Controles.Tecla(Accion.Agacharse)].isPressed)
             {
                 crouching = true;
             }

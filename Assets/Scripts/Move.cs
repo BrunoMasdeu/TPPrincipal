@@ -79,24 +79,25 @@ public class Move : MonoBehaviour
 
         Vector2 movementInput = Vector2.zero;
 
-        if (Keyboard.current.wKey.isPressed)
+        // [TECLAS] Las teclas salen de Controles (se cambian en Opciones).
+        if (Keyboard.current[Controles.Tecla(Accion.Adelante)].isPressed)
             movementInput.y += 1;
 
-        if (Keyboard.current.sKey.isPressed)
+        if (Keyboard.current[Controles.Tecla(Accion.Atras)].isPressed)
             movementInput.y -= 1;
 
-        if (Keyboard.current.aKey.isPressed)
+        if (Keyboard.current[Controles.Tecla(Accion.Izquierda)].isPressed)
             movementInput.x -= 1;
 
-        if (Keyboard.current.dKey.isPressed)
+        if (Keyboard.current[Controles.Tecla(Accion.Derecha)].isPressed)
             movementInput.x += 1;
 
         SetMovementInput(
             movementInput,
-            Keyboard.current.leftShiftKey.isPressed
+            Keyboard.current[Controles.Tecla(Accion.Correr)].isPressed
         );
 
-        if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (Keyboard.current[Controles.Tecla(Accion.Saltar)].wasPressedThisFrame)
             RequestJump();
     }
 
