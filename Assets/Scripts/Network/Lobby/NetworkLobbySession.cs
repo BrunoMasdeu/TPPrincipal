@@ -554,6 +554,100 @@ public class NetworkLobbySession : NetworkBehaviour
         return false;
     }
 
+    // ---- [COG-587] Nombres de los jugadores ----
+
+    // Nombres que el servidor ya aprobó en la conexión (LobbyPlayerSpawner)
+    // pero que todavía no están en la lista de jugadores. Es static porque la
+    // conexión del host se aprueba antes de que exista esta sesión.
+    private static readonly Dictionary<ulong, string> nombresAprobados = new();
+
+    public static void GuardarNombreAprobado(ulong clientId, string nombre)
+    {
+        nombresAprobados[clientId] = NombreJugadorRules.Limpiar(nombre);
+    }
+
+    public static void OlvidarNombresAprobados()
+    {
+        nombresAprobados.Clear();
+    }
+
+    /// <summary>¿Alguien de la sala (o que está entrando) ya usa este nombre?</summary>
+    public static bool NombreEnUso(string nombre)
+    {
+        foreach (string usado in nombresAprobados.Values)
+        {
+            if (NombreJugadorRules.SonIguales(usado, nombre))
+                return true;
+        }
+
+        NetworkLobbySession sesion = Instance;
+        if (sesion == null || !sesion.IsSpawned)
+            return false;
+
+        for (int i = 0; i < sesion.players.Count; i++)
+        {
+            if (NombreJugadorRules.SonIguales(sesion.players[i].Nombre.ToString(), nombre))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// El nombre para mostrar en el lobby y en la partida. Si el jugador no
+    /// tiene nombre (por ejemplo, en el tutorial), queda "Jugador N" como antes.
+    /// </summary>
+    public static string NombreParaMostrar(ulong clientId)
+    {
+        NetworkLobbySession sesion = Instance;
+
+        if (sesion != null && sesion.IsSpawned &&
+            sesion.TryGetPlayerData(clientId, out LobbyPlayerData jugador) &&
+            jugador.Nombre.Length > 0)
+        {
+            return jugador.Nombre.ToString();
+        }
+
+        return $"Jugador {clientId + 1}";
+    }
+
+    // Saca el nombre aprobado de la lista de espera para guardarlo en el jugador.
+    private string TomarNombreAprobado(ulong clientId)
+    {
+        if (nombresAprobados.TryGetValue(clientId, out string nombre))
+        {
+            nombresAprobados.Remove(clientId);
+            return nombre;
+        }
+
+        // Por las dudas: el host también puede leer su nombre de su propia conexión.
+        if (clientId == NetworkManager.ServerClientId)
+            return NombreJugadorRules.DesdeBytes(NetworkManager.NetworkConfig.ConnectionData);
+
+        return string.Empty;
+    }
+
+    // ---- [COG-586] Expulsar jugadores ----
+
+    /// <summary>
+    /// El host saca a un jugador de la sala. Solo en el lobby y nunca a sí
+    /// mismo. Al expulsado le aparece el motivo en la pantalla de Jugar.
+    /// </summary>
+    public bool ExpulsarJugador(ulong clientId)
+    {
+        if (!IsServer ||
+            sessionPhase.Value != SessionPhase.Lobby ||
+            clientId == NetworkManager.ServerClientId ||
+            FindPlayerIndex(clientId) < 0)
+        {
+            return false;
+        }
+
+        Debug.Log($"[Session] El host expulsó a {NombreParaMostrar(clientId)}.");
+        NetworkManager.DisconnectClient(clientId, "El host te expulsó de la sala.");
+        return true;
+    }
+
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void RequestGameModeChangeRpc(
         GameModeId requestedMode,
@@ -833,7 +927,8 @@ public class NetworkLobbySession : NetworkBehaviour
         ResetAllPlayersReady();
         bool autoReady = SelectedDefinition != null &&
             !SelectedDefinition.RequiresTeams;
-        players.Add(new LobbyPlayerData(clientId, TeamId.None, autoReady));
+        players.Add(new LobbyPlayerData(
+            clientId, TeamId.None, autoReady, TomarNombreAprobado(clientId)));
     }
 
     private void OnClientConnected(ulong clientId)
@@ -845,6 +940,8 @@ public class NetworkLobbySession : NetworkBehaviour
     {
         if (!IsServer)
             return;
+
+        nombresAprobados.Remove(clientId);
 
         int playerIndex = FindPlayerIndex(clientId);
 

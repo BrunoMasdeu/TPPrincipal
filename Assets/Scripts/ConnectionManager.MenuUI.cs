@@ -33,6 +33,8 @@ public partial class ConnectionManager
     [SerializeField] private TMP_Text redTeamDisplay;
     [SerializeField] private TMP_Text blueTeamDisplay;
     [SerializeField] private TMP_Text unassignedPlayersDisplay;
+    // [COG-586] Tabla de jugadores (reemplaza el texto "SIN EQUIPO").
+    [SerializeField] private TablaJugadoresLobby tablaJugadores;
     [SerializeField] private Button readyButton;
     [SerializeField] private TMP_Text lobbyHintDisplay;
 
@@ -70,6 +72,8 @@ public partial class ConnectionManager
         SetInteractable(singlePlayerButton, canConnect);
         if (joinCodeInput != null)
             joinCodeInput.interactable = canConnect;
+        if (nombreInput != null)
+            nombreInput.interactable = canConnect;
 
         bool hasSession = lobbySession != null && lobbySession.IsSpawned;
         bool inLobby = hasSession && lobbySession.Phase == SessionPhase.Lobby;
@@ -134,6 +138,8 @@ public partial class ConnectionManager
             blueTeamDisplay.text = BuildRoster(TeamId.Blue);
         if (unassignedPlayersDisplay != null)
             unassignedPlayersDisplay.text = "SIN EQUIPO\n" + BuildRoster(TeamId.None);
+        if (tablaJugadores != null)
+            tablaJugadores.Actualizar(hasSession ? lobbySession : null);
         if (lobbyHintDisplay != null)
         {
             lobbyHintDisplay.text = !hasSession ? "Conectando con la sala..."
@@ -159,7 +165,7 @@ public partial class ConnectionManager
             bool local = NetworkManager.Singleton != null && player.ClientId == NetworkManager.Singleton.LocalClientId;
             if (text.Length > 0)
                 text.Append(team == TeamId.None ? "  |  " : "\n");
-            text.Append($"Jugador {player.ClientId + 1}{(local ? " (vos)" : "")}");
+            text.Append($"{NetworkLobbySession.NombreParaMostrar(player.ClientId)}{(local ? " (vos)" : "")}");
             if (team != TeamId.None)
             {
                 text.Append('\n');
