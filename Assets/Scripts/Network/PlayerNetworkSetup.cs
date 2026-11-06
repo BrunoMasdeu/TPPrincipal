@@ -38,6 +38,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
     private float nextRespawnRequestTime;
     private bool matchControlsEnabled = true;
     private bool presentationControlsEnabled = true;
+    private bool pauseControlsEnabled = true;
     private bool hudVisible = true;
 
     private const float RespawnRequestCooldown = 0.5f;
@@ -174,6 +175,13 @@ public class PlayerNetworkSetup : NetworkBehaviour
         ApplyLocalState();
     }
 
+    /// <summary>Bloquea solo los controles locales mientras se muestra la pausa.</summary>
+    public void SetPauseControlsEnabled(bool enabled)
+    {
+        pauseControlsEnabled = enabled;
+        ApplyLocalState();
+    }
+
     public void SetLocalHudVisible(bool visible)
     {
         hudVisible = visible;
@@ -182,7 +190,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
     public bool LocalGameplayInputEnabled =>
         IsSpawned && IsOwner && matchControlsEnabled &&
-        presentationControlsEnabled;
+        presentationControlsEnabled && pauseControlsEnabled;
 
     // Separado del checkpoint de carrera: la salud confirma el teletransporte
     // antes de volver a habilitar controles y vida.
@@ -221,7 +229,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
     private void ApplyLocalState()
     {
         bool localPresentation = IsSpawned && IsOwner &&
-            presentationControlsEnabled;
+            presentationControlsEnabled && pauseControlsEnabled;
         bool localGameplay = localPresentation && matchControlsEnabled;
 
         if (cameraMovement != null)
