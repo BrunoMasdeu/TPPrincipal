@@ -3,12 +3,16 @@ public static class CombatValidationRules
     public static bool IsCombatMode(GameModeId mode) =>
         mode == GameModeId.TDM || mode == GameModeId.CTF;
 
+    // Zombies usa el inventario para el equipamiento inicial (cuchillo y pistola).
     // Race conserva el inventario para el equipamiento de parkour. El tutorial
     // lo habilita mediante un contexto explícito, sin fingir que es Race.
     public static bool SupportsInventoryPreview(
         GameModeId mode,
         bool tutorialActive = false) =>
-        IsCombatMode(mode) || mode == GameModeId.Race || tutorialActive;
+        IsCombatMode(mode) ||
+        mode == GameModeId.Race ||
+        mode == GameModeId.Zombies ||
+        tutorialActive;
 
     public static bool CanFire(
         MatchPhase phase,

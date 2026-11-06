@@ -57,6 +57,8 @@ public class NetworkPlayerInventory : NetworkBehaviour
     private NetworkPlayerHealth health;
     private Grappling grappling;
     private bool inventoryMode;
+    // Escena de zombies (singleplayer): no depende del lobby.
+    private bool inZombiesScene;
     private WeaponId shownWeapon = WeaponId.None;
 
     // Solo en el servidor: arma de cada ranura.
@@ -85,6 +87,8 @@ public class NetworkPlayerInventory : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        inZombiesScene = WaveManager.IsLoaded;
+
         selectedWeapon.OnValueChanged += OnSelectedWeaponChanged;
         replicatedSidearmWeapon.OnValueChanged += OnLoadoutWeaponChanged;
         replicatedPrimaryWeapon.OnValueChanged += OnLoadoutWeaponChanged;
@@ -120,12 +124,15 @@ public class NetworkPlayerInventory : NetworkBehaviour
 
     private void TryActivateInventoryMode()
     {
-        NetworkLobbySession lobby = NetworkLobbySession.Instance;
-        if (lobby == null ||
-            !CombatValidationRules.SupportsInventoryPreview(
-                lobby.SelectedGameModeId,
-                IsTutorialTraining()))
-            return;
+        if (!inZombiesScene)
+        {
+            NetworkLobbySession lobby = NetworkLobbySession.Instance;
+            if (lobby == null ||
+                !CombatValidationRules.SupportsInventoryPreview(
+                    lobby.SelectedGameModeId,
+                    IsTutorialTraining()))
+                return;
+        }
 
         inventoryMode = true;
 
@@ -138,10 +145,19 @@ public class NetworkPlayerInventory : NetworkBehaviour
 
         if (IsServer)
         {
+            // Modo zombies: solo cuchillo y pistola al empezar.
+            // El prefab se comparte con los modos multijugador, por eso
+            // se decide por código y no se tocan las ranuras del Inspector.
+            bool zombiesLoadout = inZombiesScene;
+
             meleeWeaponId = IdIfSlot(meleeWeapon, WeaponSlot.Melee);
             sidearmWeaponId = IdIfSlot(startingSidearm, WeaponSlot.Secondary);
-            primaryWeaponId = IdIfSlot(startingPrimary, WeaponSlot.Primary);
-            utilityWeaponId = IdIfSlot(startingUtility, WeaponSlot.Utility);
+            primaryWeaponId = zombiesLoadout
+                ? WeaponId.None
+                : IdIfSlot(startingPrimary, WeaponSlot.Primary);
+            utilityWeaponId = zombiesLoadout
+                ? WeaponId.None
+                : IdIfSlot(startingUtility, WeaponSlot.Utility);
             PublishLoadoutWeapons();
             selectedWeapon.Value = sidearmWeaponId != WeaponId.None
                 ? sidearmWeaponId

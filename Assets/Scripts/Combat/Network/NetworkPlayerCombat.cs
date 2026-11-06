@@ -41,6 +41,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private NetworkPlayerInventory inventory;
 
     private bool localInputEnabled = true;
+    // Escena de zombies (singleplayer): no depende del lobby ni de la fase de partida.
+    private bool inZombiesScene;
     private bool deathPenaltyApplied;
     private string lastShotSummary = "Sin disparos";
 
@@ -93,6 +95,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        inZombiesScene = WaveManager.IsLoaded;
+
         // OnValueChanged avisa en cada copia cuando llega un valor nuevo.
         reloadEndsAt.OnValueChanged += OnReloadEndsAtChanged;
         money.OnValueChanged += OnMoneyChanged;
@@ -126,8 +130,9 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
     private bool CanUseWeaponsNow() =>
         localInputEnabled &&
-        HasInventoryInThisMode() &&
-        (IsTutorialTraining() || IsMatchPlaying());
+        (inZombiesScene ||
+         (HasInventoryInThisMode() &&
+          (IsTutorialTraining() || IsMatchPlaying())));
 
     private void SetWeaponsEnabled(bool enabled)
     {
@@ -254,7 +259,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private bool CanAttackOnServer() =>
         health != null &&
         health.LifeState == PlayerLifeState.Alive &&
-        (IsTutorialTraining() || IsMatchPlaying());
+        (inZombiesScene || IsTutorialTraining() || IsMatchPlaying());
 
     /// <summary>
     /// Único lugar donde el servidor daña a otro jugador, con cualquier arma

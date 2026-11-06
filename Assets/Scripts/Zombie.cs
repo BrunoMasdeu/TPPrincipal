@@ -6,7 +6,7 @@ public class Zombie : MonoBehaviour
 {
     public float giveDamage = 5f;
     private float zombieHealth = 100f;
-    private float presentHealth;
+    public float presentHealth;
     public UnityEngine.AI.NavMeshAgent zombieAgent;
     public Transform LookPoint;
     public Camera AttackingRaycastArea;
