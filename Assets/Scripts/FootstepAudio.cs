@@ -66,6 +66,18 @@ public class FootstepAudio : MonoBehaviour
     [Tooltip("Cuánto tiempo (segundos) se sigue considerando 'en el piso' después del último instante confirmado, aunque el raycast de este frame no haya detectado nada. Cubre los huecos entre escalones de una escalera real.")]
     [SerializeField] private float groundedGraceTime = 0.15f;
 
+    [Header("Salto y aterrizaje (opcional)")]
+    [Tooltip("Sonido al despegar del piso con un salto. Podés dejarlo vacío si solo querés sonido de aterrizaje.")]
+    [SerializeField] private AudioClip[] jumpClips;
+    [Tooltip("Sonido al aterrizar después de un salto o una caída. Usá los archivos 'Land' / 'Jump_Land' del pack.")]
+    [SerializeField] private AudioClip[] landClips;
+    [Tooltip("Volumen del sonido de salto respecto al normal (0 a 1).")]
+    [SerializeField] private float jumpVolumeScale = 0.7f;
+    [Tooltip("Tiempo mínimo en el aire (segundos) para que cuente como salto/caída y suene el aterrizaje. Evita sonidos falsos en escalones.")]
+    [SerializeField] private float minAirTime = 0.2f;
+    [Tooltip("Velocidad de caída (m/s) a partir de la cual, sin haber saltado, se considera que te caíste de un borde.")]
+    [SerializeField] private float fallTriggerSpeed = 5f;
+
     [Header("Respaldo si el piso no tiene Collider")]
     [Tooltip("Si el raycast no detecta nada debajo pero el jugador se mueve en plano (casi sin velocidad vertical), se asume que está pisando el suelo y suenan los Default Clips. Evita tener que ponerle Collider a cada pieza de piso. Si en un salto o en el gancho llegara a sonar un paso en el aire, desactivalo.")]
     [SerializeField] private bool assumeGroundedIfNoHit = true;
@@ -83,6 +95,10 @@ public class FootstepAudio : MonoBehaviour
     private float stepTimer;
 
     private float lowVerticalTimer;
+    private bool airborne;
+    private float airTime;
+    private float maxFallSpeed;
+    private bool wasEffectiveGrounded;
     private float lastGroundedRealTime = -999f;
     private RaycastHit lastGroundHit;
     private bool hasLastGroundHit;
@@ -114,7 +130,8 @@ public class FootstepAudio : MonoBehaviour
         if (dt <= 0f) return;
 
         float horizontalSpeed = new Vector2(delta.x, delta.z).magnitude / dt;
-        float verticalSpeed = Mathf.Abs(delta.y) / dt;
+        float signedVerticalSpeed = delta.y / dt;
+        float verticalSpeed = Mathf.Abs(signedVerticalSpeed);
 
         bool rawGrounded = TryGetGroundHit(out RaycastHit hit);
 
@@ -140,6 +157,8 @@ public class FootstepAudio : MonoBehaviour
 
         bool effectiveGrounded = rawGrounded || withinGrace || assumedGrounded;
         RaycastHit hitForSurface = rawGrounded ? hit : (withinGrace ? lastGroundHit : default);
+
+        HandleJumpAndLand(rawGrounded || assumedGrounded, effectiveGrounded, signedVerticalSpeed, dt);
 
         // Guardado para el panel de diagnóstico.
         debugRawGrounded = rawGrounded;
@@ -191,6 +210,65 @@ public class FootstepAudio : MonoBehaviour
         {
             stepTimer = 0f;
         }
+    }
+
+    // Detecta el despegue de un salto y el aterrizaje, y reproduce su sonido.
+    private void HandleJumpAndLand(bool groundedNow, bool effectiveGrounded, float signedVerticalSpeed, float dt)
+    {
+        if (!airborne)
+        {
+            // Despegue: venía en el piso y sale disparado hacia arriba más rápido
+            // que al subir un escalón (mismo umbral que usa el sistema de pasos).
+            if (wasEffectiveGrounded && signedVerticalSpeed > maxVerticalSpeedForStep)
+            {
+                airborne = true;
+                airTime = 0f;
+                maxFallSpeed = 0f;
+                PlayOneShotFrom(jumpClips, jumpVolumeScale);
+            }
+            // Caída sin salto (te caés de un borde).
+            else if (!groundedNow && signedVerticalSpeed < -fallTriggerSpeed)
+            {
+                airborne = true;
+                airTime = 0f;
+                maxFallSpeed = 0f;
+            }
+        }
+        else
+        {
+            airTime += dt;
+
+            if (signedVerticalSpeed < 0f)
+                maxFallSpeed = Mathf.Max(maxFallSpeed, -signedVerticalSpeed);
+
+            // Aterrizaje: toca el piso, ya no sube y estuvo un mínimo de tiempo en el aire.
+            if (groundedNow && signedVerticalSpeed <= 0.5f)
+            {
+                airborne = false;
+
+                if (airTime >= minAirTime)
+                {
+                    float volume = Mathf.Lerp(0.6f, 1f, Mathf.Clamp01(maxFallSpeed / 12f));
+                    PlayOneShotFrom(landClips, volume);
+
+                    // Evita que el primer paso corte el sonido de aterrizaje.
+                    stepTimer = stepIntervalWalk;
+                }
+            }
+        }
+
+        wasEffectiveGrounded = effectiveGrounded;
+    }
+
+    private void PlayOneShotFrom(AudioClip[] clips, float volumeScale)
+    {
+        if (clips == null || clips.Length == 0) return;
+
+        AudioClip clip = clips[UnityEngine.Random.Range(0, clips.Length)];
+        if (clip == null) return;
+
+        audioSource.pitch = UnityEngine.Random.Range(pitchMin, pitchMax);
+        audioSource.PlayOneShot(clip, volumeScale * UnityEngine.Random.Range(volumeMin, volumeMax));
     }
 
     private bool TryGetGroundHit(out RaycastHit hit)
