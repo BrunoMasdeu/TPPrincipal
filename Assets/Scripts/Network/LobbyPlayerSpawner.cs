@@ -57,25 +57,50 @@ public class LobbyPlayerSpawner : MonoBehaviour
         bool networkSessionPrepared = sessionBootstrap != null &&
             sessionBootstrap.HasPreparedSession;
 
-        int capacity = networkSessionActive || networkSessionPrepared
+        bool multiplayerSession = networkSessionActive || networkSessionPrepared;
+
+        int capacity = multiplayerSession
             ? MultiplayerSessionLimits.RoomCapacity
             : requiredPlayerCount;
 
-        response.Approved =
-            LobbyValidationRules.HasCapacity(
-                networkManager.ConnectedClientsIds.Count,
-                capacity) &&
-            (!networkSessionActive ||
-             lobbySession.Phase == SessionPhase.Lobby);
+        // [COG-586] Si el host ya eligió la cantidad de jugadores, la sala se
+        // llena con esa cantidad (antes siempre dejaba entrar hasta 8).
+        if (networkSessionActive && lobbySession.SelectedPlayerCount > 0)
+            capacity = lobbySession.SelectedPlayerCount;
+
+        int connected = networkManager.ConnectedClientsIds.Count;
+        string playerName = NombreJugadorRules.DesdeBytes(request.Payload);
+        string rejection = null;
+
+        if (networkSessionActive && lobbySession.Phase != SessionPhase.Lobby)
+        {
+            rejection = "La partida ya comenzó.";
+        }
+        else if (!LobbyValidationRules.HasCapacity(connected, capacity))
+        {
+            rejection = $"La sala está llena ({connected}/{capacity}).";
+        }
+        else if (multiplayerSession)
+        {
+            // [COG-587] El servidor vuelve a revisar el nombre: no alcanza con
+            // que lo revise la PC del jugador.
+            rejection = NombreJugadorRules.Validar(playerName);
+
+            if (rejection == null && NetworkLobbySession.NombreEnUso(playerName))
+                rejection = "Ese nombre ya está en uso en la sala.";
+        }
+
+        response.Approved = rejection == null;
+
+        if (response.Approved && multiplayerSession)
+            NetworkLobbySession.GuardarNombreAprobado(request.ClientNetworkId, playerName);
 
         // No crear al jugador mientras permanece en el lobby.
         response.CreatePlayerObject = false;
 
         response.Position = null;
         response.Rotation = null;
-        response.Reason = response.Approved
-            ? string.Empty
-            : "La sala está completa o la partida ya comenzó.";
+        response.Reason = rejection ?? string.Empty;
         response.Pending = false;
     }
 
@@ -111,6 +136,7 @@ public class LobbyPlayerSpawner : MonoBehaviour
 
         loadedClientIds.Clear();
         teamSpawner = null;
+        NetworkLobbySession.OlvidarNombresAprobados();
     }
 
     private void OnLoadEventCompleted(

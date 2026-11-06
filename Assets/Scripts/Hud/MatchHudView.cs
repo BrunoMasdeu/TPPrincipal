@@ -144,10 +144,10 @@ public sealed class MatchHudView : MonoBehaviour
             row.root.SetActive(true);
             if (row.rootFinal != null)
                 row.rootFinal.SetActive(true);
-            row.name.text = $"Jugador {player.ClientId + 1}{(player.ClientId == localClientId ? " (vos)" : "")}";
+            row.name.text = $"{NetworkLobbySession.NombreParaMostrar(player.ClientId)}{(player.ClientId == localClientId ? " (vos)" : "")}";
             row.kills.text = hasStats ? player.Kills.ToString() : "--";
             row.deaths.text = hasStats ? player.Deaths.ToString() : "--";
-            row.nameFinal.text = $"Jugador {player.ClientId + 1}{(player.ClientId == localClientId ? " (vos)" : "")}";
+            row.nameFinal.text = $"{NetworkLobbySession.NombreParaMostrar(player.ClientId)}{(player.ClientId == localClientId ? " (vos)" : "")}";
             row.killsFinal.text = hasStats ? player.Kills.ToString() : "--";
             row.deathsFinal.text = hasStats ? player.Deaths.ToString() : "--";
         }
