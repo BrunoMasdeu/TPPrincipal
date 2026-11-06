@@ -16,5 +16,5 @@ MonoBehaviour:
   displayName: Mapa Zombies
   sceneName: MapaZombies
   previewImage: {fileID: 21300000, guid: 223273ea7f528544cb28e07061dcb440, type: 3}
-  supportedGameModes: 01
+  supportedGameModes: 04
   selectable: 1
