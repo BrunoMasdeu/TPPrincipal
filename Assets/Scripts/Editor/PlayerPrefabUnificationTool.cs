@@ -12,6 +12,50 @@ public static class PlayerPrefabUnificationTool
     private const string PlayerPrefabPath = "Assets/Prefabs/PlayerPrefab.prefab";
     private const string PlayerUiPath = "Assets/Prefabs/PlayerUI.prefab";
 
+    [MenuItem("Tools/Player/Agregar contador FPS al PlayerPrefab")]
+    public static void AddFpsCounterToPlayerPrefab()
+    {
+        GameObject source = PrefabUtility.LoadPrefabContents(PlayerUiPath);
+        GameObject player = PrefabUtility.LoadPrefabContents(PlayerPrefabPath);
+
+        try
+        {
+            Transform sourceFps = source.transform.Find("FPS");
+            Transform playerUi = player.transform.Find("PlayerUI");
+            if (sourceFps == null || playerUi == null)
+                throw new InvalidOperationException("Falta FPS en PlayerUI o PlayerUI en PlayerPrefab.");
+
+            if (playerUi.Find("FPS") == null)
+            {
+                GameObject fps = UnityEngine.Object.Instantiate(sourceFps.gameObject, playerUi);
+                fps.name = "FPS";
+                if (fps.GetComponent("FPSCounter") == null)
+                    throw new InvalidOperationException("El objeto FPS no tiene FPSCounter.");
+            }
+
+            PlayerNetworkSetup setup = RequireComponent<PlayerNetworkSetup>(player);
+            Canvas canvas = RequireComponent<Canvas>(playerUi.gameObject);
+            PlayerHudView view = RequireComponent<PlayerHudView>(playerUi.gameObject);
+            NetworkPlayerHudPresenter presenter = RequireComponent<NetworkPlayerHudPresenter>(player);
+            SerializedObject serializedSetup = new(setup);
+            SetObjectReference(serializedSetup, "playerUI", canvas);
+            serializedSetup.ApplyModifiedPropertiesWithoutUndo();
+
+            SerializedObject serializedPresenter = new(presenter);
+            SetObjectReference(serializedPresenter, "view", view);
+            serializedPresenter.ApplyModifiedPropertiesWithoutUndo();
+
+            PrefabUtility.SaveAsPrefabAsset(player, PlayerPrefabPath);
+            AssetDatabase.SaveAssets();
+            Debug.Log("[PlayerPrefab] Contador FPS agregado y Canvas conectado.");
+        }
+        finally
+        {
+            PrefabUtility.UnloadPrefabContents(player);
+            PrefabUtility.UnloadPrefabContents(source);
+        }
+    }
+
     [MenuItem("Tools/Player/Unificar PlayerPrefab")]
     public static void UnifyPlayerPrefab()
     {
