@@ -2350,7 +2350,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2203253668719208350
 Transform:
   m_ObjectHideFlags: 0
@@ -7795,63 +7795,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &6316226387366255341
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 876301938057040502}
-  - component: {fileID: 338377543068746044}
-  - component: {fileID: 3900336329618736586}
-  m_Layer: 0
-  m_Name: Test graficos
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &876301938057040502
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6316226387366255341}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.7071068, z: -0, w: 0.7071068}
-  m_LocalPosition: {x: -1.1460834, y: 0.0000046639643, z: 1.6828614}
-  m_LocalScale: {x: 1.1111109, y: 1.1111112, z: 1.1111109}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8454067315323432492}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &338377543068746044
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6316226387366255341}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 681579b4558403e4fa45c7c4dc533402, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
---- !u!114 &3900336329618736586
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6316226387366255341}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ee5f1d4c36d7334cb6c2ea31381122b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
 --- !u!1 &6328144539248303884
 GameObject:
   m_ObjectHideFlags: 0
@@ -7948,7 +7891,6 @@ Transform:
   - {fileID: 6469725406231867614}
   - {fileID: 163790642305895003}
   - {fileID: 2817790057023462101}
-  - {fileID: 876301938057040502}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -90, z: 0}
 --- !u!95 &8333738095510534989
@@ -8119,8 +8061,6 @@ MonoBehaviour:
   wallJumpSideForce: 5
   wallClimbSpeed: 0
   maxWallRunTime: 2
-  upwardsRunKey: 51
-  downwardsRunKey: 55
   wallCheckDistance: 0.7
   minJumpHeight: 1
   exitWallTime: 0.2
@@ -8534,7 +8474,6 @@ MonoBehaviour:
   crouchHeight: 1.2
   cameraOffset: 0.5
   transitionSpeed: 10
-  crouchKey: 55
 --- !u!114 &8283755821527557845
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -37,6 +37,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
     private Rigidbody playerRigidbody;
     private NetworkTransform networkTransform;
+    private PlayerActionLock actionLock; // bloqueo de acciones de Felipe
     private RenderTexture localMinimapTexture;
     private float nextRespawnRequestTime;
     private bool matchControlsEnabled = true;
@@ -50,6 +51,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
     {
         playerRigidbody = GetComponent<Rigidbody>();
         networkTransform = GetComponent<NetworkTransform>();
+        actionLock = GetComponent<PlayerActionLock>();
         inventory ??= GetComponent<NetworkPlayerInventory>();
         combat ??= GetComponent<NetworkPlayerCombat>();
         crouch ??= GetComponent<NetworkPlayerCrouch>();
@@ -228,6 +230,15 @@ public class PlayerNetworkSetup : NetworkBehaviour
         ApplyLocalState();
     }
 
+    /// <summary>
+    /// [MULTIJUGADOR] Lo llama PlayerActionLock al desbloquear: vuelve a
+    /// prender los controles solo si corresponde (tu jugador, vivo, sin pausa).
+    /// </summary>
+    public void RefrescarControles()
+    {
+        ApplyLocalState();
+    }
+
     public void SetLocalHudVisible(bool visible)
     {
         hudVisible = visible;
@@ -291,6 +302,12 @@ public class PlayerNetworkSetup : NetworkBehaviour
         combat?.SetLocalInputEnabled(localGameplay);
         crouch?.SetLocalInputEnabled(localGameplay);
         grenades?.SetLocalInputEnabled(localGameplay);
+
+        // [MULTIJUGADOR] Si las acciones están bloqueadas (PlayerActionLock de
+        // Felipe), se vuelven a apagar los scripts que eligió.
+        if (actionLock != null && actionLock.accionesBloqueadas)
+            actionLock.ActualizarBloqueo();
+
         ApplyHudState();
 
         if (!localGameplay && playerRigidbody != null && IsOwner)

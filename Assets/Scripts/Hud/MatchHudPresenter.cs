@@ -94,8 +94,10 @@ public sealed class MatchHudPresenter : MonoBehaviour
         if (IsLeaving || match == null || !match.IsSpawned)
             return;
         bool finished = match.Phase == MatchPhase.Finished;
+        // [TECLAS] La tecla del marcador sale de Controles.
         view.SetTableVisible(visible && !finished && !MatchDebugConsole.IsInputCaptured &&
-            !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null && Keyboard.current.tabKey.isPressed);
+            !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null &&
+            Keyboard.current[Controles.Tecla(Accion.Marcador)].isPressed);
         if(visible && !finished && !MatchDebugConsole.IsInputCaptured &&
             !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             ToggleQuitPanel(!quitPanelOpen);
