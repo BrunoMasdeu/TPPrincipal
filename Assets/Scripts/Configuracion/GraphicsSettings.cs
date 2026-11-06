@@ -1,38 +1,17 @@
 
 using UnityEngine;
-using UnityEngine.InputSystem;
 using System;
 
-public class GraphicsSettings : MonoBehaviour
+/// <summary>
+/// Calidad gráfica (código de Felipe). Usa los niveles "Bajo", "Medio" y
+/// "Alto" de Project Settings > Quality.
+///
+/// [MENU] Antes se cambiaba con las teclas 8, 9 y 0 para probar.
+/// Ahora solo se cambia desde Opciones > Video (lo llama ConfiguracionVideo).
+/// </summary>
+public static class GraphicsSettings
 {
-    private void Update()
-    {
-        if (Keyboard.current == null)
-            return;
-
-        // Graficos bajos
-        if (Keyboard.current.digit8Key.wasPressedThisFrame ||
-            Keyboard.current.numpad8Key.wasPressedThisFrame)
-        {
-            CambiarCalidad("Bajo");
-        }
-
-        // Graficos medios
-        if (Keyboard.current.digit9Key.wasPressedThisFrame ||
-            Keyboard.current.numpad9Key.wasPressedThisFrame)
-        {
-            CambiarCalidad("Medio");
-        }
-
-        // Graficos altos
-        if (Keyboard.current.digit0Key.wasPressedThisFrame ||
-            Keyboard.current.numpad0Key.wasPressedThisFrame)
-        {
-            CambiarCalidad("Alto");
-        }
-    }
-
-    private void CambiarCalidad(string nombre)
+    public static void CambiarCalidad(string nombre)
     {
         string[] niveles = QualitySettings.names;
 
@@ -49,4 +28,3 @@ public class GraphicsSettings : MonoBehaviour
         Debug.Log("Calidad gráfica cambiada a: " + nombre);
     }
 }
-
