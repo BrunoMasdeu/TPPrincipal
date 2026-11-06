@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerNetworkSetup : NetworkBehaviour
 {
@@ -24,6 +25,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
     // dibujarían en la misma textura y se verían varios minimapas.
     [SerializeField] private Camera minimapCamera;
     [SerializeField] private Canvas minimapCanvas;
+    [SerializeField] private RawImage minimapImage;
 
     // [MULTIJUGADOR] El ícono de Felipe (el Quad sobre la cabeza) que ve la
     // cámara del minimapa. Solo se muestra si este jugador es de mi equipo.
@@ -36,6 +38,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
     private Rigidbody playerRigidbody;
     private NetworkTransform networkTransform;
     private PlayerActionLock actionLock; // bloqueo de acciones de Felipe
+    private RenderTexture localMinimapTexture;
     private float nextRespawnRequestTime;
     private bool matchControlsEnabled = true;
     private bool presentationControlsEnabled = true;
@@ -61,6 +64,9 @@ public class PlayerNetworkSetup : NetworkBehaviour
     {
         bool esPropietario = IsOwner;
 
+        if (esPropietario)
+            ConfigureLocalMinimap();
+
         if (playerCamera != null)
             playerCamera.enabled = esPropietario;
 
@@ -68,15 +74,55 @@ public class PlayerNetworkSetup : NetworkBehaviour
             audioListener.enabled = esPropietario;
 
         if (minimapCamera != null)
-            minimapCamera.enabled = esPropietario;
+            minimapCamera.enabled = esPropietario && localMinimapTexture != null;
 
         if (minimapCanvas != null)
-            minimapCanvas.enabled = esPropietario;
+            minimapCanvas.enabled = esPropietario && localMinimapTexture != null;
 
         ApplyLocalState();
 
         // Al conectarse, actualiza el punto seguro con la posición de red definitiva.
         GuardarCheckpointInicial();
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        ReleaseLocalMinimap();
+    }
+
+    private void ConfigureLocalMinimap()
+    {
+        if (minimapCamera == null || minimapImage == null)
+        {
+            Debug.LogWarning("El minimapa no tiene cámara o RawImage configurados.", this);
+            return;
+        }
+
+        localMinimapTexture = new RenderTexture(512, 512, 16, RenderTextureFormat.ARGB32)
+        {
+            name = "LocalMinimap",
+            useMipMap = false
+        };
+        localMinimapTexture.Create();
+        minimapCamera.targetTexture = localMinimapTexture;
+        minimapImage.texture = localMinimapTexture;
+    }
+
+    private void ReleaseLocalMinimap()
+    {
+        if (minimapCamera != null)
+        {
+            minimapCamera.enabled = false;
+            minimapCamera.targetTexture = null;
+        }
+        if (minimapImage != null)
+            minimapImage.texture = null;
+        if (localMinimapTexture != null)
+        {
+            localMinimapTexture.Release();
+            Destroy(localMinimapTexture);
+            localMinimapTexture = null;
+        }
     }
 
     // [MULTIJUGADOR] En el minimapa solo se ven los aliados.
