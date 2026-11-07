@@ -130,6 +130,29 @@ public class NetworkDataSerializationTests
         Assert.That(RoundTrip(redWin), Is.EqualTo(redWin));
     }
 
+    [Test]
+    public void SoloElEquipoGanadorCalificaParaLogroPorPuntajeOTiempo()
+    {
+        MatchResultData redWin = new(TeamId.Red, MatchEndReason.ScoreLimit, false);
+        MatchResultData blueWin = new(TeamId.Blue, MatchEndReason.TimeExpired, false);
+
+        Assert.That(redWin.WasWonBy(TeamId.Red), Is.True);
+        Assert.That(redWin.WasWonBy(TeamId.Blue), Is.False);
+        Assert.That(blueWin.WasWonBy(TeamId.Blue), Is.True);
+        Assert.That(blueWin.WasWonBy(TeamId.Red), Is.False);
+    }
+
+    [Test]
+    public void EmpateCancelacionYOtroEquipoNoCalificanParaLogro()
+    {
+        Assert.That(new MatchResultData(TeamId.None,
+            MatchEndReason.TimeExpired, true).WasWonBy(TeamId.Red), Is.False);
+        Assert.That(new MatchResultData(TeamId.Red,
+            MatchEndReason.Cancelled, false).WasWonBy(TeamId.Red), Is.False);
+        Assert.That(new MatchResultData(TeamId.Red,
+            MatchEndReason.ScoreLimit, false).WasWonBy(TeamId.None), Is.False);
+    }
+
     private static T RoundTrip<T>(T value)
         where T : INetworkSerializable, new()
     {
