@@ -189,6 +189,7 @@ MonoBehaviour:
   speedMultiplier: 2
   durationSeconds: 5
   serverValidationDistance: 2.5
+  tiempoReaparicion: 30
   visual: {fileID: 8964916349812665565}
   rotationSpeed: 90
 --- !u!108 &339055108877465457
