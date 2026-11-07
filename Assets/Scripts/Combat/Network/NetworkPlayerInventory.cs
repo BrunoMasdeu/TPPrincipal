@@ -59,6 +59,7 @@ public class NetworkPlayerInventory : NetworkBehaviour
     private bool inventoryMode;
     // Escena de zombies (singleplayer): no depende del lobby.
     private bool inZombiesScene;
+    private bool lockedByMenu;
     private WeaponId shownWeapon = WeaponId.None;
 
     // Solo en el servidor: arma de cada ranura.
@@ -107,6 +108,9 @@ public class NetworkPlayerInventory : NetworkBehaviour
     {
         if (!IsSpawned)
             return;
+
+        if (IsOwner)
+            ApplyMenuInputLock();
 
         if (!inventoryMode)
             TryActivateInventoryMode();
@@ -365,6 +369,23 @@ public class NetworkPlayerInventory : NetworkBehaviour
     private void OnSelectedWeaponChanged(WeaponId previous, WeaponId current)
     {
         SelectedWeaponChanged?.Invoke(current);
+    }
+    private void ApplyMenuInputLock()
+    {
+        if (weaponInventory == null) return;
+
+        bool captured = WaveManager.IsInputCaptured;
+
+        if (captured && weaponInventory.enabled)
+        {
+            weaponInventory.enabled = false;
+            lockedByMenu = true;
+        }
+        else if (!captured && lockedByMenu)
+        {
+            lockedByMenu = false;
+            weaponInventory.enabled = true;
+        }
     }
 
     private void OnLoadoutWeaponChanged(WeaponId previous, WeaponId current)
