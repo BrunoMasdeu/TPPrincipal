@@ -4,6 +4,7 @@ using Unity.Netcode;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class UnifiedPlayerPrefabTests
 {
@@ -87,17 +88,18 @@ public class UnifiedPlayerPrefabTests
             "El PlayerPrefab contiene componentes Missing Script.");
     }
 
-    [Test]
-    public void InventarioConfiguraTodasLasVisualesYElGanchoComoUtilidad()
+    [TestCase(PlayerPrefabPath)]
+    [TestCase(BluePlayerPrefabPath)]
+    public void InventarioConfiguraTodasLasVisualesYElGanchoComoUtilidad(string prefabPath)
     {
         NetworkPlayerInventory inventory =
-            LoadPlayerPrefab().GetComponent<NetworkPlayerInventory>();
+            LoadPrefab(prefabPath).GetComponent<NetworkPlayerInventory>();
         SerializedObject serializedInventory = new(inventory);
         SerializedProperty visuals =
             serializedInventory.FindProperty("weaponVisuals");
 
         Assert.That(visuals, Is.Not.Null);
-        Assert.That(visuals.arraySize, Is.EqualTo(6));
+        Assert.That(visuals.arraySize, Is.EqualTo(7));
 
         HashSet<int> configuredIds = new();
         for (int index = 0; index < visuals.arraySize; index++)
@@ -114,7 +116,7 @@ public class UnifiedPlayerPrefabTests
         }
 
         CollectionAssert.AreEquivalent(
-            new[] { 1, 2, 3, 4, 5, 6 },
+            new[] { 1, 2, 3, 4, 5, 6, 7 },
             configuredIds);
 
         SerializedProperty definitions =
@@ -136,6 +138,65 @@ public class UnifiedPlayerPrefabTests
         Assert.That(grapple, Is.Not.Null,
             "El catálogo del inventario necesita la definición del gancho.");
         Assert.That(grapple.Slot, Is.EqualTo(WeaponSlot.Utility));
+    }
+
+    [TestCase(PlayerPrefabPath)]
+    [TestCase(BluePlayerPrefabPath)]
+    public void TiendaAwmUsaDefinicionYVisualDelJugador(string prefabPath)
+    {
+        GameObject prefab = LoadPrefab(prefabPath);
+        WeaponDefinition awm = AssetDatabase.LoadAssetAtPath<WeaponDefinition>(
+            "Assets/Settings/Weapons/SniperDefinition.asset");
+        Assert.That(awm, Is.Not.Null);
+        Assert.That(awm.Id, Is.EqualTo(WeaponId.Sniper));
+        Assert.That(awm.Slot, Is.EqualTo(WeaponSlot.Primary));
+
+        NetworkPlayerInventory inventory = prefab.GetComponent<NetworkPlayerInventory>();
+        Assert.That(inventory.TryGetDefinition(WeaponId.Sniper, out WeaponDefinition configured), Is.True);
+        Assert.That(configured, Is.SameAs(awm));
+
+        SerializedObject serializedInventory = new(inventory);
+        SerializedProperty visuals = serializedInventory.FindProperty("weaponVisuals");
+        GameObject sniperVisual = null;
+        for (int index = 0; index < visuals.arraySize; index++)
+        {
+            SerializedProperty binding = visuals.GetArrayElementAtIndex(index);
+            if (binding.FindPropertyRelative("WeaponId").enumValueIndex == (int)WeaponId.Sniper)
+                sniperVisual = binding.FindPropertyRelative("Visual").objectReferenceValue as GameObject;
+        }
+
+        Assert.That(sniperVisual, Is.Not.Null);
+        GunSystem gun = sniperVisual.GetComponent<GunSystem>();
+        Assert.That(gun, Is.Not.Null);
+        Assert.That(gun.fpsCam, Is.SameAs(prefab.GetComponentInChildren<Camera>(true)));
+        Assert.That(gun.canZoom, Is.True);
+        Assert.That(gun.scopeOverlay, Is.Not.Null);
+        Assert.That(gun.scopeOverlay.name, Is.EqualTo("SniperScopeOverlay"));
+        Assert.That(gun.scopeOverlay.activeSelf, Is.False);
+        Assert.That(gun.normalScopeOverlay, Is.Not.Null);
+        Assert.That(gun.normalScopeOverlay.name, Is.EqualTo("HUD"));
+
+        Sprite scopeSprite = AssetDatabase.LoadAssetAtPath<Sprite>(
+            "Assets/UI/Icons/SniperScopeOverlay.png");
+        Assert.That(scopeSprite, Is.Not.Null);
+        Assert.That(gun.scopeOverlay.GetComponent<Image>().sprite,
+            Is.SameAs(scopeSprite));
+
+        NetworkPlayerShop shop = prefab.GetComponent<NetworkPlayerShop>();
+        SerializedProperty items = new SerializedObject(shop).FindProperty("items");
+        int awmCount = 0;
+        for (int index = 0; index < items.arraySize; index++)
+        {
+            SerializedProperty item = items.GetArrayElementAtIndex(index);
+            if (item.FindPropertyRelative("Weapon").objectReferenceValue != awm)
+                continue;
+
+            awmCount++;
+            Assert.That(item.FindPropertyRelative("Label").stringValue, Is.EqualTo("AWM"));
+            Assert.That(item.FindPropertyRelative("Price").intValue, Is.EqualTo(750));
+        }
+
+        Assert.That(awmCount, Is.EqualTo(1));
     }
 
     [TestCase("KnifeDefinition", "knife.png")]
