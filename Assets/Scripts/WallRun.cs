@@ -36,6 +36,10 @@ public class WallRun : MonoBehaviour
     private bool wallLeft;
     private bool wallRight;
 
+    // Same priority as WallRunningMovement when both rays hit a narrow corridor.
+    public int AnimationSide => move != null && move.wallrunning
+        ? (wallRight ? 1 : wallLeft ? -1 : 0) : 0;
+
     [Header("Exiting")]
     public float exitWallTime = 0.2f;
 
@@ -286,6 +290,7 @@ public class WallRun : MonoBehaviour
 
     private void WallJump()
     {
+        StopWallRun();
         exitingWall = true;
         exitWallTimer = exitWallTime;
 
