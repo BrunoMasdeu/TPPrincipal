@@ -53009,7 +53009,7 @@ MonoBehaviour:
   - {fileID: 1029790847}
   waves:
   - zombieCount: 10
-    specialZombieCount: 5
+    specialZombieCount: 0
     spawnDelay: 2
     zombieHealth: 150
   - zombieCount: 20
@@ -53023,6 +53023,7 @@ MonoBehaviour:
   easyDamageMultiplier: 1
   normalDamageMultiplier: 2
   hardDamageMultiplier: 3
+  moneyPerKill: 100
   testAutoKillSeconds: 3000
   autoStart: 1
   timeBetweenWaves: 10
