@@ -8021,13 +8021,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6347219428683018967}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca6082e201e9cc44bb5001a9a905e98d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::Move
   speed: 6
-  runSpeed: 10
+  runSpeed: 7
   acceleration: 55
   presentHealth: 0
   jumpForce: 7
@@ -8056,11 +8056,11 @@ MonoBehaviour:
   whatIsGround:
     serializedVersion: 2
     m_Bits: 8
-  wallRunForce: 20
+  wallRunForce: 7
   wallJumpUpForce: 0
   wallJumpSideForce: 5
   wallClimbSpeed: 0
-  maxWallRunTime: 2
+  maxWallRunTime: 3
   wallCheckDistance: 0.7
   minJumpHeight: 1
   exitWallTime: 0.2
@@ -8097,7 +8097,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   maxGrappleDistance: 20
-  grappleForce: 15
+  grappleForce: 8
   stopDistance: 1
   grapplingCd: 1
 --- !u!114 &370442685910085628
