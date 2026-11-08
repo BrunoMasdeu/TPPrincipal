@@ -40,6 +40,15 @@ public sealed class PlayerAnimationController : NetworkBehaviour
 
     private NetworkPlayerInventory inventory;
     private NetworkPlayerCombat combat;
+    private WallRun wallRun;
+    [SerializeField, HideInInspector] private int wallRunLayer = -1;
+    [Header("Wall Run Debug (Play Mode)")]
+    [SerializeField] private float wallRunWeight;
+    [SerializeField] private int presentedWallSide;
+    private readonly NetworkVariable<int> networkWallSide = new(0,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private static readonly int WallRunSideParam = Animator.StringToHash("WallRunSide");
+    private static readonly int WallRunRateParam = Animator.StringToHash("WallRunRate");
     private Vector3 previousPosition;
     private float sampledVerticalSpeed;
     private bool positionSampleInitialized;
@@ -147,6 +156,43 @@ public sealed class PlayerAnimationController : NetworkBehaviour
 
         wasGrounded = grounded;
         groundSampleInitialized = true;
+    }
+
+    private void UpdateWallRunPresentation(float speed)
+    {
+        if (wallRunLayer < 0 && animator.runtimeAnimatorController != null)
+            wallRunLayer = animator.GetLayerIndex("Wall Run");
+        if (wallRunLayer < 0)
+            return;
+
+        int localSide = wallRun != null && movement != null && movement.wallrunning
+            ? wallRun.AnimationSide : 0;
+        if (IsSpawned && IsOwner && networkWallSide.Value != localSide)
+            networkWallSide.Value = localSide;
+        int side = IsSpawned && !IsOwner ? networkWallSide.Value : localSide;
+
+        // Retain the final side during the fade back into locomotion.
+        if (side != 0)
+        {
+            if (wallRunWeight <= 0f)
+                animator.Play(side > 0 ? "Wall Run Right" : "Wall Run Left", wallRunLayer, 0f);
+            presentedWallSide = side;
+        }
+        animator.SetInteger(WallRunSideParam, presentedWallSide);
+        animator.SetFloat(WallRunRateParam, Mathf.Clamp(speed / 7f, 0.75f, 1.5f));
+        wallRunWeight = Mathf.MoveTowards(wallRunWeight, side == 0 ? 0f : 1f,
+            Time.deltaTime / 0.14f);
+        animator.SetLayerWeight(wallRunLayer, wallRunWeight);
+    }
+
+    private void ClearWallRunPresentation()
+    {
+        wallRunWeight = 0f;
+        presentedWallSide = 0;
+        if (animator != null && wallRunLayer >= 0)
+            animator.SetLayerWeight(wallRunLayer, 0f);
+        if (IsSpawned && IsOwner)
+            networkWallSide.Value = 0;
     }
 
     private float SampleHorizontalSpeed()
