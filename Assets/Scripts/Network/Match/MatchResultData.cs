@@ -20,6 +20,13 @@ public struct MatchResultData : INetworkSerializable, IEquatable<MatchResultData
 
     public bool IsPending => EndReason == MatchEndReason.None;
 
+    public bool WasWonBy(TeamId team) =>
+        !IsPending && !IsDraw &&
+        (EndReason == MatchEndReason.ScoreLimit ||
+         EndReason == MatchEndReason.TimeExpired) &&
+        (WinningTeam == TeamId.Red || WinningTeam == TeamId.Blue) &&
+        team == WinningTeam;
+
     public void NetworkSerialize<T>(BufferSerializer<T> serializer)
         where T : IReaderWriter
     {

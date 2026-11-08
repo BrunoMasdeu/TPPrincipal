@@ -6,6 +6,7 @@
     "references": [
         "Game",
         "Unity.Netcode.Runtime",
+        "Unity.Collections",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [

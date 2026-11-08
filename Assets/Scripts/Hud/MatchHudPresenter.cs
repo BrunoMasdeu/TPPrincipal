@@ -94,8 +94,10 @@ public sealed class MatchHudPresenter : MonoBehaviour
         if (IsLeaving || match == null || !match.IsSpawned)
             return;
         bool finished = match.Phase == MatchPhase.Finished;
+        // [TECLAS] La tecla del marcador sale de Controles.
         view.SetTableVisible(visible && !finished && !MatchDebugConsole.IsInputCaptured &&
-            !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null && Keyboard.current.tabKey.isPressed);
+            !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null &&
+            Keyboard.current[Controles.Tecla(Accion.Marcador)].isPressed);
         if(visible && !finished && !MatchDebugConsole.IsInputCaptured &&
             !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             ToggleQuitPanel(!quitPanelOpen);
@@ -187,9 +189,10 @@ public sealed class MatchHudPresenter : MonoBehaviour
         if (death.EventId == 0 || death.EventId <= lastDeathEventId)
             return;
         lastDeathEventId = death.EventId;
-        string victim = $"Jugador {death.VictimClientId + 1}";
+        // [COG-587] Nombres de los jugadores en el aviso de bajas.
+        string victim = NetworkLobbySession.NombreParaMostrar(death.VictimClientId);
         string message = death.HasAttacker && death.AttackerClientId != death.VictimClientId
-            ? $"Jugador {death.AttackerClientId + 1} eliminó a {victim}"
+            ? $"{NetworkLobbySession.NombreParaMostrar(death.AttackerClientId)} eliminó a {victim}"
             : $"{victim} murió";
         deaths.Add(new DeathNotice { text = message, expiresAt = Time.unscaledTime + 5f });
         if (deaths.Count > 3)

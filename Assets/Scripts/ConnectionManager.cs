@@ -28,6 +28,8 @@ public partial class ConnectionManager : MonoBehaviour
 
     [Header("Connection UI")]
     [SerializeField] private InputField joinCodeInput;
+    // [COG-587] Campo "Tu nombre" de la pantalla Jugar.
+    [SerializeField] private InputField nombreInput;
     [SerializeField] private GameObject connectionPanel;
     [SerializeField] private GameObject lobbyPanel;
 
@@ -48,6 +50,9 @@ public partial class ConnectionManager : MonoBehaviour
     private bool lastNetworkListening;
     private int connectionOperation;
 
+    // [COG-587] Se guarda el último nombre para no tener que escribirlo cada vez.
+    private const string ClaveNombre = "Jugador_Nombre";
+
     public GameModeDefinition PendingGameModeDefinition =>
         pendingGameModeDefinition;
 
@@ -64,6 +69,13 @@ public partial class ConnectionManager : MonoBehaviour
 
     private void Start()
     {
+        if (nombreInput != null)
+        {
+            nombreInput.characterLimit = NombreJugadorRules.LargoMaximo;
+            if (string.IsNullOrEmpty(nombreInput.text))
+                nombreInput.text = PlayerPrefs.GetString(ClaveNombre, string.Empty);
+        }
+
         ResolveSessionBootstrap();
 
         if (NetworkManager.Singleton == null)
@@ -233,6 +245,9 @@ public partial class ConnectionManager : MonoBehaviour
     {
         if (isConnecting || (NetworkManager.Singleton != null &&
             NetworkManager.Singleton.IsListening))
+            return;
+
+        if (!PrepararNombre())
             return;
 
         int operation = ++connectionOperation;
@@ -563,6 +578,9 @@ public partial class ConnectionManager : MonoBehaviour
             SetStatus("ENTER A JOIN CODE");
             return;
         }
+
+        if (!PrepararNombre())
+            return;
 
         int operation = ++connectionOperation;
         bool clientStarted = false;
@@ -909,6 +927,35 @@ public partial class ConnectionManager : MonoBehaviour
         if (playerCountDisplay != null)
             playerCountDisplay.gameObject.SetActive(true);
         RefreshMenuUI();
+    }
+
+    /// <summary>
+    /// [COG-587] Revisa el nombre antes de crear o unirse a una sala. Si está
+    /// bien, lo manda con el pedido de conexión (ConnectionData) para que el
+    /// servidor lo vuelva a revisar y controle que no esté repetido.
+    /// </summary>
+    private bool PrepararNombre()
+    {
+        string nombre = NombreJugadorRules.Limpiar(
+            nombreInput != null ? nombreInput.text : string.Empty);
+
+        string error = NombreJugadorRules.Validar(nombre);
+        if (error != null)
+        {
+            SetStatus(error);
+            return false;
+        }
+
+        PlayerPrefs.SetString(ClaveNombre, nombre);
+        PlayerPrefs.Save();
+
+        if (NetworkManager.Singleton != null)
+        {
+            NetworkManager.Singleton.NetworkConfig.ConnectionData =
+                NombreJugadorRules.ABytes(nombre);
+        }
+
+        return true;
     }
 
     private void SetStatus(string message)

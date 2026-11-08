@@ -32,7 +32,8 @@ public class Grenade : MonoBehaviour
         if (MatchDebugConsole.IsInputCaptured || NetworkPlayerShop.IsInputCaptured)
             return;
 
-        if (Keyboard.current.gKey.wasPressedThisFrame && grenades > 0)
+        // [TECLAS] La tecla sale de Controles (se cambia en Opciones).
+        if (Keyboard.current[Controles.Tecla(Accion.Granada)].wasPressedThisFrame && grenades > 0)
         {
             // [MULTIJUGADOR] La dirección se toma acá, en la PC del jugador.
             // En red se le pide al servidor que ejecute ThrowGrenade.

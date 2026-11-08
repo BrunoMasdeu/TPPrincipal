@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71099833a9484558aaf2d4745c1e9fb9, type: 3}
   m_Name: SniperDefinition
   m_EditorClassIdentifier: Game::WeaponDefinition
-  id: 5
-  displayName: Sniper
+  id: 7
+  displayName: AWM
   slot: 3
   attackType: 0
   hudSprite: {fileID: 21300000, guid: 168498254f079604e83aef6e2176de08, type: 3}

@@ -378,6 +378,30 @@ public class NetworkMatchManager : NetworkBehaviour
 
         finishNotificationSent = true;
         MatchFinished?.Invoke(result.Value);
+        UnlockLocalVictoryAchievement(result.Value);
+    }
+
+    private void UnlockLocalVictoryAchievement(MatchResultData finalResult)
+    {
+        if (lobbySession == null || NetworkManager == null ||
+            !lobbySession.TryGetPlayerData(NetworkManager.LocalClientId,
+                out LobbyPlayerData localPlayer) ||
+            !finalResult.WasWonBy(localPlayer.TeamId))
+            return;
+
+        string achievementId = lobbySession.SelectedGameModeId switch
+        {
+            GameModeId.TDM => "win_tdm",
+            GameModeId.CTF => "win_ctf",
+            _ => null
+        };
+        if (achievementId == null)
+            return;
+
+        if (AchievementManager.Instance == null)
+            new GameObject("AchievementManager").AddComponent<AchievementManager>();
+
+        AchievementManager.Instance.UnlockAchievement(achievementId);
     }
 
     public override void OnDestroy()

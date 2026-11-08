@@ -32,7 +32,11 @@ Assets/Scenes/GameScene/*Baking Set*.bytes
 
 # Datos generados por Unity
 Assets/Resources/
-ProjectSettings/
 
 # Recursos
-Assets/UI/Icons/
+
+# Archivos locales que no van al repo
+*.bundle
+CodigoFelipeRecuperado/
+Assets/_Recovery/
+Assets/_Recovery.meta

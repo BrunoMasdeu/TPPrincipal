@@ -76,7 +76,16 @@ public class GunSystem : MonoBehaviour
         // [MULTIJUGADOR] Con la tienda o la consola de depuración abiertas,
         // el mouse es de esas ventanas: no se dispara ni se recarga.
         if (MatchDebugConsole.IsInputCaptured || NetworkPlayerShop.IsInputCaptured)
+        {
+            if (canZoom && isZooming)
+            {
+                isZooming = false;
+                ShowSniperScope(false);
+                if (fpsCam != null)
+                    fpsCam.fieldOfView = normalFOV;
+            }
             return;
+        }
 
         MyInput();
         UpdateZoom();
@@ -103,8 +112,9 @@ public class GunSystem : MonoBehaviour
             }
         }
 
+        // [TECLAS] La tecla de recargar sale de Controles.
         if (Keyboard.current != null &&
-            Keyboard.current.rKey.wasPressedThisFrame &&
+            Keyboard.current[Controles.Tecla(Accion.Recargar)].wasPressedThisFrame &&
             bulletsLeft < magazineSize &&
             extraBulletsLeft > 0 &&
             !reloading)
@@ -151,6 +161,9 @@ public class GunSystem : MonoBehaviour
 
     private void ShowSniperScope(bool isZooming)
     {
+        if (!canZoom)
+            return;
+
         if (normalScopeOverlay != null) normalScopeOverlay.SetActive(!isZooming);
         if (scopeOverlay != null) scopeOverlay.SetActive(isZooming);
     }
@@ -290,12 +303,20 @@ public class GunSystem : MonoBehaviour
         );
     }
 
-    public void AddAmmo(int cantidad)
+    public bool AddAmmo(int cantidad)
     {
-        bulletsLeft += cantidad;
+        if (cantidad <= 0)
+            return false;
 
-        Debug.Log("Municion recogida:ASDASDASDASDAVSAFJGASJHFGASHJFGSAHJGFAHJSGFAHJSGFJAHSGFJAHSGFHJASGFHJASGFJAHSGFAHJSGFAHJSGFAHJSGFAHJSGFJAHSGFAHJSGFJHASGFHJASGHJFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGFFAHJSGFJAHSGFJAHSGFHJASGF +" + cantidad +
-                  ". Total: " + bulletsLeft);
+        extraBulletsLeft += cantidad;
+
+        Debug.Log(
+            "Munición recogida: +" + cantidad +
+            ". Cargador: " + bulletsLeft +
+            " | Reserva: " + extraBulletsLeft
+        );
+
+        return true;
     }
 
     // ------------------------------------------------------------------
@@ -309,6 +330,14 @@ public class GunSystem : MonoBehaviour
         CancelInvoke();
         reloading = false;
         readyToShoot = true;
+
+        if (canZoom)
+        {
+            isZooming = false;
+            ShowSniperScope(false);
+            if (fpsCam != null)
+                fpsCam.fieldOfView = normalFOV;
+        }
     }
 
     // Al reaparecer, el arma vuelve con el cargador y la reserva llenos.

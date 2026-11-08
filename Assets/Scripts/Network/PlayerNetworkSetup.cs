@@ -1,6 +1,7 @@
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerNetworkSetup : NetworkBehaviour
 {
@@ -24,6 +25,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
     // dibujarían en la misma textura y se verían varios minimapas.
     [SerializeField] private Camera minimapCamera;
     [SerializeField] private Canvas minimapCanvas;
+    [SerializeField] private RawImage minimapImage;
 
     // [MULTIJUGADOR] El ícono de Felipe (el Quad sobre la cabeza) que ve la
     // cámara del minimapa. Solo se muestra si este jugador es de mi equipo.
@@ -35,9 +37,12 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
     private Rigidbody playerRigidbody;
     private NetworkTransform networkTransform;
+    private PlayerActionLock actionLock; // bloqueo de acciones de Felipe
+    private RenderTexture localMinimapTexture;
     private float nextRespawnRequestTime;
     private bool matchControlsEnabled = true;
     private bool presentationControlsEnabled = true;
+    private bool pauseControlsEnabled = true;
     private bool hudVisible = true;
 
     private const float RespawnRequestCooldown = 0.5f;
@@ -46,6 +51,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
     {
         playerRigidbody = GetComponent<Rigidbody>();
         networkTransform = GetComponent<NetworkTransform>();
+        actionLock = GetComponent<PlayerActionLock>();
         inventory ??= GetComponent<NetworkPlayerInventory>();
         combat ??= GetComponent<NetworkPlayerCombat>();
         crouch ??= GetComponent<NetworkPlayerCrouch>();
@@ -58,6 +64,9 @@ public class PlayerNetworkSetup : NetworkBehaviour
     {
         bool esPropietario = IsOwner;
 
+        if (esPropietario)
+            ConfigureLocalMinimap();
+
         if (playerCamera != null)
             playerCamera.enabled = esPropietario;
 
@@ -65,15 +74,55 @@ public class PlayerNetworkSetup : NetworkBehaviour
             audioListener.enabled = esPropietario;
 
         if (minimapCamera != null)
-            minimapCamera.enabled = esPropietario;
+            minimapCamera.enabled = esPropietario && localMinimapTexture != null;
 
         if (minimapCanvas != null)
-            minimapCanvas.enabled = esPropietario;
+            minimapCanvas.enabled = esPropietario && localMinimapTexture != null;
 
         ApplyLocalState();
 
         // Al conectarse, actualiza el punto seguro con la posición de red definitiva.
         GuardarCheckpointInicial();
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        ReleaseLocalMinimap();
+    }
+
+    private void ConfigureLocalMinimap()
+    {
+        if (minimapCamera == null || minimapImage == null)
+        {
+            Debug.LogWarning("El minimapa no tiene cámara o RawImage configurados.", this);
+            return;
+        }
+
+        localMinimapTexture = new RenderTexture(512, 512, 16, RenderTextureFormat.ARGB32)
+        {
+            name = "LocalMinimap",
+            useMipMap = false
+        };
+        localMinimapTexture.Create();
+        minimapCamera.targetTexture = localMinimapTexture;
+        minimapImage.texture = localMinimapTexture;
+    }
+
+    private void ReleaseLocalMinimap()
+    {
+        if (minimapCamera != null)
+        {
+            minimapCamera.enabled = false;
+            minimapCamera.targetTexture = null;
+        }
+        if (minimapImage != null)
+            minimapImage.texture = null;
+        if (localMinimapTexture != null)
+        {
+            localMinimapTexture.Release();
+            Destroy(localMinimapTexture);
+            localMinimapTexture = null;
+        }
     }
 
     // [MULTIJUGADOR] En el minimapa solo se ven los aliados.
@@ -174,6 +223,22 @@ public class PlayerNetworkSetup : NetworkBehaviour
         ApplyLocalState();
     }
 
+    /// <summary>Bloquea solo los controles locales mientras se muestra la pausa.</summary>
+    public void SetPauseControlsEnabled(bool enabled)
+    {
+        pauseControlsEnabled = enabled;
+        ApplyLocalState();
+    }
+
+    /// <summary>
+    /// [MULTIJUGADOR] Lo llama PlayerActionLock al desbloquear: vuelve a
+    /// prender los controles solo si corresponde (tu jugador, vivo, sin pausa).
+    /// </summary>
+    public void RefrescarControles()
+    {
+        ApplyLocalState();
+    }
+
     public void SetLocalHudVisible(bool visible)
     {
         hudVisible = visible;
@@ -182,7 +247,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
     public bool LocalGameplayInputEnabled =>
         IsSpawned && IsOwner && matchControlsEnabled &&
-        presentationControlsEnabled;
+        presentationControlsEnabled && pauseControlsEnabled;
 
     // Separado del checkpoint de carrera: la salud confirma el teletransporte
     // antes de volver a habilitar controles y vida.
@@ -221,7 +286,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
     private void ApplyLocalState()
     {
         bool localPresentation = IsSpawned && IsOwner &&
-            presentationControlsEnabled;
+            presentationControlsEnabled && pauseControlsEnabled;
         bool localGameplay = localPresentation && matchControlsEnabled;
 
         if (cameraMovement != null)
@@ -237,6 +302,12 @@ public class PlayerNetworkSetup : NetworkBehaviour
         combat?.SetLocalInputEnabled(localGameplay);
         crouch?.SetLocalInputEnabled(localGameplay);
         grenades?.SetLocalInputEnabled(localGameplay);
+
+        // [MULTIJUGADOR] Si las acciones están bloqueadas (PlayerActionLock de
+        // Felipe), se vuelven a apagar los scripts que eligió.
+        if (actionLock != null && actionLock.accionesBloqueadas)
+            actionLock.ActualizarBloqueo();
+
         ApplyHudState();
 
         if (!localGameplay && playerRigidbody != null && IsOwner)

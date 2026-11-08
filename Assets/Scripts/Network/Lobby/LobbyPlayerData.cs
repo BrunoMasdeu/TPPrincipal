@@ -1,4 +1,5 @@
 using System;
+using Unity.Collections;
 using Unity.Netcode;
 
 [Serializable]
@@ -8,11 +9,18 @@ public struct LobbyPlayerData : INetworkSerializable, IEquatable<LobbyPlayerData
     public TeamId TeamId;
     public bool IsReady;
 
-    public LobbyPlayerData(ulong clientId, TeamId teamId, bool isReady)
+    // [COG-587] Nombre que eligió el jugador. Se usa FixedString porque la
+    // lista de jugadores de red (NetworkList) no acepta string.
+    // 13 caracteres (la ñ ocupa 2 bytes) entran de sobra en 32 bytes.
+    public FixedString32Bytes Nombre;
+
+    public LobbyPlayerData(ulong clientId, TeamId teamId, bool isReady, string nombre = "")
     {
         ClientId = clientId;
         TeamId = teamId;
         IsReady = isReady;
+        Nombre = default;
+        Nombre.CopyFromTruncated(nombre ?? string.Empty);
     }
 
     public void NetworkSerialize<T>(BufferSerializer<T> serializer)
@@ -21,13 +29,15 @@ public struct LobbyPlayerData : INetworkSerializable, IEquatable<LobbyPlayerData
         serializer.SerializeValue(ref ClientId);
         serializer.SerializeValue(ref TeamId);
         serializer.SerializeValue(ref IsReady);
+        serializer.SerializeValue(ref Nombre);
     }
 
     public bool Equals(LobbyPlayerData other)
     {
         return ClientId == other.ClientId &&
             TeamId == other.TeamId &&
-            IsReady == other.IsReady;
+            IsReady == other.IsReady &&
+            Nombre.Equals(other.Nombre);
     }
 
     public override bool Equals(object obj)
@@ -42,6 +52,7 @@ public struct LobbyPlayerData : INetworkSerializable, IEquatable<LobbyPlayerData
             int hashCode = ClientId.GetHashCode();
             hashCode = (hashCode * 397) ^ (int)TeamId;
             hashCode = (hashCode * 397) ^ IsReady.GetHashCode();
+            hashCode = (hashCode * 397) ^ Nombre.GetHashCode();
             return hashCode;
         }
     }
