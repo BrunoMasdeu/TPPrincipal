@@ -35,9 +35,15 @@ public class WaveManager : MonoBehaviour
     public float normalDamageMultiplier = 2f;
     public float hardDamageMultiplier = 3f;
 
+    [Header("Economía")]
+    public int moneyPerKill = 100;
+
+    private NetworkPlayerCombat playerCombat;
+
     private bool choosingDifficulty = false;
     private float damageMultiplier = 1f;
     private string difficultyName = "";
+    public static bool IsActive => instance != null;
 
     [Header("Pruebas (sin armas)")]
     [Tooltip("Si es mayor que 0, cada zombie muere solo a los N segundos de aparecer. Poner 0 para desactivar.")]
@@ -226,6 +232,10 @@ public class WaveManager : MonoBehaviour
     {
         zombiesAlive--;
         zombiesRemaining--;
+
+        NetworkPlayerCombat combat = GetPlayerCombat();
+        if (combat != null)
+            combat.AddMoneyOnServer(moneyPerKill);
     }
 
     private void OnPlayerDied(Move player)
@@ -266,6 +276,18 @@ public class WaveManager : MonoBehaviour
 
         if (playerMove != null)
             playerMove.Respawn();
+        
+        NetworkPlayerCombat combat = GetPlayerCombat();
+        if (combat != null)
+        {
+            combat.ResetMoneyOnServer();
+            combat.RefillAllWeaponsOnServer();
+        }
+        NetworkPlayerInventory loadout = playerBody != null
+            ? playerBody.GetComponentInParent<NetworkPlayerInventory>()
+            : null;
+        if (loadout != null)
+            loadout.ResetLoadoutOnServer();
 
         ShowDifficultyMenu();
         }
@@ -317,6 +339,13 @@ public class WaveManager : MonoBehaviour
         {
             GUI.Label(new Rect(20, 60, 600, 40), "Zombies restantes: " + zombiesRemaining, style);
             GUI.Label(new Rect(20, 100, 600, 40), "Dificultad: " + difficultyName, style);
+
+            NetworkPlayerCombat combat = GetPlayerCombat();
+
+            GUIStyle moneyStyle = new GUIStyle(style);
+            moneyStyle.normal.textColor = Color.green;
+            GUI.Label(new Rect(20, 140, 600, 40),
+                "Dinero: $" + (combat != null ? combat.Money : 0), moneyStyle);
             return;
         }
 
@@ -360,5 +389,12 @@ public class WaveManager : MonoBehaviour
         Cursor.visible = false;
 
         StartWaves();
+    }
+    private NetworkPlayerCombat GetPlayerCombat()
+    {
+        if (playerCombat == null && playerBody != null)
+            playerCombat = playerBody.GetComponentInParent<NetworkPlayerCombat>();
+
+        return playerCombat;
     }
 }

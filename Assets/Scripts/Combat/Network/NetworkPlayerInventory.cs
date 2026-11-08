@@ -104,6 +104,29 @@ public class NetworkPlayerInventory : NetworkBehaviour
         LoadoutChanged = null;
     }
 
+    public void ResetLoadoutOnServer()
+    {
+        if (!IsServer || !IsSpawned || !inventoryMode)
+            return;
+
+        ApplyStartingLoadoutOnServer();
+    }
+
+    private void ApplyStartingLoadoutOnServer()
+    {
+        bool zombies = WaveManager.IsActive;
+
+        meleeWeaponId = IdIfSlot(meleeWeapon, WeaponSlot.Melee);
+        sidearmWeaponId = IdIfSlot(startingSidearm, WeaponSlot.Secondary);
+        primaryWeaponId = IdIfSlot(startingPrimary, WeaponSlot.Primary);
+        utilityWeaponId = IdIfSlot(startingUtility, WeaponSlot.Utility);
+
+        PublishLoadoutWeapons();
+        selectedWeapon.Value = sidearmWeaponId != WeaponId.None
+            ? sidearmWeaponId
+            : meleeWeaponId;
+    }
+
     private void Update()
     {
         if (!IsSpawned)
@@ -128,15 +151,15 @@ public class NetworkPlayerInventory : NetworkBehaviour
 
     private void TryActivateInventoryMode()
     {
-        if (!inZombiesScene)
-        {
-            NetworkLobbySession lobby = NetworkLobbySession.Instance;
-            if (lobby == null ||
-                !CombatValidationRules.SupportsInventoryPreview(
-                    lobby.SelectedGameModeId,
-                    IsTutorialTraining()))
-                return;
-        }
+        NetworkLobbySession lobby = NetworkLobbySession.Instance;
+        bool zombies = WaveManager.IsActive;
+
+        if (!zombies &&
+        (lobby == null ||
+        !CombatValidationRules.SupportsInventoryPreview(
+            lobby.SelectedGameModeId,
+            IsTutorialTraining())))
+        return;
 
         inventoryMode = true;
 
@@ -149,23 +172,7 @@ public class NetworkPlayerInventory : NetworkBehaviour
 
         if (IsServer)
         {
-            // Modo zombies: solo cuchillo y pistola al empezar.
-            // El prefab se comparte con los modos multijugador, por eso
-            // se decide por código y no se tocan las ranuras del Inspector.
-            bool zombiesLoadout = inZombiesScene;
-
-            meleeWeaponId = IdIfSlot(meleeWeapon, WeaponSlot.Melee);
-            sidearmWeaponId = IdIfSlot(startingSidearm, WeaponSlot.Secondary);
-            primaryWeaponId = zombiesLoadout
-                ? WeaponId.None
-                : IdIfSlot(startingPrimary, WeaponSlot.Primary);
-            utilityWeaponId = zombiesLoadout
-                ? WeaponId.None
-                : IdIfSlot(startingUtility, WeaponSlot.Utility);
-            PublishLoadoutWeapons();
-            selectedWeapon.Value = sidearmWeaponId != WeaponId.None
-                ? sidearmWeaponId
-                : meleeWeaponId;
+            ApplyStartingLoadoutOnServer();
         }
     }
 
