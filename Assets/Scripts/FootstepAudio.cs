@@ -43,10 +43,13 @@ public class FootstepAudio : MonoBehaviour
     [SerializeField] private AudioClip[] defaultClips;
     [SerializeField] private SurfaceClipSet[] surfaceClipSets;
 
-    [Header("Cadencia")]
-    [SerializeField] private float stepIntervalWalk = 0.6f;
-    [SerializeField] private float stepIntervalRun = 0.3f;
-    [SerializeField] private float runSpeedThreshold = 8f;
+    [Header("Cadencia (por distancia recorrida)")]
+    [Tooltip("Metros que recorrés entre un paso y el siguiente. Es lo que hace que los pasos suenen naturales: más rápido = pasos más seguidos, más lento = más espaciados. BAJALO (ej. 2.5) si querés más pasos; SUBILO (ej. 4.5) si querés menos.")]
+    [SerializeField] private float strideLength = 3.5f;
+    [Tooltip("Tiempo mínimo (segundos) entre dos pasos aunque vayas muy rápido. Evita que se amontonen al correr.")]
+    [SerializeField] private float minStepInterval = 0.28f;
+    [Tooltip("Tiempo máximo (segundos) entre pasos mientras te movés lento. Evita que a muy poca velocidad pasen demasiados segundos sin sonar.")]
+    [SerializeField] private float maxStepInterval = 0.7f;
     [SerializeField] private float minSpeedToStep = 0.3f;
     [Tooltip("Velocidad vertical máxima para seguir considerándolo un paso caminado (incluye subir escaleras). Tiene que quedar por ARRIBA de la velocidad vertical normal al subir escalones, pero por DEBAJO de la velocidad de un salto real. Si subís escaleras y no suena, subí este número; si vuelve a sonar en ráfaga durante saltos, bajalo.")]
     [SerializeField] private float maxVerticalSpeedForStep = 4f;
@@ -78,6 +81,15 @@ public class FootstepAudio : MonoBehaviour
     [Tooltip("Velocidad de caída (m/s) a partir de la cual, sin haber saltado, se considera que te caíste de un borde.")]
     [SerializeField] private float fallTriggerSpeed = 5f;
 
+    [Tooltip("Velocidad vertical (m/s) mínima para considerar que empezó un salto. Tiene que ser MAYOR a la que alcanzás al correr por rampas o escaleras. Si saltás y no suena, bajala; si suena al subir escaleras, subila.")]
+    [SerializeField] private float jumpTakeoffSpeed = 6f;
+    [Tooltip("Segundos que se espera, después de detectar el impulso, para confirmar que fue un salto de verdad (que dejaste el piso) antes de reproducir el sonido.")]
+    [SerializeField] private float jumpConfirmTime = 0.08f;
+    [Tooltip("Si no saltaste y solo caés, el aterrizaje suena solo si la velocidad de caída fue mayor a este valor (m/s). Evita sonidos al bajar escaleras o rampas.")]
+    [SerializeField] private float landMinFallSpeed = 8f;
+    [Tooltip("Tiempo mínimo (segundos) entre dos sonidos de salto/aterrizaje.")]
+    [SerializeField] private float airSoundCooldown = 0.5f;
+
     [Header("Respaldo si el piso no tiene Collider")]
     [Tooltip("Si el raycast no detecta nada debajo pero el jugador se mueve en plano (casi sin velocidad vertical), se asume que está pisando el suelo y suenan los Default Clips. Evita tener que ponerle Collider a cada pieza de piso. Si en un salto o en el gancho llegara a sonar un paso en el aire, desactivalo.")]
     [SerializeField] private bool assumeGroundedIfNoHit = true;
@@ -91,11 +103,18 @@ public class FootstepAudio : MonoBehaviour
     [SerializeField] private bool debugOverlay = true;
 
     private AudioSource audioSource;
+    private AudioSource stepSourceB;
+    private bool useSourceB;
     private Vector3 lastPosition;
-    private float stepTimer;
+    private float stepDistance;
 
+    private float lastStepTime = -999f;
     private float lowVerticalTimer;
     private bool airborne;
+    private bool jumped;
+    private bool jumpPending;
+    private float jumpPendingTimer;
+    private float lastAirSoundTime = -999f;
     private float airTime;
     private float maxFallSpeed;
     private bool wasEffectiveGrounded;
@@ -118,6 +137,26 @@ public class FootstepAudio : MonoBehaviour
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = 1f;
         lastPosition = transform.position;
+
+        // Segundo AudioSource (copia del primero) para alternar entre pasos:
+        // así un paso no corta la cola del anterior y suena natural.
+        stepSourceB = gameObject.AddComponent<AudioSource>();
+        stepSourceB.playOnAwake = false;
+        stepSourceB.spatialBlend = audioSource.spatialBlend;
+        stepSourceB.outputAudioMixerGroup = audioSource.outputAudioMixerGroup;
+        stepSourceB.spatialize = audioSource.spatialize;
+        stepSourceB.rolloffMode = audioSource.rolloffMode;
+        stepSourceB.minDistance = audioSource.minDistance;
+        stepSourceB.maxDistance = audioSource.maxDistance;
+        stepSourceB.dopplerLevel = audioSource.dopplerLevel;
+        stepSourceB.priority = audioSource.priority;
+
+        if (debugOverlay)
+        {
+            Debug.Log($"[FootstepDebug] Awake en '{name}' (id {GetInstanceID()}). " +
+                      $"Componentes FootstepAudio en este mismo objeto: {GetComponents<FootstepAudio>().Length}. " +
+                      $"AudioSources en este objeto: {GetComponents<AudioSource>().Length}.", this);
+        }
     }
 
     private void Update()
@@ -158,7 +197,7 @@ public class FootstepAudio : MonoBehaviour
         bool effectiveGrounded = rawGrounded || withinGrace || assumedGrounded;
         RaycastHit hitForSurface = rawGrounded ? hit : (withinGrace ? lastGroundHit : default);
 
-        HandleJumpAndLand(rawGrounded || assumedGrounded, effectiveGrounded, signedVerticalSpeed, dt);
+        HandleJumpAndLand(rawGrounded, rawGrounded || assumedGrounded, effectiveGrounded, signedVerticalSpeed, dt);
 
         // Guardado para el panel de diagnóstico.
         debugRawGrounded = rawGrounded;
@@ -196,40 +235,65 @@ public class FootstepAudio : MonoBehaviour
 
         if (effectiveGrounded && movingLikeWalking)
         {
-            stepTimer -= dt;
+            // Los pasos dependen de la DISTANCIA recorrida, no de un reloj fijo.
+            stepDistance += horizontalSpeed * dt;
 
-            if (stepTimer <= 0f)
+            float sinceLast = Time.time - lastStepTime;
+            bool distanceReached = stepDistance >= strideLength && sinceLast >= minStepInterval;
+            bool tooLong = sinceLast >= maxStepInterval;
+
+            if (distanceReached || tooLong)
             {
                 PlayFootstep(hitForSurface);
-
-                bool running = horizontalSpeed >= runSpeedThreshold;
-                stepTimer = running ? stepIntervalRun : stepIntervalWalk;
+                lastStepTime = Time.time;
+                stepDistance = 0f;
             }
         }
-        else
+        else if (horizontalSpeed < minSpeedToStep || airborne)
         {
-            stepTimer = 0f;
+            // Al frenar o estar en el aire se reinicia, y el próximo paso al
+            // arrancar suena enseguida (como un paso real al empezar a caminar).
+            stepDistance = strideLength;
+            lastStepTime = Mathf.Min(lastStepTime, Time.time - maxStepInterval);
         }
     }
 
     // Detecta el despegue de un salto y el aterrizaje, y reproduce su sonido.
-    private void HandleJumpAndLand(bool groundedNow, bool effectiveGrounded, float signedVerticalSpeed, float dt)
+    private void HandleJumpAndLand(bool rawGrounded, bool groundedNow, bool effectiveGrounded, float signedVerticalSpeed, float dt)
     {
         if (!airborne)
         {
-            // Despegue: venía en el piso y sale disparado hacia arriba más rápido
-            // que al subir un escalón (mismo umbral que usa el sistema de pasos).
-            if (wasEffectiveGrounded && signedVerticalSpeed > maxVerticalSpeedForStep)
+            if (jumpPending)
             {
-                airborne = true;
-                airTime = 0f;
-                maxFallSpeed = 0f;
-                PlayOneShotFrom(jumpClips, jumpVolumeScale);
+                // Se detectó un impulso hacia arriba. Se espera un instante y se
+                // confirma que dejaste el piso y seguís subiendo: así no cuentan
+                // las rampas ni las escaleras recorridas a toda velocidad.
+                jumpPendingTimer += dt;
+
+                if (jumpPendingTimer >= jumpConfirmTime)
+                {
+                    jumpPending = false;
+
+                    if (!rawGrounded && signedVerticalSpeed > 0f)
+                    {
+                        airborne = true;
+                        jumped = true;
+                        airTime = jumpPendingTimer;
+                        maxFallSpeed = 0f;
+                        PlayAirSound(jumpClips, jumpVolumeScale, "SALTO");
+                    }
+                }
+            }
+            else if (wasEffectiveGrounded && signedVerticalSpeed > jumpTakeoffSpeed)
+            {
+                jumpPending = true;
+                jumpPendingTimer = 0f;
             }
             // Caída sin salto (te caés de un borde).
             else if (!groundedNow && signedVerticalSpeed < -fallTriggerSpeed)
             {
                 airborne = true;
+                jumped = false;
                 airTime = 0f;
                 maxFallSpeed = 0f;
             }
@@ -241,23 +305,42 @@ public class FootstepAudio : MonoBehaviour
             if (signedVerticalSpeed < 0f)
                 maxFallSpeed = Mathf.Max(maxFallSpeed, -signedVerticalSpeed);
 
-            // Aterrizaje: toca el piso, ya no sube y estuvo un mínimo de tiempo en el aire.
+            // Aterrizaje: toca el piso y ya no sube.
             if (groundedNow && signedVerticalSpeed <= 0.5f)
             {
                 airborne = false;
 
-                if (airTime >= minAirTime)
+                bool enoughAir = airTime >= Mathf.Max(minAirTime, 0.3f);
+                bool strongEnough = jumped || maxFallSpeed >= landMinFallSpeed;
+
+                if (enoughAir && strongEnough)
                 {
                     float volume = Mathf.Lerp(0.6f, 1f, Mathf.Clamp01(maxFallSpeed / 12f));
-                    PlayOneShotFrom(landClips, volume);
+                    PlayAirSound(landClips, volume, "ATERRIZAJE");
 
-                    // Evita que el primer paso corte el sonido de aterrizaje.
-                    stepTimer = stepIntervalWalk;
+                    // Evita que un paso pise el sonido de aterrizaje.
+                    stepDistance = 0f;
+                    lastStepTime = Time.time;
                 }
+
+                jumped = false;
             }
         }
 
         wasEffectiveGrounded = effectiveGrounded;
+    }
+
+    private void PlayAirSound(AudioClip[] clips, float volumeScale, string label)
+    {
+        if (Time.time - lastAirSoundTime < airSoundCooldown) return;
+        if (clips == null || clips.Length == 0) return;
+
+        lastAirSoundTime = Time.time;
+
+        if (debugOverlay)
+            Debug.Log($"[FootstepDebug] {label} | tiempo en el aire: {airTime:F2}s | caída máx: {maxFallSpeed:F1} m/s");
+
+        PlayOneShotFrom(clips, volumeScale);
     }
 
     private void PlayOneShotFrom(AudioClip[] clips, float volumeScale)
@@ -298,14 +381,18 @@ public class FootstepAudio : MonoBehaviour
 
         AudioClip clip = clips[UnityEngine.Random.Range(0, clips.Length)];
 
-        // Corta el paso anterior si todavía estaba sonando (clip con cola
-        // más larga que el intervalo de cadencia, típico al correr). Sin
-        // esto, dos pasos se superponen y se escucha "amontonado".
-        audioSource.Stop();
+        if (debugOverlay)
+            Debug.Log($"[FootstepDebug] PASO (id {GetInstanceID()}) t={Time.time:F2} clip={(clip != null ? clip.name : "null")} dur={(clip != null ? clip.length : 0f):F2}s");
 
-        audioSource.pitch = UnityEngine.Random.Range(pitchMin, pitchMax);
-        audioSource.volume = UnityEngine.Random.Range(volumeMin, volumeMax);
-        audioSource.PlayOneShot(clip);
+        if (clip == null) return;
+
+        // Se alternan dos AudioSources: cada paso termina de sonar solo
+        // (sin cortes bruscos) y el siguiente entra en la otra fuente.
+        AudioSource src = useSourceB ? stepSourceB : audioSource;
+        useSourceB = !useSourceB;
+
+        src.pitch = UnityEngine.Random.Range(pitchMin, pitchMax);
+        src.PlayOneShot(clip, UnityEngine.Random.Range(volumeMin, volumeMax));
     }
 
     private AudioClip[] ResolveClipsForSurface(RaycastHit hit)

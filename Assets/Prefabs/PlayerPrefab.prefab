@@ -9236,9 +9236,9 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 5c9bdbce37b06a24fa6ea793bcfd1907, type: 3}
   - {fileID: 8300000, guid: 0909de896e9029541b92ae05fe15e4b6, type: 3}
   surfaceClipSets: []
-  stepIntervalWalk: 0.6
-  stepIntervalRun: 0.3
-  runSpeedThreshold: 8
+  strideLength: 3.5
+  minStepInterval: 0.28
+  maxStepInterval: 0.7
   minSpeedToStep: 0.3
   maxVerticalSpeedForStep: 4
   volumeMin: 0.85
@@ -9263,6 +9263,10 @@ MonoBehaviour:
   jumpVolumeScale: 0.7
   minAirTime: 0.2
   fallTriggerSpeed: 5
+  jumpTakeoffSpeed: 6
+  jumpConfirmTime: 0.08
+  landMinFallSpeed: 8
+  airSoundCooldown: 0.5
   assumeGroundedIfNoHit: 1
   assumeMaxVerticalSpeed: 0.5
   assumeRequiredTime: 0.15
