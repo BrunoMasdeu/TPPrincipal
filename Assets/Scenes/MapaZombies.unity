@@ -53009,15 +53009,15 @@ MonoBehaviour:
   - {fileID: 1029790847}
   waves:
   - zombieCount: 10
-    specialZombieCount: 0
+    specialZombieCount: 5
     spawnDelay: 2
     zombieHealth: 150
   - zombieCount: 20
-    specialZombieCount: 3
+    specialZombieCount: 10
     spawnDelay: 1
     zombieHealth: 250
   - zombieCount: 30
-    specialZombieCount: 5
+    specialZombieCount: 15
     spawnDelay: 0.5
     zombieHealth: 350
   easyDamageMultiplier: 1
