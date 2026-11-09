@@ -52284,6 +52284,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1420661273397733484, guid: addcf7ee97be1a148b3944b949b348a5, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1899822728827400409, guid: addcf7ee97be1a148b3944b949b348a5, type: 3}
       propertyPath: m_Name
       value: Municion agarrable
