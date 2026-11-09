@@ -69,7 +69,16 @@ public class KnifeSystem : MonoBehaviour
 
             // [COMO HOY] Como en el GunSystem: el cuchillo también les pega a
             // los bots y a las dianas del tutorial.
-            if (hit.collider.CompareTag("Enemy"))
+            // [ZOMBIES] Los zombies tienen su propia vida (Zombie.cs). Se revisa
+            // primero para que tenga prioridad aunque el prefab esté con el
+            // tag "Enemy".
+            Zombie zombie = hit.collider.GetComponentInParent<Zombie>();
+
+            if (zombie != null)
+            {
+                zombie.zombieHitDamage(damage);
+            }
+            else if (hit.collider.CompareTag("Enemy"))
             {
                 movimientoBot bot = hit.collider.GetComponentInParent<movimientoBot>();
                 if (bot != null)

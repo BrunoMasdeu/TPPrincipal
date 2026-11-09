@@ -19,6 +19,14 @@ public class Zombie : MonoBehaviour
     public float zombieSpeed;
     float walkingpointRadius = 2;
 
+    [Header("Modo patrulla")]
+    [Tooltip("Si está activo, el zombie solo camina entre los walkPoints: no persigue ni ataca al jugador.")]
+    public bool onlyPatrol = true;
+    [Tooltip("Velocidad al patrullar (usa el NavMeshAgent).")]
+    public float patrolSpeed = 1.5f;
+    private bool patrolHasDestination;
+    private bool patrolAnimationSet;
+
     public float timeBtwAttack;
     bool previouslyAttack;
 
@@ -58,6 +66,13 @@ public class Zombie : MonoBehaviour
     {
         if (isDead) return;
 
+        // Modo patrulla: solo camina por los walkPoints, ignora al jugador.
+        if (onlyPatrol)
+        {
+            Patrol();
+            return;
+        }
+
         playerInvisionRadius = Physics.CheckSphere(transform.position, visionRadius, PlayerLayer);
         playerInattackingRadius = Physics.CheckSphere(transform.position, attackingRadius, PlayerLayer);
 
@@ -65,6 +80,44 @@ public class Zombie : MonoBehaviour
         if(playerInvisionRadius && !playerInattackingRadius) Pursueplayer();
         if(playerInvisionRadius && playerInattackingRadius) AttackPlayer();
     }
+    private void Patrol()
+    {
+        if (walkPoints == null || walkPoints.Length == 0 ||
+            zombieAgent == null || !zombieAgent.isOnNavMesh)
+            return;
+
+        if (!patrolAnimationSet)
+        {
+            patrolAnimationSet = true;
+            zombieAgent.speed = patrolSpeed;
+            anim.SetBool("Walking", true);
+            anim.SetBool("Running", false);
+            anim.SetBool("Attacking", false);
+            anim.SetBool("Died", false);
+        }
+
+        bool arrived = !zombieAgent.pathPending &&
+                       zombieAgent.remainingDistance <= walkingpointRadius;
+
+        if (!patrolHasDestination || arrived)
+        {
+            // Elige un punto distinto al actual.
+            if (walkPoints.Length > 1)
+            {
+                currentZombiePosition =
+                    (currentZombiePosition + UnityEngine.Random.Range(1, walkPoints.Length))
+                    % walkPoints.Length;
+            }
+
+            GameObject target = walkPoints[currentZombiePosition];
+            if (target != null)
+            {
+                zombieAgent.SetDestination(target.transform.position);
+                patrolHasDestination = true;
+            }
+        }
+    }
+
     private void Guard()
     {
         if (walkPoints == null || walkPoints.Length == 0) return;

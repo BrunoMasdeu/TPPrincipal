@@ -193,7 +193,12 @@ public class GunSystem : MonoBehaviour
         {
             Debug.Log("Impactó a: " + rayHit.collider.name);
 
-            if (rayHit.collider.CompareTag("Enemy"))
+            Zombie zombie = rayHit.collider.GetComponentInParent<Zombie>();
+            if (zombie != null)
+            {
+                zombie.zombieHitDamage(damage);
+            }
+            else if (rayHit.collider.CompareTag("Enemy"))
             {
                 movimientoBot enemy =
                     rayHit.collider.GetComponentInParent<movimientoBot>();

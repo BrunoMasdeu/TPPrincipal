@@ -5264,6 +5264,7 @@ GameObject:
   - component: {fileID: 5823408055782595479}
   - component: {fileID: 3757266598236233259}
   - component: {fileID: 2701799590949945906}
+  - component: {fileID: -7908924888979135789}
   m_Layer: 0
   m_Name: Zombie 1
   m_TagString: Untagged
@@ -5381,12 +5382,31 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   zombieSpeed: 0.3
+  onlyPatrol: 1
+  patrolSpeed: 1.5
   timeBtwAttack: 1
   anim: {fileID: 1025460886878452708}
   visionRadius: 1000
   attackingRadius: 1.4
   playerInvisionRadius: 0
   playerInattackingRadius: 0
+--- !u!114 &-7908924888979135789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8012044164244743118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d58f6de86661ddc448aac31e97b3a63b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::ZombieGlow
+  glowColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+  intensity: 80
+  useLight: 1
+  lightRange: 1
+  lightIntensity: 5
 --- !u!1 &8134379907627362769
 GameObject:
   m_ObjectHideFlags: 0
