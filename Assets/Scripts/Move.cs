@@ -368,6 +368,15 @@ public class Move : MonoBehaviour
         }
     }
 
+    public bool HealToFull()
+    {
+        if (presentHealth <= 0f || presentHealth >= playerHealth)
+            return false;
+
+        presentHealth = playerHealth;
+        return true;
+    }
+
     private void playerDie()
     {
         ClearMovementInput();
