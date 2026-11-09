@@ -62,6 +62,12 @@ public class NetworkLobbySession : NetworkBehaviour
     public event Action LobbyStateChanged;
     public event Action<NetworkListEvent<LobbyPlayerData>> PlayersChanged;
 
+    /// <summary>
+    /// [COG-599] Solo en el servidor: un jugador se fue en medio de la partida.
+    /// Lo escucha NetworkMatchManager para avisar a todos y revisar los equipos.
+    /// </summary>
+    public event Action<ulong, string, TeamId> JugadorAbandonoPartida;
+
     public NetworkList<LobbyPlayerData> Players => players;
     public GameModeId SelectedGameModeId => selectedGameModeId.Value;
     public int SelectedPlayerCount => selectedPlayerCount.Value;
@@ -112,6 +118,62 @@ public class NetworkLobbySession : NetworkBehaviour
             NetworkVariableReadPermission.Everyone,
             NetworkVariableWritePermission.Server
         );
+    }
+
+    // [COG-607] El servidor mide el ping una vez por segundo: más seguido no
+    // aporta nada y haría viajar la lista de jugadores todo el tiempo.
+    private const float SegundosEntrePings = 1f;
+    private float proximaMedicionPing;
+
+    private void Update()
+    {
+        MedirPings();
+    }
+
+    /// <summary>
+    /// [COG-607] Solo en el servidor y durante la partida: guarda en cada
+    /// jugador cuánto tarda en ir y volver un mensaje a su PC (el ping).
+    /// Al estar en la lista replicada, lo ven todos.
+    /// </summary>
+    private void MedirPings()
+    {
+        if (!IsSpawned || !IsServer ||
+            sessionPhase.Value != SessionPhase.InMatch ||
+            Time.unscaledTime < proximaMedicionPing)
+        {
+            return;
+        }
+
+        proximaMedicionPing = Time.unscaledTime + SegundosEntrePings;
+
+        NetworkTransport transporte = NetworkManager != null &&
+            NetworkManager.NetworkConfig != null
+                ? NetworkManager.NetworkConfig.NetworkTransport
+                : null;
+
+        if (transporte == null)
+            return;
+
+        for (int i = 0; i < players.Count; i++)
+        {
+            LobbyPlayerData jugador = players[i];
+            ushort ping = 0;
+
+            // El host no se mide a sí mismo: es la PC que hace de servidor.
+            if (jugador.ClientId != NetworkManager.ServerClientId)
+            {
+                ulong milisegundos = transporte.GetCurrentRtt(jugador.ClientId);
+                ping = milisegundos > ushort.MaxValue
+                    ? ushort.MaxValue
+                    : (ushort)milisegundos;
+            }
+
+            if (jugador.Ping == ping)
+                continue;
+
+            jugador.Ping = ping;
+            players[i] = jugador;
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -413,6 +475,8 @@ public class NetworkLobbySession : NetworkBehaviour
         gameplaySceneLoaded = false;
         returnToLobbyRequested = false;
         activeGameplaySceneName = SelectedSceneName;
+        // [COG-620] Cada partida empieza sin votos de revancha.
+        LimpiarVotosRevancha();
 
         SceneEventProgressStatus status =
             NetworkManager.SceneManager.LoadScene(
@@ -490,6 +554,146 @@ public class NetworkLobbySession : NetworkBehaviour
         return true;
     }
 
+    // ---- [COG-620] Votación de revancha ----
+
+    /// <summary>Cuántos jugadores ya votaron la revancha.</summary>
+    public int VotosRevancha
+    {
+        get
+        {
+            int votos = 0;
+
+            for (int i = 0; i < players.Count; i++)
+                if (players[i].QuiereRevancha)
+                    votos++;
+
+            return votos;
+        }
+    }
+
+    public int VotosParaRevancha => RevanchaRules.VotosNecesarios(players.Count);
+
+    /// <summary>
+    /// La revancha se ofrece en TDM y CTF, con la partida terminada y con
+    /// todos los jugadores conectados: si alguien se fue, no hay revancha.
+    /// </summary>
+    public bool RevanchaDisponible
+    {
+        get
+        {
+            if (!IsSpawned)
+                return false;
+
+            NetworkMatchManager match = GetComponent<NetworkMatchManager>();
+
+            return match != null && RevanchaRules.PuedeVotarse(
+                selectedGameModeId.Value,
+                sessionPhase.Value,
+                match.Phase,
+                players.Count,
+                selectedPlayerCount.Value
+            );
+        }
+    }
+
+    public bool YaVotoRevancha(ulong clientId) =>
+        TryGetPlayerData(clientId, out LobbyPlayerData jugador) &&
+        jugador.QuiereRevancha;
+
+    /// <summary>Lo llama el HUD cuando el jugador toca JUGAR REVANCHA.</summary>
+    public void PedirRevancha()
+    {
+        if (!IsSpawned)
+            return;
+
+        VotarRevanchaRpc();
+    }
+
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void VotarRevanchaRpc(RpcParams rpcParams = default)
+    {
+        RegistrarVotoRevancha(rpcParams.Receive.SenderClientId);
+    }
+
+    private void RegistrarVotoRevancha(ulong clientId)
+    {
+        if (!IsServer || !RevanchaDisponible)
+            return;
+
+        int playerIndex = FindPlayerIndex(clientId);
+
+        if (playerIndex < 0)
+            return;
+
+        LobbyPlayerData jugador = players[playerIndex];
+
+        if (jugador.QuiereRevancha)
+            return;
+
+        jugador.QuiereRevancha = true;
+        players[playerIndex] = jugador;
+
+        Debug.Log(
+            $"[Session] {NombreParaMostrar(clientId)} votó la revancha " +
+            $"({VotosRevancha}/{VotosParaRevancha})."
+        );
+
+        if (RevanchaRules.HayMayoria(VotosRevancha, players.Count))
+            TryStartRematch();
+    }
+
+    /// <summary>
+    /// Vuelve a cargar el mismo mapa sin pasar por el lobby. Es el mismo
+    /// camino que TryStartMatch, pero sin volver a pedir modo, equipos y ready.
+    /// </summary>
+    public bool TryStartRematch()
+    {
+        if (!IsServer || !RevanchaDisponible ||
+            string.IsNullOrEmpty(activeGameplaySceneName))
+        {
+            return false;
+        }
+
+        LimpiarVotosRevancha();
+
+        sessionPhase.Value = SessionPhase.Loading;
+        gameplaySceneLoaded = false;
+        returnToLobbyRequested = false;
+
+        SceneEventProgressStatus status =
+            NetworkManager.SceneManager.LoadScene(
+                activeGameplaySceneName,
+                LoadSceneMode.Single
+            );
+
+        if (status == SceneEventProgressStatus.Started)
+            return true;
+
+        Debug.LogError(
+            $"No se pudo iniciar la revancha en {activeGameplaySceneName}: {status}."
+        );
+
+        sessionPhase.Value = SessionPhase.InMatch;
+        return false;
+    }
+
+    private void LimpiarVotosRevancha()
+    {
+        if (!IsServer)
+            return;
+
+        for (int i = 0; i < players.Count; i++)
+        {
+            LobbyPlayerData jugador = players[i];
+
+            if (!jugador.QuiereRevancha)
+                continue;
+
+            jugador.QuiereRevancha = false;
+            players[i] = jugador;
+        }
+    }
+
     /// <summary>El host regresa al menú con la misma conexión tras TDM o CTF.</summary>
     public bool TryReturnToLobbyAfterMatch()
     {
@@ -511,6 +715,8 @@ public class NetworkLobbySession : NetworkBehaviour
         gameplaySceneLoaded = false;
         sessionPhase.Value = SessionPhase.Lobby;
         ResetAllPlayersReady();
+        // [COG-620] Al volver al lobby se borran los votos de revancha.
+        LimpiarVotosRevancha();
         return true;
     }
 
@@ -609,6 +815,23 @@ public class NetworkLobbySession : NetworkBehaviour
         }
 
         return $"Jugador {clientId + 1}";
+    }
+
+    /// <summary>
+    /// [COG-608] El ping para mostrar en la tabla del marcador. Devuelve "--"
+    /// si todavía no se midió (por ejemplo, fuera de una partida en red).
+    /// </summary>
+    public static string PingParaMostrar(ulong clientId)
+    {
+        NetworkLobbySession sesion = Instance;
+
+        if (sesion == null || !sesion.IsSpawned ||
+            !sesion.TryGetPlayerData(clientId, out LobbyPlayerData jugador))
+        {
+            return "--";
+        }
+
+        return jugador.Ping.ToString();
     }
 
     // Saca el nombre aprobado de la lista de espera para guardarlo en el jugador.
@@ -947,8 +1170,20 @@ public class NetworkLobbySession : NetworkBehaviour
 
         if (playerIndex >= 0)
         {
+            // [COG-599] Se guarda quién era antes de sacarlo de la lista.
+            LobbyPlayerData jugador = players[playerIndex];
+            bool enPartida = sessionPhase.Value == SessionPhase.InMatch;
+
             players.RemoveAt(playerIndex);
             ResetAllPlayersReady();
+
+            if (enPartida)
+            {
+                string nombre = jugador.Nombre.Length > 0
+                    ? jugador.Nombre.ToString()
+                    : $"Jugador {clientId + 1}";
+                JugadorAbandonoPartida?.Invoke(clientId, nombre, jugador.TeamId);
+            }
         }
 
         if (sessionPhase.Value == SessionPhase.Loading)
@@ -1139,6 +1374,17 @@ public class NetworkLobbySession : NetworkBehaviour
         NetworkListEvent<LobbyPlayerData> changeEvent)
     {
         PlayersChanged?.Invoke(changeEvent);
+
+        // [COG-607][COG-620] El ping y el voto de revancha cambian durante la
+        // partida, pero no son configuración del lobby. Si se avisaran como
+        // tal, NetworkMatchManager reiniciaría sola la partida terminada.
+        if (changeEvent.Type == NetworkListEvent<LobbyPlayerData>.EventType.Value &&
+            LobbyPlayerData.SoloCambioPingOVoto(
+                changeEvent.PreviousValue, changeEvent.Value))
+        {
+            return;
+        }
+
         LobbyStateChanged?.Invoke();
     }
 

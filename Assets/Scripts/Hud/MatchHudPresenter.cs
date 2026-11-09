@@ -56,9 +56,13 @@ public sealed class MatchHudPresenter : MonoBehaviour
         tdm = session.GetComponent<TdmMatchManager>();
         ctf = session.GetComponent<CtfMatchManager>();
         lobby.LobbyStateChanged += RefreshConfiguration;
+        // [COG-608] La lista de jugadores cambia cuando el servidor actualiza
+        // el ping, así que la tabla se refresca sola.
+        lobby.PlayersChanged += OnLobbyPlayersChanged;
         match.PhaseChanged += OnPhaseChanged;
         match.MatchFinished += OnMatchFinished;
         match.DeathAnnounced += OnDeath;
+        match.PlayerLeft += OnPlayerLeft;
         combat.MoneyChanged += OnMoneyChanged;
         if (tdm != null)
         {
@@ -76,6 +80,8 @@ public sealed class MatchHudPresenter : MonoBehaviour
             events.transform.SetParent(transform, false);
             events.AddComponent<InputSystemUIInputModule>().AssignDefaultActions();
         }
+        // [COG-620] El botón de revancha se conecta por código, no por el Inspector.
+        view.BindRematch(OnRematchClicked);
         RefreshConfiguration();
         OnMoneyChanged(combat.Money);
         OnPhaseChanged(match.Phase);
@@ -94,6 +100,17 @@ public sealed class MatchHudPresenter : MonoBehaviour
         if (IsLeaving || match == null || !match.IsSpawned)
             return;
         bool finished = match.Phase == MatchPhase.Finished;
+
+        // [COG-599] Con la partida terminada el cursor tiene que quedar libre
+        // para poder usar los botones. Si algo lo volvió a bloquear (la tienda
+        // al cerrarse, una cámara que se prende), se corrige acá.
+        if (finished && Cursor.lockState != CursorLockMode.None)
+        {
+            player.SetPresentationControlsEnabled(false);
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+
         // [TECLAS] La tecla del marcador sale de Controles.
         view.SetTableVisible(visible && !finished && !MatchDebugConsole.IsInputCaptured &&
             !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null &&
@@ -156,6 +173,35 @@ public sealed class MatchHudPresenter : MonoBehaviour
         view.SetPlayers(players, player.OwnerClientId, hasStats);
     }
 
+    // [COG-608] Se vuelve a dibujar la tabla cuando cambia algo de un jugador
+    // (el ping, el nombre, el voto de revancha, o si alguien se fue).
+    private void OnLobbyPlayersChanged(NetworkListEvent<LobbyPlayerData> _)
+    {
+        RefreshPlayers();
+        RefreshRematch();
+    }
+
+    // [COG-620] Pide la revancha en nombre de este jugador.
+    private void OnRematchClicked()
+    {
+        if (lobby != null)
+            lobby.PedirRevancha();
+    }
+
+    // [COG-620] Actualiza el botón y el contador de votos.
+    private void RefreshRematch()
+    {
+        if (lobby == null || player == null)
+            return;
+
+        bool disponible = lobby.RevanchaDisponible;
+        view.SetRematch(
+            disponible,
+            disponible && lobby.YaVotoRevancha(player.OwnerClientId),
+            disponible ? lobby.VotosRevancha : 0,
+            disponible ? lobby.VotosParaRevancha : 0);
+    }
+
     private void RefreshClock()
     {
         view.SetTime(match.Phase == MatchPhase.Countdown ? match.CountdownRemaining : match.TimeRemaining);
@@ -176,6 +222,7 @@ public sealed class MatchHudPresenter : MonoBehaviour
         RefreshScores();
         RefreshClock();
         RefreshPlayers();
+        RefreshRematch();
         if (finished == resultsOpen)
             return;
         resultsOpen = finished;
@@ -195,6 +242,15 @@ public sealed class MatchHudPresenter : MonoBehaviour
             ? $"{NetworkLobbySession.NombreParaMostrar(death.AttackerClientId)} eliminó a {victim}"
             : $"{victim} murió";
         deaths.Add(new DeathNotice { text = message, expiresAt = Time.unscaledTime + 5f });
+        if (deaths.Count > 3)
+            deaths.RemoveAt(0);
+        RefreshDeathFeed();
+    }
+
+    // [COG-599] El aviso de abandono sale en el mismo lugar que las bajas.
+    private void OnPlayerLeft(string nombre)
+    {
+        deaths.Add(new DeathNotice { text = $"{nombre} abandonó la partida", expiresAt = Time.unscaledTime + 5f });
         if (deaths.Count > 3)
             deaths.RemoveAt(0);
         RefreshDeathFeed();
@@ -241,12 +297,17 @@ public sealed class MatchHudPresenter : MonoBehaviour
 
     public void Detach()
     {
-        if (lobby != null) lobby.LobbyStateChanged -= RefreshConfiguration;
+        if (lobby != null)
+        {
+            lobby.LobbyStateChanged -= RefreshConfiguration;
+            lobby.PlayersChanged -= OnLobbyPlayersChanged;
+        }
         if (match != null)
         {
             match.PhaseChanged -= OnPhaseChanged;
             match.MatchFinished -= OnMatchFinished;
             match.DeathAnnounced -= OnDeath;
+            match.PlayerLeft -= OnPlayerLeft;
         }
         if (combat != null) combat.MoneyChanged -= OnMoneyChanged;
         if (tdm != null)

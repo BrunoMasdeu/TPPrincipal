@@ -16,6 +16,8 @@ public sealed class MatchHudView : MonoBehaviour
         public TMP_Text name;
         public TMP_Text kills;
         public TMP_Text deaths;
+        // [COG-608] Columna PING de la tabla del marcador (Tab).
+        public TMP_Text ping;
         public TMP_Text nameFinal;
         public TMP_Text killsFinal;
         public TMP_Text deathsFinal;
@@ -47,6 +49,9 @@ public sealed class MatchHudView : MonoBehaviour
     [SerializeField] private TMP_Text resultHint;
     [SerializeField] private Button lobbyButton;
     [SerializeField] private Button leaveButton;
+    // [COG-620] Botón JUGAR REVANCHA y el contador de votos que tiene al lado.
+    [SerializeField] private Button rematchButton;
+    [SerializeField] private TMP_Text rematchVotes;
     [SerializeField] private GameObject quitPanel;
     [SerializeField] private Button stayInGameButton;
     [SerializeField] private Button leaveMatchButton;
@@ -97,7 +102,11 @@ public sealed class MatchHudView : MonoBehaviour
         resultPanel.SetActive(finished);
         tableHint.SetActive(!finished);
         if (!finished)
+        {
+            // [COG-620] Sin partida terminada no hay nada que votar.
+            SetRematch(false, false, 0, 0);
             return;
+        }
         principalPanel.SetActive(false);
         SetTableVisible(false);
         resultTitle.text = result.IsPending ? "Esperando resultado..."
@@ -108,6 +117,39 @@ public sealed class MatchHudView : MonoBehaviour
         leaveButton.interactable = true;
         resultHint.text = isHost ? "Volvé al lobby para configurar la próxima partida."
             : "El host puede regresar a todos al lobby. También podés salir al menú.";
+
+        // [COG-599] Si se ganó porque el otro equipo se fue, se aclara.
+        if (result.EndReason == MatchEndReason.TeamAbandoned)
+            resultHint.text = "El equipo rival abandonó la partida.\n" + resultHint.text;
+    }
+
+    /// <summary>
+    /// [COG-620] Muestra el botón de revancha y cuántos votos van. Se apaga
+    /// si falta alguien (se fue de la partida) o si este jugador ya votó.
+    /// </summary>
+    public void SetRematch(bool disponible, bool yaVoto, int votos, int necesarios)
+    {
+        if (rematchButton != null)
+        {
+            rematchButton.gameObject.SetActive(disponible);
+            rematchButton.interactable = disponible && !yaVoto;
+        }
+
+        if (rematchVotes != null)
+        {
+            rematchVotes.gameObject.SetActive(disponible);
+            rematchVotes.text = $"{votos}/{necesarios}";
+        }
+    }
+
+    /// <summary>[COG-620] El presentador decide qué pasa al tocar el botón.</summary>
+    public void BindRematch(UnityEngine.Events.UnityAction accion)
+    {
+        if (rematchButton == null)
+            return;
+
+        rematchButton.onClick.RemoveAllListeners();
+        rematchButton.onClick.AddListener(accion);
     }
 
     public void SetLeaving()
@@ -147,6 +189,9 @@ public sealed class MatchHudView : MonoBehaviour
             row.name.text = $"{NetworkLobbySession.NombreParaMostrar(player.ClientId)}{(player.ClientId == localClientId ? " (vos)" : "")}";
             row.kills.text = hasStats ? player.Kills.ToString() : "--";
             row.deaths.text = hasStats ? player.Deaths.ToString() : "--";
+            // [COG-608] El ping lo mide el servidor y viaja en la lista de jugadores.
+            if (row.ping != null)
+                row.ping.text = NetworkLobbySession.PingParaMostrar(player.ClientId);
             row.nameFinal.text = $"{NetworkLobbySession.NombreParaMostrar(player.ClientId)}{(player.ClientId == localClientId ? " (vos)" : "")}";
             row.killsFinal.text = hasStats ? player.Kills.ToString() : "--";
             row.deathsFinal.text = hasStats ? player.Deaths.ToString() : "--";

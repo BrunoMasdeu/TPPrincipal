@@ -21,9 +21,34 @@ public sealed class DisconnectedClientReturnToMenu : MonoBehaviour
         recovery.StartCoroutine(recovery.ReturnToMenu(networkManager));
     }
 
+    /// <summary>
+    /// [COG-599] Los motivos que escribe el juego (te expulsaron, sala llena)
+    /// ya están en castellano y se muestran tal cual. Los del transporte vienen
+    /// en inglés y con datos internos, así que se reemplazan por un aviso claro.
+    /// </summary>
+    private static string MensajeDeDesconexion(string motivo)
+    {
+        const string AvisoHost = "El host cerró la partida o se perdió la conexión.";
+
+        if (string.IsNullOrWhiteSpace(motivo) || motivo.StartsWith("[") ||
+            motivo.Contains("host shutting down") ||
+            motivo.Contains("Connection was closed") ||
+            motivo.Contains("Disconnected due to"))
+        {
+            return AvisoHost;
+        }
+
+        return motivo;
+    }
+
     private IEnumerator ReturnToMenu(NetworkManager networkManager)
     {
         Debug.LogWarning("[Netcode] Se perdió la conexión con el host. Volviendo al menú.");
+
+        // [COG-599] El menú muestra por qué volviste (por ejemplo, el host se fue).
+        ConnectionManager.MensajePendiente = MensajeDeDesconexion(
+            networkManager != null ? networkManager.DisconnectReason : string.Empty
+        );
 
         // Dejar que Netcode termine de procesar el callback de desconexión.
         yield return null;
