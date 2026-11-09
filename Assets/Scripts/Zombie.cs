@@ -211,7 +211,8 @@ public class Zombie : MonoBehaviour
         playerInattackingRadius = false;
         playerInvisionRadius = false;
 
-        onDeath?.Invoke();   // avisa al WaveManager
+        GetComponent<ZombieDrop>()?.Drop();
+        onDeath?.Invoke();
         onDeath = null;
 
         UnityEngine.Object.Destroy(gameObject, 1.5f);

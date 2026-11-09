@@ -155,6 +155,12 @@ public class SpeedBoostPickup : NetworkBehaviour
             return;
         }
 
+        if (WaveManager.IsActive)
+        {
+            NetworkObject.Despawn(true);
+            return;
+        }
+
         collected.Value = true;
         respawnCoroutine = StartCoroutine(RespawnAfterDelay());
     }

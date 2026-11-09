@@ -491,7 +491,10 @@ public class NetworkLobbySession : NetworkBehaviour
         return true;
     }
 
-    /// <summary>Inicia Zombies con un host local de un jugador.</summary>
+    /// <summary>
+    /// Inicia el modo Zombies (un jugador) desde el menú usando el host local.
+    /// Igual que Race, no se expone como opción del lobby multijugador.
+    /// </summary>
     public bool TryStartLocalZombies(out string validationError)
     {
         if (!IsSpawned || !IsServer || !NetworkManager.IsHost ||

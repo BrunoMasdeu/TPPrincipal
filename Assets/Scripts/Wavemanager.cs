@@ -39,12 +39,17 @@ public class WaveManager : MonoBehaviour
     [Header("Economía")]
     public int moneyPerKill = 100;
 
+    [Header("Drops")]
+    public GameObject[] dropPrefabs = System.Array.Empty<GameObject>();
+    [Range(0f, 1f)] public float dropChance = 1f;
+
     private NetworkPlayerCombat playerCombat;
 
     private bool choosingDifficulty = false;
     private float damageMultiplier = 1f;
     private string difficultyName = "";
     public static bool IsActive => instance != null;
+    public static WaveManager ActiveInstance => instance;
 
     [Header("Pruebas (sin armas)")]
     [Tooltip("Si es mayor que 0, cada zombie muere solo a los N segundos de aparecer. Poner 0 para desactivar.")]
