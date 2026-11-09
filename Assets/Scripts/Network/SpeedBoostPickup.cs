@@ -13,6 +13,8 @@ public class SpeedBoostPickup : NetworkBehaviour
     [SerializeField] private float rotationSpeed = 90f;
 
     [Header("Reaparicion")]
+    [SerializeField] private bool desaparecerAlAgarrar = true;
+
     [Min(0.1f)]
     [SerializeField] private float tiempoReaparicion = 30f;
 
@@ -152,6 +154,12 @@ public class SpeedBoostPickup : NetworkBehaviour
                 durationSeconds
             ))
         {
+            return;
+        }
+
+        if (desaparecerAlAgarrar)
+        {
+            NetworkObject.Despawn(true);
             return;
         }
 
