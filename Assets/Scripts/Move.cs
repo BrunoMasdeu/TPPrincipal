@@ -37,6 +37,9 @@ public class Move : MonoBehaviour
     private bool keyboardInputEnabled = true;
     private float speedMultiplier = 1f;
     private Coroutine speedBoostRoutine;
+    public static event Action<Move> PlayerDied;
+    private Vector3 startPosition;
+    private Quaternion startRotation;
 
     private readonly List<Vector3> wallContactNormals = new List<Vector3>();
 
@@ -56,11 +59,14 @@ public class Move : MonoBehaviour
     private void Start()
     {
         presentHealth = playerHealth;
+        startPosition = transform.position;
+        startRotation = transform.rotation;
     }
 
     private void Update()
     {
-        if (MatchDebugConsole.IsInputCaptured ||
+        if (WaveManager.IsInputCaptured ||
+            MatchDebugConsole.IsInputCaptured ||
             NetworkPlayerShop.IsInputCaptured)
         {
             ClearMovementInput();
@@ -351,6 +357,9 @@ public class Move : MonoBehaviour
     }
     public void playerHitDamage(float TakeDamage)
     {
+        if (presentHealth <= 0f || TakeDamage <= 0f)
+            return;
+
         presentHealth -= TakeDamage;
 
         if(presentHealth <= 0)
@@ -361,7 +370,22 @@ public class Move : MonoBehaviour
 
     private void playerDie()
     {
-        UnityEngine.Object.Destroy(gameObject, 1.0f);
+        ClearMovementInput();
+        keyboardInputEnabled = false;
+        PlayerDied?.Invoke(this);
+    }
+
+    public void Respawn()
+    {
+        presentHealth = playerHealth;
+        keyboardInputEnabled = true;
+        ClearMovementInput();
+        jumpPressed = false;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.position = startPosition;
+        rb.rotation = startRotation;
+        transform.SetPositionAndRotation(startPosition, startRotation);
     }
 }
 

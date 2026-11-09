@@ -126,7 +126,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+<<<<<<<< HEAD:Assets/Elementos utilizables/Municion/Municion agarrable.prefab
   GlobalObjectIdHash: 3779989700
+========
+  GlobalObjectIdHash: 2422921122
+>>>>>>>> fix/camara-animaciones:CodigoFelipeRecuperado/granada-y-agacharse/Granada.prefab.txt
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -141,13 +145,21 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
+<<<<<<<< HEAD:Assets/Elementos utilizables/Municion/Municion agarrable.prefab
 --- !u!114 &2775010641112964720
+========
+--- !u!114 &5188522840562916432
+>>>>>>>> fix/camara-animaciones:CodigoFelipeRecuperado/granada-y-agacharse/Granada.prefab.txt
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+<<<<<<<< HEAD:Assets/Elementos utilizables/Municion/Municion agarrable.prefab
   m_GameObject: {fileID: 1899822728827400409}
+========
+  m_GameObject: {fileID: 7075323993728510871}
+>>>>>>>> fix/camara-animaciones:CodigoFelipeRecuperado/granada-y-agacharse/Granada.prefab.txt
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c9f5468c7aaec6343956455b1d0ddd04, type: 3}
@@ -156,6 +168,12 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   cantidadVida: 25
   serverValidationDistance: 2.5
+<<<<<<<< HEAD:Assets/Elementos utilizables/Municion/Municion agarrable.prefab
   tiempoReaparicion: 20
   visual: {fileID: 8860063159295289460}
   rotationSpeed: 100
+========
+  tiempoReaparicion: 30
+  visual: {fileID: 0}
+  rotationSpeed: 90
+>>>>>>>> fix/camara-animaciones:CodigoFelipeRecuperado/granada-y-agacharse/Granada.prefab.txt

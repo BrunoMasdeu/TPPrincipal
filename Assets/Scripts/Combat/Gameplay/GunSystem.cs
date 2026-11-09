@@ -193,7 +193,16 @@ public class GunSystem : MonoBehaviour
         {
             Debug.Log("Impactó a: " + rayHit.collider.name);
 
-            if (rayHit.collider.CompareTag("Enemy"))
+            // [ZOMBIES] Los zombies tienen su propia vida (Zombie.cs). Se revisa
+            // primero para que tenga prioridad aunque el prefab esté con el
+            // tag "Enemy".
+            Zombie zombie = rayHit.collider.GetComponentInParent<Zombie>();
+
+            if (zombie != null)
+            {
+                zombie.zombieHitDamage(damage);
+            }
+            else if (rayHit.collider.CompareTag("Enemy"))
             {
                 movimientoBot enemy =
                     rayHit.collider.GetComponentInParent<movimientoBot>();

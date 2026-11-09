@@ -17,6 +17,7 @@ public class NetworkLobbySession : NetworkBehaviour
     [SerializeField] private GameModeDefinition tdmDefinition;
     [SerializeField] private GameModeDefinition ctfDefinition;
     [SerializeField] private GameModeDefinition raceDefinition;
+    [SerializeField] private GameModeDefinition zombiesDefinition;
 
     [Header("Maps")]
     [SerializeField] private MapDefinition[] availableMaps =
@@ -483,6 +484,47 @@ public class NetworkLobbySession : NetworkBehaviour
             PrepareUnconfiguredRoom(out _);
             validationError =
                 "No se pudo preparar o cargar Race desde el tutorial.";
+            return false;
+        }
+
+        validationError = string.Empty;
+        return true;
+    }
+
+    /// <summary>
+    /// Inicia el modo Zombies (un jugador) desde el menú usando el host local.
+    /// Igual que Race, no se expone como opción del lobby multijugador.
+    /// </summary>
+    public bool TryStartLocalZombies(out string validationError)
+    {
+        if (!IsSpawned || !IsServer || !NetworkManager.IsHost ||
+            sessionPhase.Value != SessionPhase.Lobby ||
+            NetworkManager.ConnectedClientsIds.Count != 1 ||
+            players.Count != 1 ||
+            players[0].ClientId != NetworkManager.LocalClientId)
+        {
+            validationError =
+                "Zombies sólo puede iniciarse desde un host local de un jugador.";
+            return false;
+        }
+
+        if (zombiesDefinition == null ||
+            zombiesDefinition.GameModeId != GameModeId.Zombies)
+        {
+            validationError =
+                "NetworkLobbySession no tiene asignada la definición de Zombies.";
+            return false;
+        }
+
+        if (!ConfigureSession(zombiesDefinition, 1, out validationError))
+            return false;
+
+        if (!TryChangeReady(NetworkManager.LocalClientId, true) ||
+            !TryStartMatch())
+        {
+            PrepareUnconfiguredRoom(out _);
+            validationError =
+                "No se pudo preparar o cargar la partida de Zombies.";
             return false;
         }
 
@@ -1106,6 +1148,7 @@ public class NetworkLobbySession : NetworkBehaviour
             GameModeId.TDM => tdmDefinition,
             GameModeId.CTF => ctfDefinition,
             GameModeId.Race => raceDefinition,
+            GameModeId.Zombies => zombiesDefinition,
             _ => null
         };
     }
