@@ -60,6 +60,7 @@ public class NetworkPlayerInventory : NetworkBehaviour
     // Escena de zombies (singleplayer): no depende del lobby.
     private bool inZombiesScene;
     private bool lockedByMenu;
+    private float equipEnforceUntil;
     private WeaponId shownWeapon = WeaponId.None;
 
     // Solo en el servidor: arma de cada ranura.
@@ -162,6 +163,7 @@ public class NetworkPlayerInventory : NetworkBehaviour
         return;
 
         inventoryMode = true;
+        equipEnforceUntil = Time.time + 1f;
 
         // Se apagan todas las armas; después se prende solo la elegida.
         foreach (WeaponVisualBinding binding in weaponVisuals)
@@ -192,8 +194,17 @@ public class NetworkPlayerInventory : NetworkBehaviour
         weaponInventory.Gancho = VisualFor(WeaponId.Grapple);
 
         GameObject selected = VisualFor(selectedWeapon.Value);
-        if (selected != null && weaponInventory.CurrentWeapon != selected)
+        bool enforcing = Time.time < equipEnforceUntil;
+
+        if (selected != null &&
+            (weaponInventory.CurrentWeapon != selected ||
+            (enforcing && !selected.activeSelf)))
+        {
             weaponInventory.EquipWeapon(selected);
+
+            if (enforcing && !selected.activeSelf)
+                selected.SetActive(true);
+        }
 
         if (shownWeapon != selectedWeapon.Value)
         {
@@ -392,6 +403,7 @@ public class NetworkPlayerInventory : NetworkBehaviour
         {
             lockedByMenu = false;
             weaponInventory.enabled = true;
+            equipEnforceUntil = Time.time + 1f; 
         }
     }
 
