@@ -2770,7 +2770,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
-  zombieSpeed: 0.3
+  zombieSpeed: 0.2
   onlyPatrol: 0
   patrolSpeed: 1.5
   timeBtwAttack: 1
