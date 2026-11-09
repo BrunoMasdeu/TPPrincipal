@@ -53009,7 +53009,7 @@ MonoBehaviour:
   - {fileID: 1029790847}
   waves:
   - zombieCount: 10
-    specialZombieCount: 1
+    specialZombieCount: 5
     spawnDelay: 2
     zombieHealth: 150
   - zombieCount: 20
@@ -53024,11 +53024,6 @@ MonoBehaviour:
   normalDamageMultiplier: 2
   hardDamageMultiplier: 3
   moneyPerKill: 100
-  dropPrefabs:
-  - {fileID: 6506831427102013842, guid: b912e97d4987c1d45bec340b0d178c24, type: 3}
-  - {fileID: 1899822728827400409, guid: addcf7ee97be1a148b3944b949b348a5, type: 3}
-  - {fileID: 2061172121314114720, guid: 21046a49c442b1845bcbd3f7b0dec76b, type: 3}
-  dropChance: 1
   testAutoKillSeconds: 0
   autoStart: 1
   timeBetweenWaves: 10
