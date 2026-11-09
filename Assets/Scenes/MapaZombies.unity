@@ -53009,7 +53009,7 @@ MonoBehaviour:
   - {fileID: 1029790847}
   waves:
   - zombieCount: 10
-    specialZombieCount: 0
+    specialZombieCount: 1
     spawnDelay: 2
     zombieHealth: 150
   - zombieCount: 20

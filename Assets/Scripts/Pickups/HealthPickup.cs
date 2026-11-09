@@ -11,6 +11,8 @@ public class HealthPickup : NetworkBehaviour
     [SerializeField] private float serverValidationDistance = 2.5f;
 
     [Header("Reaparicion")]
+    [SerializeField] private bool desaparecerAlAgarrar = true;
+
     [Min(0.1f)]
     [SerializeField] private float tiempoReaparicion = 30f;
 
@@ -138,14 +140,29 @@ public class HealthPickup : NetworkBehaviour
             return;
         }
 
-        NetworkPlayerHealth health =
-            playerObject.GetComponent<NetworkPlayerHealth>();
+        if (WaveManager.IsActive)
+        {
+            Move move = playerObject.GetComponentInChildren<Move>();
+            if (move == null || !move.HealToFull())
+                return;
+        }
+        else
+        {
+            NetworkPlayerHealth health =
+                playerObject.GetComponent<NetworkPlayerHealth>();
 
-        if (health == null || !health.Heal(cantidadVida))
-            return;
+            if (health == null || !health.Heal(cantidadVida))
+                return;
+        }
 
-        collected.Value = true;
-        respawnCoroutine = StartCoroutine(RespawnAfterDelay());
+if (desaparecerAlAgarrar)
+{
+    NetworkObject.Despawn(true);
+    return;
+}
+
+collected.Value = true;
+respawnCoroutine = StartCoroutine(RespawnAfterDelay());
     }
 
     private IEnumerator RespawnAfterDelay()
