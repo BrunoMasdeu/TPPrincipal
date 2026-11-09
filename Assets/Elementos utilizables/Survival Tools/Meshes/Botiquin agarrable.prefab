@@ -66,6 +66,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2761557534241202248}
   m_SourcePrefab: {fileID: 100100000, guid: 334a15b23e6d31f44bef4858676d704a, type: 3}
+--- !u!4 &9056164674149789878 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 400000, guid: 334a15b23e6d31f44bef4858676d704a, type: 3}
+  m_PrefabInstance: {fileID: 9056164674149919286}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &9056164674149821590 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 100000, guid: 334a15b23e6d31f44bef4858676d704a, type: 3}
@@ -104,14 +109,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1485778564
+  GlobalObjectIdHash: 184501254
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
-  m_InScenePlaced: 1
+  m_InScenePlaced: 0
   ActiveSceneSynchronization: 0
   SceneMigrationSynchronization: 0
   SpawnWithObservers: 1
@@ -135,5 +140,5 @@ MonoBehaviour:
   cantidadVida: 50
   serverValidationDistance: 2.5
   tiempoReaparicion: 30
-  visual: {fileID: 0}
+  visual: {fileID: 9056164674149789878}
   rotationSpeed: 100

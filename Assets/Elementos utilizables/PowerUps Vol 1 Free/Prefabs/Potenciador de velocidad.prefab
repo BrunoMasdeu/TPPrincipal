@@ -222,11 +222,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 3757815310
+  GlobalObjectIdHash: 897306936
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
-  Ownership: 0
+  Ownership: 1
   AlwaysReplicateAsRoot: 0
   SynchronizeTransform: 1
   m_InScenePlaced: 1
@@ -253,6 +253,6 @@ MonoBehaviour:
   speedMultiplier: 2
   durationSeconds: 10
   serverValidationDistance: 2.5
-  visual: {fileID: 8964916349812665565, guid: 7c87fbe8dffe0704ca729965068b8ecb, type: 3}
+  visual: {fileID: 3865251930566550733}
   rotationSpeed: 100
   tiempoReaparicion: 20
