@@ -72,6 +72,17 @@ public class WaveManager : MonoBehaviour
     private bool gameWon = false;
     private string hudMessage = "";
     private static WaveManager instance;
+    private static int queuedMenuDifficulty = -1;
+
+    public static void QueueMenuDifficulty(int difficulty)
+    {
+        queuedMenuDifficulty = Mathf.Clamp(difficulty, 0, 2);
+    }
+
+    public static void ClearQueuedMenuDifficulty()
+    {
+        queuedMenuDifficulty = -1;
+    }
 
     private Move playerMove;
     private readonly List<Zombie> spawnedZombies = new List<Zombie>();
@@ -104,7 +115,24 @@ public class WaveManager : MonoBehaviour
     private IEnumerator ShowMenuNextFrame()
     {
         yield return null;
-        ShowDifficultyMenu();
+        int difficulty = queuedMenuDifficulty;
+        ClearQueuedMenuDifficulty();
+
+        switch (difficulty)
+        {
+            case 0:
+                SelectDifficulty("Fácil", easyDamageMultiplier);
+                break;
+            case 1:
+                SelectDifficulty("Medio", normalDamageMultiplier);
+                break;
+            case 2:
+                SelectDifficulty("Difícil", hardDamageMultiplier);
+                break;
+            default:
+                ShowDifficultyMenu();
+                break;
+        }
     }
 
     public void StartWaves()
