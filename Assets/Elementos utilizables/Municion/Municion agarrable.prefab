@@ -9,9 +9,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8860063159295289460}
-  - component: {fileID: 1686867167562837223}
   - component: {fileID: 5137587705340145220}
   - component: {fileID: 1420661273397733484}
+  - component: {fileID: 1686867167562837223}
+  - component: {fileID: 5429101691538218998}
   - component: {fileID: 2127296001097602610}
   - component: {fileID: 2775010641112964720}
   m_Layer: 0
@@ -36,27 +37,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: -52.007, z: 0}
---- !u!65 &1686867167562837223
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1899822728827400409}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 1
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Size: {x: 0.4720001, y: 0.22600001, z: 0.21999995}
-  m_Center: {x: 0, y: 0.113000005, z: -0.007910402}
 --- !u!33 &5137587705340145220
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -114,6 +94,44 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!65 &1686867167562837223
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1899822728827400409}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.4720001, y: 0.22600001, z: 0.21999995}
+  m_Center: {x: 0, y: 0.113000005, z: -0.007910402}
+--- !u!114 &5429101691538218998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1899822728827400409}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d59e27dd55d977489af13aac630c0cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  tipo: 1
+  vida: {fileID: 473741637287895018, guid: 34cab5dfd181d7649a96c42238c445a4, type: 3}
+  cantidadVida: 50
+  cantidadMunicion: 30
+  tiempoReaparicion: 20
 --- !u!114 &2127296001097602610
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -126,11 +144,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-<<<<<<<< HEAD:Assets/Elementos utilizables/Municion/Municion agarrable.prefab
   GlobalObjectIdHash: 3779989700
-========
-  GlobalObjectIdHash: 2422921122
->>>>>>>> fix/camara-animaciones:CodigoFelipeRecuperado/granada-y-agacharse/Granada.prefab.txt
   InScenePlacedSourceGlobalObjectIdHash: 0
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -145,21 +159,13 @@ MonoBehaviour:
   AutoObjectParentSync: 1
   SyncOwnerTransformWhenParented: 1
   AllowOwnerToParent: 0
-<<<<<<<< HEAD:Assets/Elementos utilizables/Municion/Municion agarrable.prefab
 --- !u!114 &2775010641112964720
-========
---- !u!114 &5188522840562916432
->>>>>>>> fix/camara-animaciones:CodigoFelipeRecuperado/granada-y-agacharse/Granada.prefab.txt
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-<<<<<<<< HEAD:Assets/Elementos utilizables/Municion/Municion agarrable.prefab
   m_GameObject: {fileID: 1899822728827400409}
-========
-  m_GameObject: {fileID: 7075323993728510871}
->>>>>>>> fix/camara-animaciones:CodigoFelipeRecuperado/granada-y-agacharse/Granada.prefab.txt
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c9f5468c7aaec6343956455b1d0ddd04, type: 3}
@@ -168,12 +174,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   cantidadVida: 25
   serverValidationDistance: 2.5
-<<<<<<<< HEAD:Assets/Elementos utilizables/Municion/Municion agarrable.prefab
   tiempoReaparicion: 20
   visual: {fileID: 8860063159295289460}
   rotationSpeed: 100
-========
-  tiempoReaparicion: 30
-  visual: {fileID: 0}
-  rotationSpeed: 90
->>>>>>>> fix/camara-animaciones:CodigoFelipeRecuperado/granada-y-agacharse/Granada.prefab.txt
