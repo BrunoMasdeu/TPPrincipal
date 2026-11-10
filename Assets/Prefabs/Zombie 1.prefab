@@ -5384,7 +5384,7 @@ MonoBehaviour:
   - {fileID: 0}
   zombieSpeed: 0.3
   onlyPatrol: 1
-  patrolSpeed: 1.5
+  patrolSpeed: 2.5
   timeBtwAttack: 1
   anim: {fileID: 1025460886878452708}
   visionRadius: 1000
@@ -5425,6 +5425,7 @@ MonoBehaviour:
   - {fileID: 1899822728827400409, guid: addcf7ee97be1a148b3944b949b348a5, type: 3}
   - {fileID: 2061172121314114720, guid: 21046a49c442b1845bcbd3f7b0dec76b, type: 3}
   alturaSueloObjeto: 0.5
+  duracionDrop: 10
 --- !u!1 &8134379907627362769
 GameObject:
   m_ObjectHideFlags: 0

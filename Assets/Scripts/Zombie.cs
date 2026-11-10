@@ -37,7 +37,6 @@ public class Zombie : MonoBehaviour
     public bool playerInvisionRadius;
     public bool playerInattackingRadius;
 
-    // Aviso al WaveManager cuando el zombie muere
     private Action onDeath;
 
     private void Awake()
@@ -46,7 +45,6 @@ public class Zombie : MonoBehaviour
         zombieAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
     }
 
-    // Lo llama el WaveManager justo después de instanciar el zombie
     public void Initialize(Transform player, GameObject[] points, float health, Action deathCallback)
     {
         playerBody = player;
@@ -56,8 +54,7 @@ public class Zombie : MonoBehaviour
         zombieHealth = health;
         presentHealth = health;
 
-        // Estilo Black Ops: siempre persiguen al jugador
-        visionRadius = 1000f;
+        visionRadius = 10000f;
 
         onDeath = deathCallback;
     }
@@ -66,7 +63,6 @@ public class Zombie : MonoBehaviour
     {
         if (isDead) return;
 
-        // Modo patrulla: solo camina por los walkPoints, ignora al jugador.
         if (onlyPatrol)
         {
             Patrol();
@@ -101,7 +97,6 @@ public class Zombie : MonoBehaviour
 
         if (!patrolHasDestination || arrived)
         {
-            // Elige un punto distinto al actual.
             if (walkPoints.Length > 1)
             {
                 currentZombiePosition =
