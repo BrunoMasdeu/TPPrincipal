@@ -766,6 +766,7 @@ GameObject:
   - component: {fileID: 2172910761934025866}
   - component: {fileID: 6223802698850979123}
   - component: {fileID: 1437686175334581308}
+  - component: {fileID: 1695462136556104120}
   m_Layer: 5
   m_Name: PlayerUI
   m_TagString: Untagged
@@ -884,6 +885,23 @@ MonoBehaviour:
   utilityIcon: {fileID: 3178500212294868461}
   normalHealthColor: {r: 1, g: 1, b: 1, a: 1}
   lowHealthColor: {r: 1, g: 0.25, b: 0.25, a: 1}
+--- !u!114 &1695462136556104120
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4035904569179689877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3e8c262a28eb3d44da4926f679f3e1bb, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game::HitConfirmationFeedback
+  hitDuration: 0.12
+  killDuration: 0.3
+  volume: 0.4
+  hitClip: {fileID: 0}
+  killClip: {fileID: 0}
 --- !u!1 &4072699859087653121
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,7 +7,7 @@ public sealed class HitConfirmationFeedback : MonoBehaviour
 {
     [SerializeField, Min(0.01f)] private float hitDuration = .12f;
     [SerializeField, Min(0.01f)] private float killDuration = .3f;
-    [SerializeField, Range(0f, 1f)] private float volume = .32f;
+    [SerializeField, Range(0f, 1f)] private float volume = .4f;
     [SerializeField] private AudioClip hitClip;
     [SerializeField] private AudioClip killClip;
 
