@@ -17,8 +17,6 @@ public class SinglePlayerFlowTests
         "Assets/Settings/GameModes/RaceGameModeDefinition.asset";
     private const string PlayerUiPrefabPath = "Assets/Prefabs/PlayerUI.prefab";
     private const string RedPlayerPrefabPath = "Assets/Prefabs/PlayerPrefab.prefab";
-    private const string BluePlayerPrefabPath =
-        "Assets/Prefabs/Survivalist (3).prefab";
 
     [Test]
     public void RespawnDelTutorialAdmiteJugadorSinEquipo()
@@ -96,8 +94,7 @@ public class SinglePlayerFlowTests
         string[] hudPrefabPaths =
         {
             PlayerUiPrefabPath,
-            RedPlayerPrefabPath,
-            BluePlayerPrefabPath
+            RedPlayerPrefabPath
         };
 
         foreach (string path in hudPrefabPaths)

@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 6661986299113608744}
   - component: {fileID: 6445058532374193143}
   - component: {fileID: 559291055517222982}
+  - component: {fileID: 8379904677265836377}
   m_Layer: 0
   m_Name: Granada
   m_TagString: Untagged
@@ -194,6 +195,34 @@ MonoBehaviour:
   damageLayers:
     serializedVersion: 2
     m_Bits: 4294967295
+  attacker: {fileID: 0}
+--- !u!114 &8379904677265836377
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2437517766519964124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 110b9fac13460194cbca775282bad7f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::GrenadeEffects
+  ShowTopMostFoldoutHeaderGroup: 1
+  explosionPrefab: {fileID: 5481530993414605263, guid: 7a12b40fb78f3694ea3ba5830db032b4, type: 3}
+  explosionSounds:
+  - {fileID: 8300000, guid: 2a35c58b7e7b2ba4ca15c070d0232097, type: 3}
+  - {fileID: 8300000, guid: 7cf0237a76ac45f4aa03bffd05e7e267, type: 3}
+  - {fileID: 8300000, guid: 908b5a9bae25ace4caf8b0c3f7bae0e8, type: 3}
+  explosionOffset: {x: 0, y: 0.5, z: 0}
+  effectLifetime: 2
+  explosionVolume: 1
+  explosionMinDistance: 8
+  explosionMaxDistance: 80
+  throwSound: {fileID: 8300000, guid: 03d3fdf5b1619574c9b96cadddde7b99, type: 3}
+  throwVolume: 0.6
+  throwMinDistance: 2
+  throwMaxDistance: 25
 --- !u!1001 &6411554720554447405
 PrefabInstance:
   m_ObjectHideFlags: 0

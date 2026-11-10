@@ -59,11 +59,15 @@ public class KnifeSystem : MonoBehaviour
 
         Debug.DrawRay(ray.origin, ray.direction * range, Color.red, 2f);
 
+        // [ANIMACIONES] Primero el raycast: el sonido cambia según si el
+        // cuchillo le pega a alguien o corta el aire.
+        bool tocoAlgo = Physics.Raycast(ray, out RaycastHit hit, range);
+
         // [MULTIJUGADOR] Todos escuchan el ataque y ven la animación.
         if (network != null)
-            network.ReportShot();
+            network.ReportShot(tocoAlgo && EsBlanco(hit.collider));
 
-        if (Physics.Raycast(ray, out RaycastHit hit, range))
+        if (tocoAlgo)
         {
             Debug.Log("Cuchillo detectó: " + hit.collider.name);
 
@@ -113,5 +117,19 @@ public class KnifeSystem : MonoBehaviour
         {
             Debug.Log("El cuchillo no detectó ningún objeto");
         }
+    }
+
+    // [ANIMACIONES] Lo que el cuchillo puede lastimar (no una pared ni el
+    // propio jugador). Sirve para elegir el sonido del ataque.
+    private bool EsBlanco(Collider tocado)
+    {
+        NetworkPlayerHealth jugador = tocado.GetComponentInParent<NetworkPlayerHealth>();
+        if (jugador != null)
+            return network == null || jugador.gameObject != network.gameObject;
+
+        return tocado.GetComponentInParent<Zombie>() != null
+            || tocado.GetComponentInParent<ShootingAi>() != null
+            || tocado.CompareTag("Enemy")
+            || tocado.CompareTag("Target");
     }
 }

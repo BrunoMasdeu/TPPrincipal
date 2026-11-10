@@ -145,6 +145,13 @@ public class PlayerWeaponAudio : NetworkBehaviour
         if (sound == null)
             return;
 
+        // [ANIMACIONES] Cuchillo: golpe si le pegó a alguien, si no el corte al aire.
+        if (combat.LastAttackHit && sound.HasHitClips)
+        {
+            sound.PlayHit();
+            return;
+        }
+
         // IsOwner: true solo en la máquina de quien disparó.
         sound.PlayShot(IsOwner);
     }
