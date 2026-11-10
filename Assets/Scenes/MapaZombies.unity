@@ -53464,6 +53464,8 @@ MonoBehaviour:
   normalDamageMultiplier: 2
   hardDamageMultiplier: 3
   moneyPerKill: 100
+  dropPrefabs: []
+  dropChance: 1
   testAutoKillSeconds: 0
   autoStart: 1
   timeBetweenWaves: 10
