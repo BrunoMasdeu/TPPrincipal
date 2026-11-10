@@ -5369,7 +5369,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf5afe843ac02c4daceb26ca20565e6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Game::Zombie
   giveDamage: 5
   zombieAgent: {fileID: 5823408055782595479}
@@ -5418,13 +5418,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b06af89dcaa1b54798e0e47107c3f44, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Game::ZombieDrop
   dropPrefabs:
   - {fileID: 9056164674149821590, guid: 4d0ed55738eb7f74c858490463249f65, type: 3}
   - {fileID: 1899822728827400409, guid: addcf7ee97be1a148b3944b949b348a5, type: 3}
   - {fileID: 2061172121314114720, guid: 21046a49c442b1845bcbd3f7b0dec76b, type: 3}
-  alturaSueloObjeto: 0.5
+  dropChance: 1
+  spawnHeight: 0.5
   duracionDrop: 10
 --- !u!1 &8134379907627362769
 GameObject:
