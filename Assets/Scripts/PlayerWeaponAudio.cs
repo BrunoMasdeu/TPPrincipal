@@ -48,12 +48,20 @@ public class PlayerWeaponAudio : NetworkBehaviour
     [Tooltip("Si queda vacío, se busca solo en este objeto o en sus padres.")]
     [SerializeField] private NetworkPlayerInventory inventory;
 
+    [Header("Clic de arma vacía")]
+    [Tooltip("Pausa mínima (segundos) entre dos clics de arma vacía.")]
+    [SerializeField] private float emptyClickCooldown = 0.2f;
+    [Tooltip("Si está activo, el clic solo suena con el cursor bloqueado (jugando), no al hacer clic en menús o pausa.")]
+    [SerializeField] private bool requireLockedCursor = true;
+
     [Header("Debug")]
     [Tooltip("Escribe en la Console cada ataque que llega y si tiene sonido configurado. Desactivalo antes de la entrega final.")]
     [SerializeField] private bool debugLog = true;
 
     private bool wasReloading;
     private WeaponShotAudio reloadingSound;
+    private bool reloadingLastFrame;
+    private float lastEmptyClickTime = -999f;
 
     public override void OnNetworkSpawn()
     {
@@ -93,6 +101,10 @@ public class PlayerWeaponAudio : NetworkBehaviour
         if (!IsSpawned || !IsClient || combat == null)
             return;
 
+        // El clic de arma vacía solo lo oye (y lo genera) quien aprieta el gatillo.
+        if (IsOwner)
+            HandleEmptyClick();
+
         bool reloading = combat.ReloadRemaining > 0f;
         if (reloading == wasReloading)
             return;
@@ -121,6 +133,64 @@ public class PlayerWeaponAudio : NetworkBehaviour
             reloadingSound = sound;
             sound.PlayReload();
         }
+    }
+
+    // Clic de arma vacía: suena UNA vez por cada vez que se aprieta el botón
+    // de disparo con el cargador en cero. No modifica ningún script de combate.
+    private void HandleEmptyClick()
+    {
+        // El estado de recarga se compara con el del frame anterior: así, si
+        // el arma arranca la recarga sola en este mismo frame, igual suena el
+        // clic de gatillo seco y después la recarga.
+        GunSystem gun = combat.CurrentGun;
+        bool reloadingNow = gun != null && gun.IsReloading;
+        bool reloadingBefore = reloadingLastFrame;
+        reloadingLastFrame = reloadingNow;
+
+        if (gun == null || !combat.IsCombatActive)
+            return;
+
+        if (combat.Ammunition > 0 || reloadingBefore)
+            return;
+
+        if (requireLockedCursor && Cursor.lockState != CursorLockMode.Locked)
+            return;
+
+        if (!FirePressedThisFrame())
+            return;
+
+        if (Time.time - lastEmptyClickTime < emptyClickCooldown)
+            return;
+
+        WeaponDefinition selected = inventory != null ? inventory.SelectedWeaponDefinition : null;
+        if (selected == null)
+            return;
+
+        WeaponShotAudio sound = FindSound(selected.Id);
+
+        if (debugLog)
+        {
+            Debug.Log(
+                $"[PlayerWeaponAudio] Clic sin balas con '{selected.Id}' | " +
+                $"sonido configurado: {sound != null}",
+                this);
+        }
+
+        if (sound == null)
+            return;
+
+        lastEmptyClickTime = Time.time;
+        sound.PlayEmpty();
+    }
+
+    private static bool FirePressedThisFrame()
+    {
+#if ENABLE_INPUT_SYSTEM
+        var mouse = UnityEngine.InputSystem.Mouse.current;
+        return mouse != null && mouse.leftButton.wasPressedThisFrame;
+#else
+        return Input.GetMouseButtonDown(0);
+#endif
     }
 
     private void StopReloadAudio()

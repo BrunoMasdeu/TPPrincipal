@@ -4781,7 +4781,8 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 99348524f0ef5b3469b6d1976f17370c, type: 3}
   - {fileID: 8300000, guid: 0910b552636052c42a5d5fb6d168dc27, type: 3}
   - {fileID: 8300000, guid: 8115c336b0fa59f41b1cb0af599a2271, type: 3}
-  emptyClips: []
+  emptyClips:
+  - {fileID: 8300000, guid: 2fdc0019a7a566e40b5154e1a9d3010a, type: 3}
   reloadSteps:
   - clip: {fileID: 8300000, guid: 6e95c1f9872c66348afdabf419de6f7a, type: 3}
     delay: 0
@@ -8430,6 +8431,8 @@ MonoBehaviour:
   - weapon: 2
     sound: {fileID: 8832165760127870160}
   inventory: {fileID: 0}
+  emptyClickCooldown: 0.2
+  requireLockedCursor: 1
   debugLog: 1
 --- !u!114 &2209955388978311753
 MonoBehaviour:
