@@ -61,6 +61,9 @@ public class NetworkMatchManager : NetworkBehaviour
     // Los modos pueden escuchar esta confirmación del servidor para contar puntos.
     public event Action<PlayerDeathInfo> ServerDeathConfirmed;
 
+    /// <summary>[COG-599] En todas las PCs: alguien abandonó (con su nombre).</summary>
+    public event Action<string> PlayerLeft;
+
     public MatchPhase Phase => phase.Value;
     public float DurationSeconds => durationSeconds.Value;
     public double MatchStartedAt => matchStartedAt.Value;
@@ -121,6 +124,7 @@ public class NetworkMatchManager : NetworkBehaviour
 
         ResetValues();
         lobbySession.LobbyStateChanged += OnLobbyStateChanged;
+        lobbySession.JugadorAbandonoPartida += OnJugadorAbandono;
         OnLobbyStateChanged();
     }
 
@@ -133,7 +137,10 @@ public class NetworkMatchManager : NetworkBehaviour
         result.OnValueChanged -= OnResultValueChanged;
 
         if (lobbySession != null)
+        {
             lobbySession.LobbyStateChanged -= OnLobbyStateChanged;
+            lobbySession.JugadorAbandonoPartida -= OnJugadorAbandono;
+        }
 
         TimeExpired = null;
         PhaseChanged = null;
@@ -141,6 +148,7 @@ public class NetworkMatchManager : NetworkBehaviour
         CountdownSecondChanged = null;
         DeathAnnounced = null;
         ServerDeathConfirmed = null;
+        PlayerLeft = null;
     }
 
     private void Update()
@@ -156,6 +164,8 @@ public class NetworkMatchManager : NetworkBehaviour
         if (phase.Value == MatchPhase.Countdown &&
             NetworkManager.ServerTime.Time >= countdownEndsAt.Value)
             BeginMatch();
+
+        RevisarEquipoVacio();
 
         if (phase.Value != MatchPhase.Playing || legacyRaceActive ||
             TimeRemaining > 0f)
@@ -308,6 +318,59 @@ public class NetworkMatchManager : NetworkBehaviour
 
         ResetValues();
         return true;
+    }
+
+    // ---- [COG-599] Abandonar una partida ----
+
+    private void OnJugadorAbandono(ulong clientId, string nombre, TeamId equipo)
+    {
+        if (!IsServer)
+            return;
+
+        Debug.Log($"[Match] {nombre} abandonó la partida (equipo {equipo}).");
+        AnunciarAbandonoRpc(nombre);
+        RevisarEquipoVacio();
+    }
+
+    // SendTo.ClientsAndHost: el aviso lo ven todos los que siguen jugando.
+    [Rpc(SendTo.ClientsAndHost)]
+    private void AnunciarAbandonoRpc(string nombre)
+    {
+        PlayerLeft?.Invoke(nombre);
+    }
+
+    /// <summary>
+    /// En TDM/CTF, si un equipo se quedó sin jugadores durante la partida,
+    /// gana el otro equipo. Solo lo decide el servidor.
+    /// </summary>
+    private void RevisarEquipoVacio()
+    {
+        if (!IsServer || phase.Value != MatchPhase.Playing || legacyRaceActive ||
+            lobbySession == null ||
+            (lobbySession.SelectedGameModeId != GameModeId.TDM &&
+             lobbySession.SelectedGameModeId != GameModeId.CTF))
+            return;
+
+        int rojos = 0;
+        int azules = 0;
+
+        for (int i = 0; i < lobbySession.Players.Count; i++)
+        {
+            TeamId equipo = lobbySession.Players[i].TeamId;
+            if (equipo == TeamId.Red)
+                rojos++;
+            else if (equipo == TeamId.Blue)
+                azules++;
+        }
+
+        if (rojos > 0 && azules > 0)
+            return;
+
+        if (rojos == 0 && azules == 0)
+            return; // no queda nadie para ganar
+
+        TeamId ganador = rojos > 0 ? TeamId.Red : TeamId.Blue;
+        TryFinishMatch(new MatchResultData(ganador, MatchEndReason.TeamAbandoned, false));
     }
 
     private bool BeginMatch()

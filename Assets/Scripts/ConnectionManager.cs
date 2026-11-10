@@ -53,6 +53,10 @@ public partial class ConnectionManager : MonoBehaviour
     // [COG-587] Se guarda el último nombre para no tener que escribirlo cada vez.
     private const string ClaveNombre = "Jugador_Nombre";
 
+    // [COG-599] Mensaje para mostrar al volver al menú desde una partida
+    // (por ejemplo, "El host cerró la partida"). Lo deja DisconnectedClientReturnToMenu.
+    public static string MensajePendiente;
+
     public GameModeDefinition PendingGameModeDefinition =>
         pendingGameModeDefinition;
 
@@ -104,6 +108,15 @@ public partial class ConnectionManager : MonoBehaviour
                 menuManager.ShowMainMenu();
             else
                 ShowConnectionPanel();
+
+            // [COG-599] Si volviste de una partida por un motivo (por ejemplo,
+            // el host se fue), se abre la pantalla Jugar mostrándolo.
+            if (!string.IsNullOrEmpty(MensajePendiente))
+            {
+                menuManager?.ShowConnectionMenu();
+                SetStatus(MensajePendiente);
+                MensajePendiente = null;
+            }
         }
 
         RefreshMenuUI();

@@ -4,5 +4,7 @@ public enum MatchEndReason : byte
     TimeExpired,
     ScoreLimit,
     Cancelled,
-    RaceFinish
+    RaceFinish,
+    // [COG-599] Un equipo se quedó sin jugadores porque abandonaron.
+    TeamAbandoned
 }
