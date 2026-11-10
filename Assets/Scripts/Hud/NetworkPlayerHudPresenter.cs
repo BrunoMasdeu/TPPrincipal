@@ -23,6 +23,7 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
     private bool subscribed;
     private bool requestedVisible = true;
     private bool wasReloading;
+    private HitConfirmationFeedback hitFeedback;
 
     public PlayerHudView View => view;
     public MatchHudPresenter MatchHudInstance => matchHudInstance;
@@ -36,6 +37,9 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
         combat = GetComponent<NetworkPlayerCombat>();
         grenades = GetComponent<NetworkPlayerGrenades>();
         view ??= GetComponentInChildren<PlayerHudView>(true);
+        if (view != null)
+            hitFeedback = view.GetComponent<HitConfirmationFeedback>() ??
+                view.gameObject.AddComponent<HitConfirmationFeedback>();
     }
 
     public override void OnNetworkSpawn()
@@ -82,6 +86,8 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
     public void SetHudVisible(bool visible)
     {
         requestedVisible = visible;
+        if (!visible && hitFeedback != null)
+            hitFeedback.Clear();
         if (view != null)
             view.SetVisible(IsSpawned && IsOwner && visible);
         if (matchHudInstance != null)
@@ -139,12 +145,15 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
         combat.AmmunitionChanged += OnAmmunitionChanged;
         combat.ReserveAmmunitionChanged += OnReserveAmmunitionChanged;
         combat.ReloadChanged += OnReloadChanged;
+        combat.HitConfirmed += OnHitConfirmed;
         grenades.GrenadeCountChanged += OnGrenadeCountChanged;
         subscribed = true;
     }
 
     private void Unsubscribe()
     {
+        if (hitFeedback != null)
+            hitFeedback.Clear();
         if (!subscribed)
             return;
 
@@ -165,6 +174,7 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
             combat.AmmunitionChanged -= OnAmmunitionChanged;
             combat.ReserveAmmunitionChanged -= OnReserveAmmunitionChanged;
             combat.ReloadChanged -= OnReloadChanged;
+            combat.HitConfirmed -= OnHitConfirmed;
         }
 
         if (grenades != null)
@@ -179,8 +189,16 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
             view.SetHealth(current, health.MaxHealth);
     }
 
+    private void OnHitConfirmed(int damage, bool lethal)
+    {
+        if (IsOwner && requestedVisible && IsHudVisible && damage > 0)
+            hitFeedback?.Present(lethal);
+    }
+
     private void OnLifeStateChanged(PlayerLifeState state)
     {
+        if (state != PlayerLifeState.Alive && hitFeedback != null)
+            hitFeedback.Clear();
         if (view == null || health == null)
             return;
 

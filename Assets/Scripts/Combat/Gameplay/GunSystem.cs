@@ -229,13 +229,21 @@ public class GunSystem : MonoBehaviour
                 network.ReportHit(rayHit.collider, damage);
             }
 
-            if (bulletHoleGraphic != null)
+            bool characterHit = zombie != null ||
+                rayHit.collider.GetComponentInParent<NetworkPlayerHealth>() != null ||
+                rayHit.collider.GetComponentInParent<movimientoBot>() != null ||
+                rayHit.collider.GetComponentInParent<ShootingAi>() != null ||
+                rayHit.collider.CompareTag("Target");
+            if (!characterHit)
             {
-                Instantiate(
-                    bulletHoleGraphic,
-                    rayHit.point,
-                    Quaternion.LookRotation(rayHit.normal)
-                );
+                SurfaceImpactFeedback.Play(rayHit);
+                if (bulletHoleGraphic != null)
+                {
+                    GameObject decal = Instantiate(bulletHoleGraphic,
+                        rayHit.point + rayHit.normal * .005f,
+                        Quaternion.LookRotation(rayHit.normal));
+                    Destroy(decal, 10f);
+                }
             }
         }
 
