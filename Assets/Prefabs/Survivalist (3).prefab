@@ -2102,6 +2102,9 @@ GameObject:
   - component: {fileID: 4033505309617425296}
   - component: {fileID: 3996947630940490268}
   - component: {fileID: 5949177901484054475}
+  - component: {fileID: 871600123411009922}
+  - component: {fileID: 871600123411009923}
+  - component: {fileID: 871600123411009924}
   m_Layer: 0
   m_Name: Survivalist (3)
   m_TagString: Player
@@ -8629,3 +8632,56 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 8543040006978373009, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}
   m_PrefabInstance: {fileID: 2096343419813975964}
   m_PrefabAsset: {fileID: 0}
+
+--- !u!114 &871600123411009922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2382877052538718719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d168370e8b6b4575a399da652a21a543, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game::PlayerCrouchAnimation
+  hipDropRatio: 0.85
+  hipBackOffset: 0.1
+  torsoLean: 10
+
+--- !u!114 &871600123411009923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2382877052538718719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3ce0631ae104997b4e7c40f71ec2b67, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game::PlayerAimAnimation
+  view: {fileID: 6870693027120682118}
+  maxPitch: 85
+  torsoContribution: 0.25
+  remoteSmoothTime: 0.06
+
+--- !u!114 &871600123411009924
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2382877052538718719}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc0fd5b6af6de6e4886853bc251bd7f4, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game::PlayerAnimationController
+  animator: {fileID: 7550222661678032020}
+  playerRigidbody: {fileID: 9116529792869211555}
+  movement: {fileID: 7020189118089650495}
+  speedDampTime: 0.1
+  remoteTeleportDistance: 3
+  deathBlendTime: 0.08
+  wallRunLayer: -1

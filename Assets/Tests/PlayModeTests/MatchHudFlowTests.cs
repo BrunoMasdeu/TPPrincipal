@@ -180,6 +180,34 @@ namespace HudIntegrationTests
             Assert.That(feedback.IsVisible, Is.False);
         }
 
+        [UnityTest]
+        public IEnumerator AimPublishesOwnerPitchAndRemoteUsesReplicatedAngle()
+        {
+            var aim = player.GetComponent<PlayerAimAnimation>();
+            var camera = player.GetComponentInChildren<CameraMovement>(true);
+            camera.enabled = false;
+            camera.transform.localRotation = Quaternion.Euler(-60f, 0f, 0f);
+            yield return new WaitForSecondsRealtime(0.12f);
+            var pitch = Variable<short>(aim, "aimPitch");
+            Assert.That(pitch.Value, Is.EqualTo(-600));
+            Assert.That(aim.PresentedPitch, Is.EqualTo(-60f).Within(0.1f));
+
+            remote = Object.Instantiate(TeamPlayerPrefab(localTeam == TeamId.Red ? TeamId.Blue : TeamId.Red));
+            remote.GetComponent<NetworkObject>().SpawnWithOwnership(999);
+            var remoteAim = remote.GetComponent<PlayerAimAnimation>();
+            remote.GetComponentInChildren<CameraMovement>(true).transform.localRotation = Quaternion.Euler(70f, 0f, 0f);
+            // Simula la recepción usando el formato real de NetworkVariable.
+            using (var writer = new FastBufferWriter(16, Unity.Collections.Allocator.Temp))
+            {
+                pitch.WriteField(writer);
+                using var reader = new FastBufferReader(writer, Unity.Collections.Allocator.Temp);
+                Variable<short>(remoteAim, "aimPitch").ReadField(reader);
+            }
+            yield return new WaitForSecondsRealtime(0.4f);
+            Assert.That(remoteAim.PresentedPitch, Is.EqualTo(-60f).Within(1f));
+            Assert.That(Variable<short>(remoteAim, "aimPitch").Value, Is.EqualTo(-600));
+        }
+
         private static string Text(MatchHudPresenter hud, string path) => hud.transform.Find(path).GetComponent<TMP_Text>().text;
         private static NetworkVariable<T> Variable<T>(object owner, string field) =>
             (NetworkVariable<T>)owner.GetType().GetField(field, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(owner);

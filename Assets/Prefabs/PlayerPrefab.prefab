@@ -7863,6 +7863,8 @@ GameObject:
   - component: {fileID: 4925870661405760147}
   - component: {fileID: 8155899254583240567}
   - component: {fileID: 8283755821527557845}
+  - component: {fileID: 871600123411009922}
+  - component: {fileID: 871600123411009923}
   m_Layer: 0
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -8115,7 +8117,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 377557317
+  GlobalObjectIdHash: 3814868959
   InScenePlacedSourceGlobalObjectIdHash: 377557317
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -8409,6 +8411,7 @@ MonoBehaviour:
   movement: {fileID: 7020189118089650495}
   speedDampTime: 0
   remoteTeleportDistance: 3
+  deathBlendTime: 0.08
   wallRunLayer: -1
   wallRunWeight: 0
   presentedWallSide: 0
@@ -8645,6 +8648,38 @@ MonoBehaviour:
   accionesBloqueadas: 0
   scriptsABloquear:
   - {fileID: 7020189118089650495}
+--- !u!114 &871600123411009922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d168370e8b6b4575a399da652a21a543, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::PlayerCrouchAnimation
+  hipDropRatio: 0.671
+  hipBackOffset: 0.157
+  torsoLean: 13.9
+--- !u!114 &871600123411009923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3ce0631ae104997b4e7c40f71ec2b67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::PlayerAimAnimation
+  ShowTopMostFoldoutHeaderGroup: 1
+  view: {fileID: 6870693027120682118}
+  maxPitch: 64.9
+  torsoContribution: 0.25
+  remoteSmoothTime: 0.06
 --- !u!1 &6409884032029496950
 GameObject:
   m_ObjectHideFlags: 0

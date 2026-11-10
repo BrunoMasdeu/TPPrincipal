@@ -18,6 +18,11 @@ public class Crouch : MonoBehaviour
     private Vector3 originalCameraPosition;
     private bool crouching;
 
+    public float HeightReduction => capsule != null
+        ? Mathf.Max(0f, originalHeight - capsule.height) : 0f;
+    public float CrouchAmount => Mathf.Clamp01(HeightReduction /
+        Mathf.Max(0.01f, originalHeight - crouchHeight));
+
     // [MULTIJUGADOR] En red, el servidor confirma si el jugador está agachado
     // y todas las PCs achican la cápsula con este mismo código.
     private NetworkPlayerCrouch network;
@@ -42,12 +47,13 @@ public class Crouch : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current == null || capsule == null)
+        if (capsule == null)
             return;
 
         // [MULTIJUGADOR] Solo el dueño lee su teclado y pide el cambio. Las
         // copias de los demás jugadores no leen el teclado de esta PC.
-        if (network == null || network.IsOwner)
+        bool networked = network != null && network.IsSpawned;
+        if (Keyboard.current != null && (!networked || network.IsOwner))
         {
             if (Keyboard.current[Controles.Tecla(Accion.Agacharse)].isPressed)
             {
@@ -58,12 +64,12 @@ public class Crouch : MonoBehaviour
                 crouching = false;
             }
 
-            if (network != null)
+            if (networked)
                 network.RequestCrouch(crouching);
         }
 
         // [MULTIJUGADOR] Todas las PCs usan lo que confirmó el servidor.
-        if (network != null)
+        if (networked)
             crouching = network.IsCrouched;
 
         float targetHeight = crouching
