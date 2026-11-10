@@ -5264,6 +5264,8 @@ GameObject:
   - component: {fileID: 5823408055782595479}
   - component: {fileID: 3757266598236233259}
   - component: {fileID: 2701799590949945906}
+  - component: {fileID: -7908924888979135789}
+  - component: {fileID: 2620591157595553826}
   m_Layer: 0
   m_Name: Zombie 1
   m_TagString: Untagged
@@ -5367,7 +5369,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf5afe843ac02c4daceb26ca20565e6, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Game::Zombie
   giveDamage: 5
   zombieAgent: {fileID: 5823408055782595479}
@@ -5381,12 +5383,49 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   zombieSpeed: 0.3
+  onlyPatrol: 1
+  patrolSpeed: 1.5
   timeBtwAttack: 1
   anim: {fileID: 1025460886878452708}
   visionRadius: 1000
   attackingRadius: 1.4
   playerInvisionRadius: 0
   playerInattackingRadius: 0
+--- !u!114 &-7908924888979135789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8012044164244743118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d58f6de86661ddc448aac31e97b3a63b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::ZombieGlow
+  glowColor: {r: 0.9, g: 0.9, b: 0.9, a: 1}
+  intensity: 80
+  useLight: 1
+  lightRange: 1
+  lightIntensity: 5
+--- !u!114 &2620591157595553826
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8012044164244743118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b06af89dcaa1b54798e0e47107c3f44, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Game::ZombieDrop
+  dropPrefabs:
+  - {fileID: 6506831427102013842, guid: b912e97d4987c1d45bec340b0d178c24, type: 3}
+  - {fileID: 1899822728827400409, guid: addcf7ee97be1a148b3944b949b348a5, type: 3}
+  - {fileID: 2061172121314114720, guid: 21046a49c442b1845bcbd3f7b0dec76b, type: 3}
+  dropChance: 1
+  spawnHeight: 0.5
 --- !u!1 &8134379907627362769
 GameObject:
   m_ObjectHideFlags: 0

@@ -34,7 +34,6 @@ Assets/Scenes/GameScene/*Baking Set*.bytes
 Assets/Resources/
 
 # Recursos
-Assets/UI/Icons/
 
 # Archivos locales que no van al repo
 *.bundle

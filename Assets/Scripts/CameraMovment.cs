@@ -58,6 +58,9 @@ public class CameraMovement : MonoBehaviour
         if (NetworkPlayerShop.IsInputCaptured)
             return;
 
+        if (Cursor.lockState != CursorLockMode.Locked || Mouse.current == null)
+            return;
+
         Vector2 mouse = Mouse.current.delta.ReadValue();
 
         float mouseX = mouse.x * mouseSensitivity;

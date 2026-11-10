@@ -126,8 +126,9 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
     private bool CanUseWeaponsNow() =>
         localInputEnabled &&
+        !WaveManager.IsInputCaptured &&
         HasInventoryInThisMode() &&
-        (IsTutorialTraining() || IsMatchPlaying());
+        (IsTutorialTraining() || WaveManager.IsActive || IsMatchPlaying());
 
     private void SetWeaponsEnabled(bool enabled)
     {
@@ -254,7 +255,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private bool CanAttackOnServer() =>
         health != null &&
         health.LifeState == PlayerLifeState.Alive &&
-        (IsTutorialTraining() || IsMatchPlaying());
+        (IsTutorialTraining() || WaveManager.IsActive || IsMatchPlaying());
 
     /// <summary>
     /// Único lugar donde el servidor daña a otro jugador, con cualquier arma
@@ -311,11 +312,36 @@ public class NetworkPlayerCombat : NetworkBehaviour
         money.Value = Mathf.Max(0, money.Value - moneyLostOnDeath);
     }
 
+    public void AddMoneyOnServer(int amount)
+    {
+        if (!IsServer || !IsSpawned || amount == 0)
+            return;
+
+        money.Value = Mathf.Max(0, money.Value + amount);
+    }
+
+    public void ResetMoneyOnServer()
+    {
+        if (!IsServer || !IsSpawned)
+            return;
+
+        money.Value = 0;
+    }
+
     /// <summary>Lo llama NetworkPlayerHealth al morir: corta el sonido de recarga.</summary>
     public void CancelReloadForDeath()
     {
         if (IsServer)
             reloadEndsAt.Value = 0d;
+    }
+
+    public void RefillAllWeaponsOnServer()
+    {
+        if (!IsServer || !IsSpawned)
+            return;
+
+        reloadEndsAt.Value = 0d;
+        RefillOwnerRpc();
     }
 
     /// <summary>Lo llama NetworkPlayerHealth al reaparecer.</summary>
@@ -374,10 +400,11 @@ public class NetworkPlayerCombat : NetworkBehaviour
     // =====================================================================
 
     private static bool HasInventoryInThisMode() =>
-        NetworkLobbySession.Instance != null &&
+        WaveManager.IsActive ||
+        (NetworkLobbySession.Instance != null &&
         CombatValidationRules.SupportsInventoryPreview(
             NetworkLobbySession.Instance.SelectedGameModeId,
-            IsTutorialTraining());
+            IsTutorialTraining()));
 
     private static bool IsTutorialTraining() =>
         NetworkLobbySession.Instance != null &&

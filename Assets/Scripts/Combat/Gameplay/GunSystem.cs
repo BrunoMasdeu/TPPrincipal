@@ -76,7 +76,16 @@ public class GunSystem : MonoBehaviour
         // [MULTIJUGADOR] Con la tienda o la consola de depuración abiertas,
         // el mouse es de esas ventanas: no se dispara ni se recarga.
         if (MatchDebugConsole.IsInputCaptured || NetworkPlayerShop.IsInputCaptured)
+        {
+            if (canZoom && isZooming)
+            {
+                isZooming = false;
+                ShowSniperScope(false);
+                if (fpsCam != null)
+                    fpsCam.fieldOfView = normalFOV;
+            }
             return;
+        }
 
         MyInput();
         UpdateZoom();
@@ -152,6 +161,9 @@ public class GunSystem : MonoBehaviour
 
     private void ShowSniperScope(bool isZooming)
     {
+        if (!canZoom)
+            return;
+
         if (normalScopeOverlay != null) normalScopeOverlay.SetActive(!isZooming);
         if (scopeOverlay != null) scopeOverlay.SetActive(isZooming);
     }
@@ -181,7 +193,16 @@ public class GunSystem : MonoBehaviour
         {
             Debug.Log("Impactó a: " + rayHit.collider.name);
 
-            if (rayHit.collider.CompareTag("Enemy"))
+            // [ZOMBIES] Los zombies tienen su propia vida (Zombie.cs). Se revisa
+            // primero para que tenga prioridad aunque el prefab esté con el
+            // tag "Enemy".
+            Zombie zombie = rayHit.collider.GetComponentInParent<Zombie>();
+
+            if (zombie != null)
+            {
+                zombie.zombieHitDamage(damage);
+            }
+            else if (rayHit.collider.CompareTag("Enemy"))
             {
                 movimientoBot enemy =
                     rayHit.collider.GetComponentInParent<movimientoBot>();
@@ -318,6 +339,14 @@ public class GunSystem : MonoBehaviour
         CancelInvoke();
         reloading = false;
         readyToShoot = true;
+
+        if (canZoom)
+        {
+            isZooming = false;
+            ShowSniperScope(false);
+            if (fpsCam != null)
+                fpsCam.fieldOfView = normalFOV;
+        }
     }
 
     // Al reaparecer, el arma vuelve con el cargador y la reserva llenos.

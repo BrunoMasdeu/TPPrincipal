@@ -100,8 +100,10 @@ public sealed class ScenePauseMenu : MonoBehaviour
         previousCursorVisible = Cursor.visible;
         previousTimeScale = Time.timeScale;
 
-        // En una sesión de red, detener el tiempo local también detendría al host.
-        changedTimeScale = NetworkManager.Singleton == null ||
+        // Zombies usa un host local de un solo jugador, así que puede pausarse.
+        // En multijugador el host debe seguir avanzando para los demás clientes.
+        changedTimeScale = WaveManager.IsActive ||
+                           NetworkManager.Singleton == null ||
                            !NetworkManager.Singleton.IsListening;
         if (changedTimeScale)
             Time.timeScale = 0f;

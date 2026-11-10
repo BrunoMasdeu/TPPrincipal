@@ -30,6 +30,7 @@ public class MenuManager : MonoBehaviour
     [SerializeField] private GameObject canvasLobby;
     [SerializeField] private GameObject canvasAchieves;
     [SerializeField] private GameObject canvasLoading;
+    [SerializeField] private GameObject canvasZombies;
 
 
     [Header("Logros")]
@@ -49,6 +50,12 @@ public class MenuManager : MonoBehaviour
 
     private void Update()
     {
+        if (canvasZombies != null && canvasZombies.activeSelf &&
+            Input.GetKeyDown(KeyCode.Escape))
+        {
+            ShowConnectionMenu();
+        }
+
         // Si no hay EventSystem activo, mantener default
         if (EventSystem.current == null) return;
 
@@ -159,12 +166,22 @@ public class MenuManager : MonoBehaviour
 
     public void PlayZombies()
     {
+        ShowCanvas(canvasZombies);
+    }
+
+    public void PlayZombiesEasy() => StartZombiesWithDifficulty(0);
+    public void PlayZombiesNormal() => StartZombiesWithDifficulty(1);
+    public void PlayZombiesHard() => StartZombiesWithDifficulty(2);
+
+    private void StartZombiesWithDifficulty(int difficulty)
+    {
         if (connectionManager == null)
         {
             Debug.LogError("Falta configurar ConnectionManager en el menú.");
             return;
         }
 
+        WaveManager.QueueMenuDifficulty(difficulty);
         ShowCanvas(canvasLoading);
         StartCoroutine(StartZombiesWithDelay());
     }
@@ -174,7 +191,10 @@ public class MenuManager : MonoBehaviour
         yield return null;
 
         if (!connectionManager.StartLocalZombies())
-            ShowMainMenu();
+        {
+            WaveManager.ClearQueuedMenuDifficulty();
+            ShowCanvas(canvasZombies);
+        }
     }
 
     public void Settings()
@@ -240,6 +260,7 @@ public class MenuManager : MonoBehaviour
         SetCanvasActive(canvasMultiplayer, selected);
         SetCanvasActive(canvasAchieves, selected);
         SetCanvasActive(canvasLobby, selected);
+        SetCanvasActive(canvasZombies, selected);
         if (playModesLayout != null && playModesLayout != canvasMultiplayer)
             playModesLayout.SetActive(false);
         if (panelExit != null)

@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -11,17 +12,84 @@ public class SpeedBoostPickup : NetworkBehaviour
     [SerializeField] private Transform visual;
     [SerializeField] private float rotationSpeed = 90f;
 
-    private bool collected;
+    [Header("Reaparicion")]
+    [Min(0.1f)]
+    [SerializeField] private float tiempoReaparicion = 30f;
+
+    private readonly NetworkVariable<bool> collected = new(
+        false,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
+
+    private Renderer[] renderers;
+    private bool[] rendererInitiallyEnabled;
+    private Collider[] colliders;
+    private bool[] colliderInitiallyEnabled;
+    private Light[] lights;
+    private bool[] lightInitiallyEnabled;
+    private Coroutine respawnCoroutine;
+
+    private void Awake()
+    {
+        renderers = GetComponentsInChildren<Renderer>(true);
+        rendererInitiallyEnabled = new bool[renderers.Length];
+        for (int i = 0; i < renderers.Length; i++)
+            rendererInitiallyEnabled[i] = renderers[i].enabled;
+
+        colliders = GetComponentsInChildren<Collider>(true);
+        colliderInitiallyEnabled = new bool[colliders.Length];
+        for (int i = 0; i < colliders.Length; i++)
+            colliderInitiallyEnabled[i] = colliders[i].enabled;
+
+        lights = GetComponentsInChildren<Light>(true);
+        lightInitiallyEnabled = new bool[lights.Length];
+        for (int i = 0; i < lights.Length; i++)
+            lightInitiallyEnabled[i] = lights[i].enabled;
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        collected.OnValueChanged += OnCollectedChanged;
+        if (IsServer)
+            collected.Value = false;
+        SetAvailable(!collected.Value);
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        collected.OnValueChanged -= OnCollectedChanged;
+        if (respawnCoroutine != null)
+            StopCoroutine(respawnCoroutine);
+        respawnCoroutine = null;
+        SetAvailable(true);
+    }
+
+    private void OnCollectedChanged(bool previous, bool current)
+    {
+        SetAvailable(!current);
+    }
+
+    private void SetAvailable(bool available)
+    {
+        for (int i = 0; i < renderers.Length; i++)
+            renderers[i].enabled = available && rendererInitiallyEnabled[i];
+
+        for (int i = 0; i < colliders.Length; i++)
+            colliders[i].enabled = available && colliderInitiallyEnabled[i];
+
+        for (int i = 0; i < lights.Length; i++)
+            lights[i].enabled = available && lightInitiallyEnabled[i];
+    }
 
     private void Update()
     {
-        if (visual != null)
+        if (IsSpawned && !collected.Value && visual != null)
             visual.Rotate(Vector3.up, rotationSpeed * Time.deltaTime);
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (!IsSpawned || collected)
+        if (!IsSpawned || collected.Value)
             return;
 
         NetworkObject playerObject =
@@ -60,7 +128,7 @@ public class SpeedBoostPickup : NetworkBehaviour
         ulong requestingClientId
     )
     {
-        if (!IsServer || collected || playerObject == null)
+        if (!IsServer || collected.Value || playerObject == null)
             return;
 
         if (!playerObject.IsPlayerObject ||
@@ -87,9 +155,26 @@ public class SpeedBoostPickup : NetworkBehaviour
             return;
         }
 
-        // El servidor procesa las solicitudes de forma secuencial. Marcarlo
-        // antes de despawnear garantiza un unico ganador si llegan a la vez.
-        collected = true;
-        NetworkObject.Despawn(true);
+        if (WaveManager.IsActive)
+        {
+            NetworkObject.Despawn(true);
+            return;
+        }
+
+        collected.Value = true;
+        respawnCoroutine = StartCoroutine(RespawnAfterDelay());
+    }
+
+    private IEnumerator RespawnAfterDelay()
+    {
+        yield return new WaitForSeconds(tiempoReaparicion);
+        if (IsSpawned && IsServer)
+            collected.Value = false;
+        respawnCoroutine = null;
+    }
+
+    private void OnValidate()
+    {
+        tiempoReaparicion = Mathf.Max(0.1f, tiempoReaparicion);
     }
 }

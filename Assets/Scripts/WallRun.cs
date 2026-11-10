@@ -35,6 +35,12 @@ public class WallRun : MonoBehaviour
 
     private bool wallLeft;
     private bool wallRight;
+    [Header("Animation Debug (Play Mode)")]
+    [SerializeField] private int activeAnimationSide;
+
+    // Keep the last valid side through a brief missed raycast at wall edges.
+    public int AnimationSide => move != null && move.wallrunning
+        ? activeAnimationSide : 0;
 
     [Header("Exiting")]
     public float exitWallTime = 0.2f;
@@ -126,6 +132,9 @@ public class WallRun : MonoBehaviour
             wallCheckDistance,
             whatIsWall
         );
+
+        if (move != null && move.wallrunning && (wallRight || wallLeft))
+            activeAnimationSide = wallRight ? 1 : -1;
     }
 
     private bool AboveGround()
@@ -192,6 +201,7 @@ public class WallRun : MonoBehaviour
     private void StartWallRun()
     {
         move.wallrunning = true;
+        activeAnimationSide = wallRight ? 1 : -1;
 
         wallRunTimer = maxWallRunTime;
 
@@ -280,12 +290,14 @@ public class WallRun : MonoBehaviour
     private void StopWallRun()
     {
         move.wallrunning = false;
+        activeAnimationSide = 0;
 
         rb.useGravity = true;
     }
 
     private void WallJump()
     {
+        StopWallRun();
         exitingWall = true;
         exitWallTimer = exitWallTime;
 
