@@ -24,7 +24,7 @@ public class MenuManager : MonoBehaviour
     [Header("Canvas")]
     [SerializeField] private GameObject canvasMain;
     [SerializeField] private GameObject canvasSettings;
-    [SerializeField] private GameObject canvasRules;
+    [SerializeField] private GameObject canvasCreditos;
     [SerializeField] private GameObject panelExit;
     [SerializeField] private GameObject canvasMultiplayer;
     [SerializeField] private GameObject canvasLobby;
@@ -202,17 +202,6 @@ public class MenuManager : MonoBehaviour
         ShowCanvas(canvasSettings);
     }
 
-    public void OpenRules()
-    {
-        if (canvasRules != null)
-            ShowCanvas(canvasRules);
-    }
-
-    public void CloseRules()
-    {
-        ShowMainMenu();
-    }
-
     public void ReturnMenu()
     {
         ShowMainMenu();
@@ -249,6 +238,7 @@ public class MenuManager : MonoBehaviour
     public void ShowConnectionMenu() => ShowCanvas(canvasMultiplayer);
     public void ShowLobbyMenu() => ShowCanvas(canvasLobby);
     public void ShowAchieves() => ShowCanvas(canvasAchieves);
+    public void ShowCredits() => ShowCanvas(canvasCreditos);
     public void HideMenu() => ShowCanvas(null);
 
     private void ShowCanvas(GameObject selected)
@@ -256,7 +246,7 @@ public class MenuManager : MonoBehaviour
         SetCanvasActive(canvasLoading, selected);
         SetCanvasActive(canvasMain, selected);
         SetCanvasActive(canvasSettings, selected);
-        SetCanvasActive(canvasRules, selected);
+        SetCanvasActive(canvasCreditos, selected);
         SetCanvasActive(canvasMultiplayer, selected);
         SetCanvasActive(canvasAchieves, selected);
         SetCanvasActive(canvasLobby, selected);
