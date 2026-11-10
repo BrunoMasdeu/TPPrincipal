@@ -17,6 +17,7 @@ public sealed class PlayerAnimationController : NetworkBehaviour
     [Header("Suavizado")]
     [SerializeField, Min(0f)] private float speedDampTime = 0.1f;
     [SerializeField, Min(0.1f)] private float remoteTeleportDistance = 3f;
+    [SerializeField, Min(0f)] private float deathBlendTime = 0.08f;
 
     private static readonly int SpeedParam =
         Animator.StringToHash("Speed");
@@ -40,6 +41,10 @@ public sealed class PlayerAnimationController : NetworkBehaviour
     private NetworkPlayerInventory inventory;
     private NetworkPlayerCombat combat;
     private WallRun wallRun;
+    private NetworkPlayerHealth health;
+    private int deathLayer = -1;
+    private bool presentingDeath;
+    private float deathWeight;
     [SerializeField, HideInInspector] private int wallRunLayer = -1;
     [Header("Wall Run Debug (Play Mode)")]
     [SerializeField] private float wallRunWeight;
@@ -71,8 +76,12 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         inventory = GetComponent<NetworkPlayerInventory>();
         combat = GetComponent<NetworkPlayerCombat>();
         wallRun = GetComponent<WallRun>();
+        health = GetComponent<NetworkPlayerHealth>();
         if (animator != null && animator.runtimeAnimatorController != null)
+        {
             wallRunLayer = animator.GetLayerIndex("Wall Run");
+            deathLayer = animator.GetLayerIndex("Death");
+        }
     }
 
     private void OnEnable()
@@ -93,6 +102,19 @@ public sealed class PlayerAnimationController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         ResetSamples();
+        if (health != null)
+        {
+            health.LifeStateChanged += OnLifeStateChanged;
+            OnLifeStateChanged(health.LifeState);
+            // A player joining during the respawn wait should see the corpse,
+            // rather than replay a death that happened before they connected.
+            if (presentingDeath && animator != null && deathLayer >= 0)
+            {
+                deathWeight = 1f;
+                animator.SetLayerWeight(deathLayer, 1f);
+                animator.Play("Death Back", deathLayer, 1f);
+            }
+        }
 
         if (combat != null)
         {
@@ -122,6 +144,9 @@ public sealed class PlayerAnimationController : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        if (health != null)
+            health.LifeStateChanged -= OnLifeStateChanged;
+        OnLifeStateChanged(PlayerLifeState.Alive);
         ClearWallRunPresentation();
         if (combat != null)
         {
@@ -142,6 +167,15 @@ public sealed class PlayerAnimationController : NetworkBehaviour
     {
         if (animator == null)
             return;
+
+        if (presentingDeath)
+        {
+            deathWeight = deathBlendTime <= 0f ? 1f :
+                Mathf.MoveTowards(deathWeight, 1f, Time.deltaTime / deathBlendTime);
+            if (deathLayer >= 0)
+                animator.SetLayerWeight(deathLayer, deathWeight);
+            return;
+        }
 
         float horizontalSpeed = SampleHorizontalSpeed();
         bool grounded = movement != null && movement.IsGrounded();
@@ -264,7 +298,7 @@ public sealed class PlayerAnimationController : NetworkBehaviour
 
     private void OnLocalJumped()
     {
-        if (animator == null)
+        if (animator == null || presentingDeath)
             return;
 
         if (!IsSpawned || IsOwner)
@@ -280,7 +314,7 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         WeaponId weaponId,
         WeaponAttackType attackType)
     {
-        if (animator == null ||
+        if (animator == null || presentingDeath ||
             attackType != WeaponAttackType.Hitscan ||
             !UsesFireAnimation(weaponId))
             return;
@@ -299,8 +333,44 @@ public sealed class PlayerAnimationController : NetworkBehaviour
 
         animator.SetBool(
             ReloadingParam,
-            combat.ReloadRemaining > 0f
+            !presentingDeath && combat.ReloadRemaining > 0f
         );
+    }
+
+    private void OnLifeStateChanged(PlayerLifeState state)
+    {
+        // Respawning remains dead until the server confirms the teleport.
+        bool dead = state != PlayerLifeState.Alive;
+        if (dead == presentingDeath)
+            return;
+
+        presentingDeath = dead;
+        if (animator == null || deathLayer < 0)
+            return;
+
+        ClearWallRunPresentation();
+        animator.ResetTrigger(JumpParam);
+        animator.ResetTrigger(FireParam);
+        animator.SetBool(ReloadingParam, false);
+        animator.SetFloat(SpeedParam, 0f);
+        animator.SetBool(RunningParam, false);
+        deathWeight = 0f;
+        animator.SetLayerWeight(deathLayer, 0f);
+
+        if (dead)
+        {
+            animator.Play("Death Back", deathLayer, 0f);
+        }
+        else
+        {
+            // Reset interrupted jumps/fire/reloads as well as the death pose.
+            animator.Play("Locomotion Base", 0, 0f);
+            int upperBody = animator.GetLayerIndex("Upper Body");
+            if (upperBody >= 0)
+                animator.Play("Neutral Upper Body", upperBody, 0f);
+            ApplyWeaponPose(inventory != null ? inventory.SelectedWeaponId : WeaponId.None);
+            ResetSamples();
+        }
     }
 
     private static bool UsesFireAnimation(WeaponId weaponId) =>

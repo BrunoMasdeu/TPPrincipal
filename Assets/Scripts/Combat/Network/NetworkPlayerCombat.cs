@@ -53,6 +53,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
     public event Action<int> ReserveAmmunitionChanged;
     public event Action ReloadChanged;
     public event Action<int> MoneyChanged;
+    /// <summary>Solo el atacante recibe daño efectivo confirmado y si fue letal.</summary>
+    public event Action<int, bool> HitConfirmed;
 
     /// <summary>
     /// Se dispara en TODAS las copias del jugador cuando alguien ataca.
@@ -107,6 +109,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
         ReserveAmmunitionChanged = null;
         ReloadChanged = null;
         AttackPresented = null;
+        HitConfirmed = null;
     }
 
     private void Update()
@@ -286,6 +289,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
             money.Value += 200;
         }
 
+        // Punto común para armas, cuchillo y granadas. Nunca se confirma un rechazo.
+        ConfirmHitRpc(appliedDamage, victim.LifeState == PlayerLifeState.Dead);
         return true;
     }
 
@@ -384,6 +389,13 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private void ShotFeedbackRpc(string result)
     {
         lastShotSummary = result;
+    }
+
+    [Rpc(SendTo.Owner)]
+    private void ConfirmHitRpc(int appliedDamage, bool lethal)
+    {
+        if (appliedDamage > 0)
+            HitConfirmed?.Invoke(appliedDamage, lethal);
     }
 
     private void OnReloadEndsAtChanged(double previous, double current) =>
