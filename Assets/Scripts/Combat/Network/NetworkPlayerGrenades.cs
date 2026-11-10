@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -20,12 +21,22 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
     [SerializeField, Min(0.05f)] private float throwCooldownSeconds = 0.5f;
     [SerializeField, Min(0)] private int startingGrenades = 3;
 
+    // [ANIMACIONES] Tiempo entre apretar la tecla y que la granada salga de
+    // la mano, para que coincida con la animación de lanzar.
+    [SerializeField, Min(0f)] private float throwDelaySeconds = 0.5f;
+
     private Grenade grenade;
     private NetworkPlayerHealth health;
     private double nextThrowAt;
     private int lastCount = -1;
 
     public event Action<int> GrenadeCountChanged;
+
+    /// <summary>
+    /// [ANIMACIONES] Se dispara en TODAS las copias del jugador cuando empieza
+    /// a lanzar. Trae los segundos que faltan para que la granada salga.
+    /// </summary>
+    public event Action<float> ThrowPresented;
 
     /// <summary>Granadas que le quedan al dueño (las cuenta Grenade).</summary>
     public int GrenadeCount => FelipeGrenade != null ? FelipeGrenade.grenades : 0;
@@ -59,6 +70,7 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         GrenadeCountChanged = null;
+        ThrowPresented = null; // [ANIMACIONES]
     }
 
     private void Update()
@@ -94,17 +106,48 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
         if (rpcParams.Receive.SenderClientId != OwnerClientId ||
             grenade == null || health == null ||
             health.LifeState != PlayerLifeState.Alive ||
-            NetworkMatchManager.Instance == null ||
-            NetworkMatchManager.Instance.Phase != MatchPhase.Playing ||
+            !CanThrowNow() ||
             now < nextThrowAt ||
             direction.sqrMagnitude < 0.5f)
             return;
 
-        nextThrowAt = now + throwCooldownSeconds;
+        // [ANIMACIONES] No se puede volver a lanzar hasta que salga esta.
+        nextThrowAt = now + Mathf.Max(throwCooldownSeconds, throwDelaySeconds);
 
-        // El mismo código de Felipe, ejecutado en el servidor.
-        grenade.ThrowGrenade(direction.normalized);
+        // [ANIMACIONES] Primero todos ven el gesto; la granada sale después.
+        PresentThrowRpc(throwDelaySeconds);
+        StartCoroutine(ThrowAfterDelay(direction.normalized));
     }
+
+    // [ANIMACIONES]
+    private IEnumerator ThrowAfterDelay(Vector3 direction)
+    {
+        yield return new WaitForSeconds(throwDelaySeconds);
+
+        // Si murió mientras hacía el gesto, la granada no sale.
+        if (IsSpawned && grenade != null && health != null &&
+            health.LifeState == PlayerLifeState.Alive)
+        {
+            // El mismo código de Felipe, ejecutado en el servidor.
+            grenade.ThrowGrenade(direction);
+        }
+    }
+
+    // [ANIMACIONES] SendTo.ClientsAndHost: todos ven el lanzamiento.
+    [Rpc(SendTo.ClientsAndHost)]
+    private void PresentThrowRpc(float secondsUntilRelease)
+    {
+        ThrowPresented?.Invoke(secondsUntilRelease);
+    }
+
+    // [ANIMACIONES] Igual que las armas (NetworkPlayerCombat): con la partida
+    // en curso o en el tutorial, para poder probar las granadas ahí.
+    private static bool CanThrowNow() =>
+        (NetworkMatchManager.Instance != null &&
+         NetworkMatchManager.Instance.Phase == MatchPhase.Playing) ||
+        (NetworkLobbySession.Instance != null &&
+         NetworkLobbySession.Instance.SelectedGameModeId == GameModeId.None &&
+         TutorialManager.IsTutorialLoaded);
 
     /// <summary>Lo llama NetworkPlayerHealth al reaparecer.</summary>
     public void ResetForRespawnOnServer()

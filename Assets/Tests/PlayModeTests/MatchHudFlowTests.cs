@@ -142,6 +142,44 @@ namespace HudIntegrationTests
             Assert.That(Object.FindObjectsByType<MatchHudPresenter>(FindObjectsSortMode.None), Is.Empty);
         }
 
+        [UnityTest]
+        public IEnumerator DamageConfirmationRejectsAlliesAndDeadTargetsAndReachesOwnerHud()
+        {
+            session.Players.Add(new LobbyPlayerData(999, localTeam, false));
+            remote = Object.Instantiate(TeamPlayerPrefab(localTeam));
+            remote.GetComponent<NetworkObject>().SpawnWithOwnership(999);
+            yield return null;
+            NetworkMatchManager match = session.GetComponent<NetworkMatchManager>();
+            Variable<MatchPhase>(match, "phase").Value = MatchPhase.Playing;
+            var combat = player.GetComponent<NetworkPlayerCombat>();
+            var victim = remote.GetComponent<NetworkPlayerHealth>();
+            var feedback = player.GetComponentInChildren<HitConfirmationFeedback>(true);
+            int confirmations = 0;
+            bool killed = false;
+            combat.HitConfirmed += (damage, lethal) => { confirmations++; killed = lethal; };
+
+            Assert.That(combat.TryApplyDamageToPlayerOnServer(victim, 25, out _, out _), Is.False);
+            Assert.That(confirmations, Is.Zero);
+            for (int i = 0; i < session.Players.Count; i++)
+                if (session.Players[i].ClientId == 999)
+                    session.Players[i] = new LobbyPlayerData(999, localTeam == TeamId.Red ? TeamId.Blue : TeamId.Red, false);
+            Assert.That(combat.TryApplyDamageToPlayerOnServer(victim, 25, out int applied, out _), Is.True);
+            Assert.That(applied, Is.EqualTo(25));
+            Assert.That(confirmations, Is.EqualTo(1));
+            Assert.That(killed, Is.False);
+            Assert.That(feedback.IsVisible, Is.True);
+            Assert.That(remote.GetComponentInChildren<HitConfirmationFeedback>(true).IsVisible, Is.False);
+            Assert.That(combat.TryApplyDamageToPlayerOnServer(victim, 100, out applied, out _), Is.True);
+            Assert.That(applied, Is.EqualTo(75));
+            Assert.That(confirmations, Is.EqualTo(2));
+            Assert.That(killed, Is.True);
+            Assert.That(feedback.IsShowingKill, Is.True);
+            Assert.That(combat.TryApplyDamageToPlayerOnServer(victim, 25, out _, out _), Is.False);
+            Assert.That(confirmations, Is.EqualTo(2));
+            player.GetComponent<NetworkPlayerHudPresenter>().SetHudVisible(false);
+            Assert.That(feedback.IsVisible, Is.False);
+        }
+
         private static string Text(MatchHudPresenter hud, string path) => hud.transform.Find(path).GetComponent<TMP_Text>().text;
         private static NetworkVariable<T> Variable<T>(object owner, string field) =>
             (NetworkVariable<T>)owner.GetType().GetField(field, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(owner);

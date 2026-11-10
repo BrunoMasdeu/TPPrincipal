@@ -16,4 +16,4 @@ MonoBehaviour:
   displayName: AWM
   slot: 3
   attackType: 0
-  hudSprite: {fileID: 21300000, guid: 168498254f079604e83aef6e2176de08, type: 3}
+  hudSprite: {fileID: 21300000, guid: 509218f9e8dee2646a10d90095fa4e02, type: 3}

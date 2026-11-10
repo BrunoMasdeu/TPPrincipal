@@ -53,12 +53,20 @@ public class NetworkPlayerCombat : NetworkBehaviour
     public event Action<int> ReserveAmmunitionChanged;
     public event Action ReloadChanged;
     public event Action<int> MoneyChanged;
+    /// <summary>Solo el atacante recibe daño efectivo confirmado y si fue letal.</summary>
+    public event Action<int, bool> HitConfirmed;
 
     /// <summary>
     /// Se dispara en TODAS las copias del jugador cuando alguien ataca.
     /// Lo usan la animación y el sonido de las armas.
     /// </summary>
     public event Action<WeaponId, WeaponAttackType> AttackPresented;
+
+    /// <summary>
+    /// [ANIMACIONES] Si el último ataque presentado le pegó a un blanco
+    /// (lo informa el cuchillo). Se lee dentro de AttackPresented.
+    /// </summary>
+    public bool LastAttackHit { get; private set; }
 
     /// <summary>El GunSystem del arma en la mano (null con cuchillo o gancho).</summary>
     public GunSystem CurrentGun =>
@@ -107,6 +115,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
         ReserveAmmunitionChanged = null;
         ReloadChanged = null;
         AttackPresented = null;
+        HitConfirmed = null;
     }
 
     private void Update()
@@ -173,12 +182,16 @@ public class NetworkPlayerCombat : NetworkBehaviour
     // Llamadas desde GunSystem y KnifeSystem (en la PC del dueño)
     // =====================================================================
 
-    /// <summary>El arma atacó: que todos lo escuchen y lo vean.</summary>
-    public void ReportShot()
+    /// <summary>
+    /// El arma atacó: que todos lo escuchen y lo vean. [ANIMACIONES]
+    /// hitTarget: true si el ataque le pegó a un blanco (lo usa el cuchillo
+    /// para elegir el sonido).
+    /// </summary>
+    public void ReportShot(bool hitTarget = false)
     {
         WeaponDefinition weapon = SelectedWeapon;
         if (IsSpawned && IsOwner && weapon != null)
-            ShotRpc(weapon.Id, weapon.AttackType);
+            ShotRpc(weapon.Id, weapon.AttackType, hitTarget);
     }
 
     /// <summary>
@@ -207,10 +220,11 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private void ShotRpc(
         WeaponId weaponId,
         WeaponAttackType attackType,
+        bool hitTarget, // [ANIMACIONES]
         RpcParams rpcParams = default)
     {
         if (rpcParams.Receive.SenderClientId == OwnerClientId && CanAttackOnServer())
-            PresentAttackRpc(weaponId, attackType);
+            PresentAttackRpc(weaponId, attackType, hitTarget);
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
@@ -286,6 +300,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
             money.Value += 200;
         }
 
+        // Punto común para armas, cuchillo y granadas. Nunca se confirma un rechazo.
+        ConfirmHitRpc(appliedDamage, victim.LifeState == PlayerLifeState.Dead);
         return true;
     }
 
@@ -374,8 +390,9 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
     // SendTo.ClientsAndHost: todos ven y escuchan el ataque.
     [Rpc(SendTo.ClientsAndHost)]
-    private void PresentAttackRpc(WeaponId weaponId, WeaponAttackType attackType)
+    private void PresentAttackRpc(WeaponId weaponId, WeaponAttackType attackType, bool hitTarget)
     {
+        LastAttackHit = hitTarget; // [ANIMACIONES]
         AttackPresented?.Invoke(weaponId, attackType);
     }
 
@@ -384,6 +401,13 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private void ShotFeedbackRpc(string result)
     {
         lastShotSummary = result;
+    }
+
+    [Rpc(SendTo.Owner)]
+    private void ConfirmHitRpc(int appliedDamage, bool lethal)
+    {
+        if (appliedDamage > 0)
+            HitConfirmed?.Invoke(appliedDamage, lethal);
     }
 
     private void OnReloadEndsAtChanged(double previous, double current) =>

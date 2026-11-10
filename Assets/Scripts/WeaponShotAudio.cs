@@ -38,6 +38,11 @@ public class WeaponShotAudio : MonoBehaviour
     [Tooltip("Lo que escucha otro jugador que está lejos.")]
     [SerializeField] private AudioClip[] shotFar;
 
+    // [ANIMACIONES]
+    [Header("Golpe (opcional, cuchillo)")]
+    [Tooltip("Suena en lugar del disparo cuando el ataque le pega a un blanco.")]
+    [SerializeField] private AudioClip[] hitClips;
+
     [Header("Cargador vacío (opcional)")]
     [SerializeField] private AudioClip[] emptyClips;
 
@@ -117,6 +122,12 @@ public class WeaponShotAudio : MonoBehaviour
 
         Play(clips);
     }
+
+    // [ANIMACIONES]
+    public bool HasHitClips => hitClips != null && hitClips.Length > 0;
+
+    /// <summary>[ANIMACIONES] Sonido de golpe (el cuchillo le pegó a alguien).</summary>
+    public void PlayHit() => Play(hitClips);
 
     /// <summary>Reproduce el 'click' de cargador vacío.</summary>
     public void PlayEmpty() => Play(emptyClips);
