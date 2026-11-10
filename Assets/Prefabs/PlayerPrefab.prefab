@@ -10629,6 +10629,7 @@ GameObject:
   - component: {fileID: 4925870661405760147}
   - component: {fileID: 8155899254583240567}
   - component: {fileID: 8283755821527557845}
+  - component: {fileID: 871600123411009923}
   m_Layer: 0
   m_Name: PlayerPrefab
   m_TagString: Player
@@ -11497,6 +11498,24 @@ MonoBehaviour:
   accionesBloqueadas: 0
   scriptsABloquear:
   - {fileID: 7020189118089650495}
+--- !u!114 &871600123411009923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6347219428683018967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 092eb03cf668470d9e1f7ed908a2d1cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game::FirstPersonView
+  playerCamera: {fileID: 8424079443320761598}
+  armOffset: {x: 0.47, y: 0.11, z: 0.5}
+  viewmodelProximity: 0.432
+  wallLayers:
+    serializedVersion: 2
+    m_Bits: 8585
 --- !u!1 &6409884032029496950
 GameObject:
   m_ObjectHideFlags: 0
