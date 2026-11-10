@@ -9,8 +9,6 @@ using UnityEngine.UI;
 public class UnifiedPlayerPrefabTests
 {
     private const string PlayerPrefabPath = "Assets/Prefabs/PlayerPrefab.prefab";
-    private const string BluePlayerPrefabPath =
-        "Assets/Prefabs/Survivalist (3).prefab";
     private const string GrenadePrefabPath = "Assets/Prefabs/Granada.prefab";
     private const string NetworkPrefabsPath =
         "Assets/DefaultNetworkPrefabs.asset";
@@ -89,7 +87,6 @@ public class UnifiedPlayerPrefabTests
     }
 
     [TestCase(PlayerPrefabPath)]
-    [TestCase(BluePlayerPrefabPath)]
     public void InventarioConfiguraTodasLasVisualesYElGanchoComoUtilidad(string prefabPath)
     {
         NetworkPlayerInventory inventory =
@@ -141,7 +138,6 @@ public class UnifiedPlayerPrefabTests
     }
 
     [TestCase(PlayerPrefabPath)]
-    [TestCase(BluePlayerPrefabPath)]
     public void TiendaAwmUsaDefinicionYVisualDelJugador(string prefabPath)
     {
         GameObject prefab = LoadPrefab(prefabPath);
@@ -220,7 +216,6 @@ public class UnifiedPlayerPrefabTests
     }
 
     [TestCase(PlayerPrefabPath)]
-    [TestCase(BluePlayerPrefabPath)]
     public void PrefabsDeEquipoConfiguranAgachadoYGranadas(string prefabPath)
     {
         GameObject prefab = LoadPrefab(prefabPath);

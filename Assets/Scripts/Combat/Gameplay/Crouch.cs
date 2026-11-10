@@ -40,6 +40,17 @@ public class Crouch : MonoBehaviour
             originalCameraPosition = playerCamera.localPosition;
     }
 
+    /// <summary>
+    /// [MULTIJUGADOR] PlayerSkin mueve la cámara a la altura de los ojos del
+    /// modelo de cada equipo. Se vuelve a tomar esa posición como la de parado,
+    /// si no el agachado la devolvería a la del otro modelo.
+    /// </summary>
+    public void GuardarPosicionCamara()
+    {
+        if (playerCamera != null)
+            originalCameraPosition = playerCamera.localPosition;
+    }
+
     private void Update()
     {
         if (Keyboard.current == null || capsule == null)

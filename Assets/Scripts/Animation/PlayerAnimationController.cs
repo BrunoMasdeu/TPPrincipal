@@ -33,6 +33,22 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         Animator.StringToHash("Fire");
     private static readonly int ReloadingParam =
         Animator.StringToHash("Reloading");
+    // [ANIMACIONES] Blend tree de la capa base: 0 quieto, 1 caminar, 2 correr.
+    private static readonly int LocomocionParam =
+        Animator.StringToHash("Locomocion");
+
+    // [ANIMACIONES] Antes la velocidad de los otros jugadores se adivinaba
+    // midiendo cuánto se movieron entre un cuadro y otro. Como la red no
+    // actualiza la posición en todos los cuadros, a veces daba 0 y la
+    // caminata se cortaba y volvía a empezar. Ahora el dueño manda su
+    // velocidad real y si está corriendo.
+    private readonly NetworkVariable<float> networkSpeed = new(0f,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    private readonly NetworkVariable<bool> networkRunning = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    // Se manda solo si la velocidad cambió al menos esto, para no llenar la red.
+    private const float CambioMinimoDeVelocidad = 0.25f;
+    private const float VelocidadQuieto = 0.1f;
 
     private const int NeutralWeaponPose = 0;
     private const int PistolWeaponPose = 1;
@@ -187,7 +203,16 @@ public sealed class PlayerAnimationController : NetworkBehaviour
             Time.deltaTime
         );
         animator.SetBool(IsGroundedParam, grounded);
-        animator.SetBool(RunningParam, IsRunning(horizontalSpeed));
+
+        bool running = IsRunning(horizontalSpeed);
+        animator.SetBool(RunningParam, running);
+        animator.SetFloat(
+            LocomocionParam,
+            Locomocion(horizontalSpeed, running),
+            speedDampTime,
+            Time.deltaTime
+        );
+        PublicarMovimiento(horizontalSpeed, running);
         UpdateWallRunPresentation(horizontalSpeed);
 
         if (ShouldPresentRemoteJump(grounded))
@@ -255,7 +280,7 @@ public sealed class PlayerAnimationController : NetworkBehaviour
             previousPosition = currentPosition;
             positionSampleInitialized = true;
             sampledVerticalSpeed = 0f;
-            return 0f;
+            return networkSpeed.Value;
         }
 
         Vector3 displacement = currentPosition - previousPosition;
@@ -265,15 +290,14 @@ public sealed class PlayerAnimationController : NetworkBehaviour
             remoteTeleportDistance * remoteTeleportDistance)
         {
             sampledVerticalSpeed = 0f;
-            return 0f;
+            return networkSpeed.Value;
         }
 
+        // La posición se sigue midiendo solo para detectar el salto del rival
+        // (velocidad vertical). La horizontal la manda el dueño.
         Vector3 remoteVelocity = displacement / Time.deltaTime;
         sampledVerticalSpeed = remoteVelocity.y;
-        return new Vector2(
-            remoteVelocity.x,
-            remoteVelocity.z
-        ).magnitude;
+        return networkSpeed.Value;
     }
 
     private bool IsRunning(float horizontalSpeed)
@@ -281,11 +305,45 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         if ((!IsSpawned || IsOwner) && movement != null)
             return movement.IsRunning;
 
-        if (movement == null)
-            return false;
+        // [ANIMACIONES] El rival: lo que mandó su dueño.
+        return networkRunning.Value;
+    }
 
-        float threshold = (movement.speed + movement.runSpeed) * 0.5f;
-        return horizontalSpeed >= threshold;
+    /// <summary>
+    /// [ANIMACIONES] Valor del blend tree de la capa base:
+    /// 0 quieto, 1 caminando a velocidad normal, 2 corriendo.
+    /// </summary>
+    public static float Locomocion(float velocidad, bool corriendo, float velocidadCaminar)
+    {
+        if (velocidad < VelocidadQuieto)
+            return 0f;
+
+        if (corriendo)
+            return 2f;
+
+        return velocidadCaminar > 0f
+            ? Mathf.Clamp01(velocidad / velocidadCaminar)
+            : 1f;
+    }
+
+    private float Locomocion(float velocidad, bool corriendo) =>
+        Locomocion(velocidad, corriendo, movement != null ? movement.speed : 0f);
+
+    /// <summary>[ANIMACIONES] El dueño avisa a los demás cómo se está moviendo.</summary>
+    private void PublicarMovimiento(float velocidad, bool corriendo)
+    {
+        if (!IsSpawned || !IsOwner)
+            return;
+
+        float aMandar = velocidad < VelocidadQuieto ? 0f : velocidad;
+        if (Mathf.Abs(networkSpeed.Value - aMandar) >= CambioMinimoDeVelocidad ||
+            (aMandar == 0f && networkSpeed.Value != 0f))
+        {
+            networkSpeed.Value = aMandar;
+        }
+
+        if (networkRunning.Value != corriendo)
+            networkRunning.Value = corriendo;
     }
 
     private bool ShouldPresentRemoteJump(bool grounded) =>
