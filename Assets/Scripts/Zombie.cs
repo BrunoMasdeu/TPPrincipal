@@ -165,7 +165,7 @@ public class Zombie : MonoBehaviour
 
                 if(playerBody != null)
                 {
-                    playerBody.playerHitDamage(giveDamage);
+                    playerBody.playerHitDamage(giveDamage, transform.position);
                 }
 
                 anim.SetBool("Walking", false);

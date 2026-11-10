@@ -71,16 +71,15 @@ public class KnifeSystem : MonoBehaviour
             // primero para que tenga prioridad aunque el prefab esté con el
             // tag "Enemy".
             Zombie zombie = hit.collider.GetComponentInParent<Zombie>();
+            movimientoBot bot = hit.collider.GetComponentInParent<movimientoBot>();
 
             if (zombie != null)
             {
                 zombie.zombieHitDamage(damage);
             }
-            else if (hit.collider.CompareTag("Enemy"))
+            else if (bot != null)
             {
-                movimientoBot bot = hit.collider.GetComponentInParent<movimientoBot>();
-                if (bot != null)
-                    bot.TakeDamage(damage);
+                bot.TakeDamageWithFeedback(damage, network);
             }
             else if (hit.collider.CompareTag("Target"))
             {

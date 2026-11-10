@@ -10791,7 +10791,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6347219428683018967}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca6082e201e9cc44bb5001a9a905e98d, type: 3}
   m_Name: 
@@ -11101,6 +11101,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   view: {fileID: 0}
   matchHudPrefab: {fileID: 5723103437063067765, guid: 0c22209e7b1bc9c4abbaa953cfdb9cd1, type: 3}
+  damageDirectionPrefab: {fileID: 6765392394752117920, guid: 268e3c2577b341d9bccdb2814bdbf982, type: 3}
 --- !u!114 &-404201642656342299
 MonoBehaviour:
   m_ObjectHideFlags: 0

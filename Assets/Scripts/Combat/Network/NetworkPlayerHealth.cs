@@ -30,6 +30,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
 
     public event Action<int> HealthChanged;
     public event Action<PlayerLifeState> LifeStateChanged;
+    public event Action<Vector3> DamageReceived;
 
     public int CurrentHealth => currentHealth.Value;
     public int MaxHealth => maxHealth;
@@ -94,6 +95,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
 
         HealthChanged = null;
         LifeStateChanged = null;
+        DamageReceived = null;
     }
 
     private void Update()
@@ -136,6 +138,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
     public bool ApplyDamageFromPlayer(
         ulong attackerClientId,
         int damage,
+        Vector3 damageOrigin,
         out int appliedDamage,
         out ulong deathEventId)
     {
@@ -161,6 +164,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
             return false;
 
         currentHealth.Value = after;
+        PresentDamageRpc(damageOrigin);
         if (!CombatValidationRules.IsLethalTransition(before, after))
             return true;
 
@@ -177,6 +181,13 @@ public class NetworkPlayerHealth : NetworkBehaviour
         }
 
         return true;
+    }
+
+    [Rpc(SendTo.Owner, InvokePermission = RpcInvokePermission.Server)]
+    private void PresentDamageRpc(Vector3 damageOrigin)
+    {
+        if (IsOwner)
+            DamageReceived?.Invoke(damageOrigin);
     }
 
     public void ConfirmMatchRespawn(ulong sequence, ulong ownerClientId)

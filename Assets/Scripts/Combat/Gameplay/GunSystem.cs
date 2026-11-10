@@ -193,20 +193,15 @@ public class GunSystem : MonoBehaviour
             // primero para que tenga prioridad aunque el prefab esté con el
             // tag "Enemy".
             Zombie zombie = rayHit.collider.GetComponentInParent<Zombie>();
+            movimientoBot bot = rayHit.collider.GetComponentInParent<movimientoBot>();
 
             if (zombie != null)
             {
                 zombie.zombieHitDamage(damage);
             }
-            else if (rayHit.collider.CompareTag("Enemy"))
+            else if (bot != null)
             {
-                movimientoBot enemy =
-                    rayHit.collider.GetComponentInParent<movimientoBot>();
-
-                if (enemy != null)
-                {
-                    enemy.TakeDamage(damage);
-                }
+                bot.TakeDamageWithFeedback(damage, network);
             }
             else if (rayHit.collider.CompareTag("Target"))
             {
@@ -227,7 +222,7 @@ public class GunSystem : MonoBehaviour
 
             bool characterHit = zombie != null ||
                 rayHit.collider.GetComponentInParent<NetworkPlayerHealth>() != null ||
-                rayHit.collider.GetComponentInParent<movimientoBot>() != null ||
+                bot != null ||
                 rayHit.collider.GetComponentInParent<ShootingAi>() != null ||
                 rayHit.collider.CompareTag("Target");
             if (!characterHit)
