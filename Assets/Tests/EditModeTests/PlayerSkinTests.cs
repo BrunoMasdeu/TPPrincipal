@@ -68,7 +68,7 @@ public class PlayerSkinTests
         Assert.That(skin.FindProperty("camara").objectReferenceValue, Is.Not.Null);
 
         SerializedProperty skins = skin.FindProperty("skins");
-        Assert.That(skins.arraySize, Is.EqualTo(2));
+        Assert.That(skins.arraySize, Is.EqualTo(3));
 
         TeamId[] equipos = new TeamId[skins.arraySize];
         for (int i = 0; i < skins.arraySize; i++)
@@ -88,19 +88,52 @@ public class PlayerSkinTests
         }
 
         // El primero es el de "sin equipo" (tutorial, zombies, carrera).
-        Assert.That(equipos, Is.EqualTo(new[] { TeamId.Red, TeamId.Blue }));
+        Assert.That(equipos, Is.EqualTo(new[] { TeamId.None, TeamId.Red, TeamId.Blue }));
     }
 
+    // [ANIMACIONES] Original, rojo y azul usan el mismo soldado; cambia la ropa.
     [Test]
-    public void ElPrefabArrancaConElSoldierPrendidoYElSurvivalistApagado()
+    public void LosTresSkinsUsanElMismoSoldadoYCadaEquipoSuRopa()
     {
         SerializedProperty skins =
             new SerializedObject(Prefab().GetComponent<PlayerSkin>()).FindProperty("skins");
-        GameObject soldier = Modelo(skins, 0);
-        GameObject survivalist = Modelo(skins, 1);
+        SerializedProperty original = skins.GetArrayElementAtIndex(0);
 
-        Assert.That(soldier.activeSelf, Is.True);
-        Assert.That(survivalist.activeSelf, Is.False);
+        Assert.That(Modelo(skins, 0).activeSelf, Is.True);
+        Assert.That(original.FindPropertyRelative("materialesRopa").arraySize, Is.Zero,
+            "El skin original (tutorial, zombies) no se tiñe.");
+
+        for (int equipo = 1; equipo <= 2; equipo++)
+        {
+            SerializedProperty skin = skins.GetArrayElementAtIndex(equipo);
+            Assert.That(Modelo(skins, equipo), Is.SameAs(Modelo(skins, 0)));
+
+            foreach (string campo in new[] { "posicionArmas", "escalaArmas", "posicionCamara" })
+                Assert.That(skin.FindPropertyRelative(campo).vector3Value,
+                    Is.EqualTo(original.FindPropertyRelative(campo).vector3Value), campo);
+            Assert.That(skin.FindPropertyRelative("cabeza").arraySize,
+                Is.EqualTo(original.FindPropertyRelative("cabeza").arraySize));
+
+            SerializedProperty ropa = skin.FindPropertyRelative("materialesRopa");
+            SerializedProperty tenidos = skin.FindPropertyRelative("materialesTenidos");
+            Assert.That(ropa.arraySize, Is.GreaterThan(0));
+            Assert.That(tenidos.arraySize, Is.EqualTo(ropa.arraySize));
+            for (int i = 0; i < ropa.arraySize; i++)
+            {
+                Assert.That(ropa.GetArrayElementAtIndex(i).objectReferenceValue, Is.Not.Null);
+                Assert.That(tenidos.GetArrayElementAtIndex(i).objectReferenceValue, Is.Not.Null,
+                    "Falta el material del equipo: correr Tools > Player > " +
+                    "Usar el Soldado en los Dos Equipos.");
+            }
+        }
+
+        // Cada equipo tiene sus propios materiales, para poder cambiarles la textura.
+        Assert.That(
+            skins.GetArrayElementAtIndex(1).FindPropertyRelative("materialesTenidos")
+                .GetArrayElementAtIndex(0).objectReferenceValue,
+            Is.Not.SameAs(
+                skins.GetArrayElementAtIndex(2).FindPropertyRelative("materialesTenidos")
+                    .GetArrayElementAtIndex(0).objectReferenceValue));
     }
 
     [Test]

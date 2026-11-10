@@ -34,8 +34,15 @@ public sealed class PlayerAnimationController : NetworkBehaviour
     private static readonly int ReloadingParam =
         Animator.StringToHash("Reloading");
     // [ANIMACIONES] Blend tree de la capa base: 0 quieto, 1 caminar, 2 correr.
+    // [ANIMACIONES] Negativo es lo mismo pero hacia atrás (-1 y -2).
     private static readonly int LocomocionParam =
         Animator.StringToHash("Locomocion");
+    // [ANIMACIONES] Pasa la capa base a "Crouch Idle".
+    private static readonly int AgachadoParam =
+        Animator.StringToHash("Agachado");
+    // [ANIMACIONES] Lleva la capa Upper Body a "Grenade Throw".
+    private static readonly int ThrowParam =
+        Animator.StringToHash("Throw");
 
     // [ANIMACIONES] Antes la velocidad de los otros jugadores se adivinaba
     // midiendo cuánto se movieron entre un cuadro y otro. Como la red no
@@ -46,18 +53,28 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     private readonly NetworkVariable<bool> networkRunning = new(false,
         NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
+    // [ANIMACIONES] La velocidad que se manda no tiene dirección: el dueño
+    // avisa aparte si va hacia atrás.
+    private readonly NetworkVariable<bool> networkHaciaAtras = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Owner);
     // Se manda solo si la velocidad cambió al menos esto, para no llenar la red.
     private const float CambioMinimoDeVelocidad = 0.25f;
     private const float VelocidadQuieto = 0.1f;
+    // [ANIMACIONES] Retroceso mínimo (m/s) para usar la animación hacia atrás.
+    private const float VelocidadHaciaAtras = 0.5f;
 
     private const int NeutralWeaponPose = 0;
     private const int PistolWeaponPose = 1;
     private const int RifleWeaponPose = 2;
+    private const int KnifeWeaponPose = 3; // [ANIMACIONES]
 
     private NetworkPlayerInventory inventory;
     private NetworkPlayerCombat combat;
     private WallRun wallRun;
     private NetworkPlayerHealth health;
+    private NetworkPlayerCrouch crouch; // [ANIMACIONES]
+    private NetworkPlayerGrenades grenades; // [ANIMACIONES]
+    private GameObject granadaEnMano; // [ANIMACIONES]
     private int deathLayer = -1;
     private bool presentingDeath;
     private float deathWeight;
@@ -93,6 +110,8 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         combat = GetComponent<NetworkPlayerCombat>();
         wallRun = GetComponent<WallRun>();
         health = GetComponent<NetworkPlayerHealth>();
+        crouch = GetComponent<NetworkPlayerCrouch>(); // [ANIMACIONES]
+        grenades = GetComponent<NetworkPlayerGrenades>(); // [ANIMACIONES]
         if (animator != null && animator.runtimeAnimatorController != null)
         {
             wallRunLayer = animator.GetLayerIndex("Wall Run");
@@ -132,6 +151,10 @@ public sealed class PlayerAnimationController : NetworkBehaviour
             }
         }
 
+        // [ANIMACIONES]
+        if (grenades != null)
+            grenades.ThrowPresented += OnThrowPresented;
+
         if (combat != null)
         {
             combat.AttackPresented += OnAttackPresented;
@@ -164,6 +187,11 @@ public sealed class PlayerAnimationController : NetworkBehaviour
             health.LifeStateChanged -= OnLifeStateChanged;
         OnLifeStateChanged(PlayerLifeState.Alive);
         ClearWallRunPresentation();
+        // [ANIMACIONES]
+        if (grenades != null)
+            grenades.ThrowPresented -= OnThrowPresented;
+        Destroy(granadaEnMano);
+
         if (combat != null)
         {
             combat.AttackPresented -= OnAttackPresented;
@@ -205,14 +233,19 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         animator.SetBool(IsGroundedParam, grounded);
 
         bool running = IsRunning(horizontalSpeed);
+        bool haciaAtras = HaciaAtras(); // [ANIMACIONES]
         animator.SetBool(RunningParam, running);
         animator.SetFloat(
             LocomocionParam,
-            Locomocion(horizontalSpeed, running),
+            Locomocion(horizontalSpeed, running, haciaAtras),
             speedDampTime,
             Time.deltaTime
         );
-        PublicarMovimiento(horizontalSpeed, running);
+        // [ANIMACIONES] El agachado ya viaja por red (NetworkPlayerCrouch).
+        // Se ve en todas las PCs, también en la del dueño. Para que las manos
+        // no se vayan de la vista, se ajusta "Camera Offset" del Crouch.
+        animator.SetBool(AgachadoParam, crouch != null && crouch.IsCrouched);
+        PublicarMovimiento(horizontalSpeed, running, haciaAtras);
         UpdateWallRunPresentation(horizontalSpeed);
 
         if (ShouldPresentRemoteJump(grounded))
@@ -310,27 +343,44 @@ public sealed class PlayerAnimationController : NetworkBehaviour
     }
 
     /// <summary>
+    /// [ANIMACIONES] Va hacia atrás si la velocidad apunta contra el frente
+    /// del cuerpo. El rival usa lo que mandó su dueño.
+    /// </summary>
+    private bool HaciaAtras()
+    {
+        if (IsSpawned && !IsOwner)
+            return networkHaciaAtras.Value;
+
+        return playerRigidbody != null &&
+            Vector3.Dot(playerRigidbody.linearVelocity, transform.forward) <
+                -VelocidadHaciaAtras;
+    }
+
+    /// <summary>
     /// [ANIMACIONES] Valor del blend tree de la capa base:
     /// 0 quieto, 1 caminando a velocidad normal, 2 corriendo.
+    /// Hacia atrás es el mismo valor en negativo.
     /// </summary>
-    public static float Locomocion(float velocidad, bool corriendo, float velocidadCaminar)
+    public static float Locomocion(
+        float velocidad, bool corriendo, float velocidadCaminar, bool haciaAtras = false)
     {
         if (velocidad < VelocidadQuieto)
             return 0f;
 
-        if (corriendo)
-            return 2f;
+        float valor = corriendo
+            ? 2f
+            : velocidadCaminar > 0f
+                ? Mathf.Clamp01(velocidad / velocidadCaminar)
+                : 1f;
 
-        return velocidadCaminar > 0f
-            ? Mathf.Clamp01(velocidad / velocidadCaminar)
-            : 1f;
+        return haciaAtras ? -valor : valor;
     }
 
-    private float Locomocion(float velocidad, bool corriendo) =>
-        Locomocion(velocidad, corriendo, movement != null ? movement.speed : 0f);
+    private float Locomocion(float velocidad, bool corriendo, bool haciaAtras) =>
+        Locomocion(velocidad, corriendo, movement != null ? movement.speed : 0f, haciaAtras);
 
     /// <summary>[ANIMACIONES] El dueño avisa a los demás cómo se está moviendo.</summary>
-    private void PublicarMovimiento(float velocidad, bool corriendo)
+    private void PublicarMovimiento(float velocidad, bool corriendo, bool haciaAtras)
     {
         if (!IsSpawned || !IsOwner)
             return;
@@ -344,6 +394,9 @@ public sealed class PlayerAnimationController : NetworkBehaviour
 
         if (networkRunning.Value != corriendo)
             networkRunning.Value = corriendo;
+
+        if (networkHaciaAtras.Value != haciaAtras)
+            networkHaciaAtras.Value = haciaAtras;
     }
 
     private bool ShouldPresentRemoteJump(bool grounded) =>
@@ -373,8 +426,7 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         WeaponAttackType attackType)
     {
         if (animator == null || presentingDeath ||
-            attackType != WeaponAttackType.Hitscan ||
-            !UsesFireAnimation(weaponId))
+            !UsesFireAnimation(weaponId, attackType))
             return;
 
         // El RPC trae el arma que el servidor realmente acepto. Aplicar su
@@ -382,6 +434,39 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         // una seleccion replicada llega apenas despues del disparo.
         ApplyWeaponPose(weaponId);
         animator.SetTrigger(FireParam);
+    }
+
+    /// <summary>
+    /// [ANIMACIONES] Alguien empezó a lanzar una granada: gesto del brazo y
+    /// una granada de adorno en la mano izquierda hasta que sale la de verdad.
+    /// </summary>
+    private void OnThrowPresented(float secondsUntilRelease)
+    {
+        if (animator == null || presentingDeath)
+            return;
+
+        animator.SetTrigger(ThrowParam);
+
+        Transform mano = animator.isHuman
+            ? animator.GetBoneTransform(HumanBodyBones.LeftHand)
+            : null;
+        MeshFilter modelo = grenades.GrenadePrefab != null
+            ? grenades.GrenadePrefab.GetComponentInChildren<MeshFilter>(true)
+            : null;
+        if (mano == null || modelo == null)
+            return;
+
+        // Solo la malla: sin física, sin red y sin explosión.
+        Destroy(granadaEnMano);
+        granadaEnMano = new GameObject("Granada en mano");
+        granadaEnMano.AddComponent<MeshFilter>().sharedMesh = modelo.sharedMesh;
+        granadaEnMano.AddComponent<MeshRenderer>().sharedMaterials =
+            modelo.GetComponent<MeshRenderer>().sharedMaterials;
+        granadaEnMano.transform.SetPositionAndRotation(mano.position, mano.rotation);
+        granadaEnMano.transform.localScale = modelo.transform.lossyScale;
+        // true: conserva el tamaño aunque el hueso de la mano tenga otra escala.
+        granadaEnMano.transform.SetParent(mano, true);
+        Destroy(granadaEnMano, secondsUntilRelease);
     }
 
     private void OnReloadChanged()
@@ -409,6 +494,8 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         ClearWallRunPresentation();
         animator.ResetTrigger(JumpParam);
         animator.ResetTrigger(FireParam);
+        animator.ResetTrigger(ThrowParam); // [ANIMACIONES]
+        Destroy(granadaEnMano); // [ANIMACIONES]
         animator.SetBool(ReloadingParam, false);
         animator.SetFloat(SpeedParam, 0f);
         animator.SetBool(RunningParam, false);
@@ -431,26 +518,36 @@ public sealed class PlayerAnimationController : NetworkBehaviour
         }
     }
 
-    private static bool UsesFireAnimation(WeaponId weaponId) =>
-        weaponId is WeaponId.Pistol or
-            WeaponId.Revolver or
-            WeaponId.AK or
-            WeaponId.M4;
+    // [ANIMACIONES] El cuchillo también usa el trigger Fire (con su pose va a
+    // "Knife Combat Attack") y el francotirador dispara como el rifle.
+    private static bool UsesFireAnimation(WeaponId weaponId, WeaponAttackType attackType) =>
+        weaponId == WeaponId.Knife ||
+        (attackType == WeaponAttackType.Hitscan &&
+            weaponId is WeaponId.Pistol or
+                WeaponId.Revolver or
+                WeaponId.AK or
+                WeaponId.M4 or
+                WeaponId.Sniper);
 
     private void ApplyWeaponPose(WeaponId weaponId)
     {
         if (animator == null)
             return;
 
-        int weaponPose = weaponId switch
-        {
-            WeaponId.Pistol or WeaponId.Revolver or WeaponId.Knife or WeaponId.Grapple => PistolWeaponPose,
-            WeaponId.AK or WeaponId.M4 or WeaponId.Sniper => RifleWeaponPose,
-            _ => NeutralWeaponPose
-        };
-
-        animator.SetInteger(WeaponPoseParam, weaponPose);
+        animator.SetInteger(WeaponPoseParam, PoseDelArma(weaponId));
     }
+
+    /// <summary>
+    /// [ANIMACIONES] Valor de WeaponPose de cada arma (public para los tests).
+    /// El cuchillo ahora tiene su pose; el gancho sigue con la de pistola.
+    /// </summary>
+    public static int PoseDelArma(WeaponId weaponId) => weaponId switch
+    {
+        WeaponId.Pistol or WeaponId.Revolver or WeaponId.Grapple => PistolWeaponPose,
+        WeaponId.AK or WeaponId.M4 or WeaponId.Sniper => RifleWeaponPose,
+        WeaponId.Knife => KnifeWeaponPose,
+        _ => NeutralWeaponPose
+    };
 
     private void ResetSamples()
     {

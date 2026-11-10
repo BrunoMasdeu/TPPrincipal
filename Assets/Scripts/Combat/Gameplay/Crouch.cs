@@ -10,6 +10,9 @@ public class Crouch : MonoBehaviour
     [Header("Agacharse")]
     public float crouchHeight = 1.2f;
     public float cameraOffset = 0.5f;
+    // [ANIMACIONES] Cuánto retrocede la cámara al agacharse, para que siga a
+    // la cabeza del modelo. En 0 se comporta igual que antes.
+    public float cameraOffsetAtras = 0f;
     public float transitionSpeed = 10f;
     // [TECLAS] La tecla ya no es un campo (crouchKey): sale de Controles.
 
@@ -100,7 +103,10 @@ public class Crouch : MonoBehaviour
             Vector3 targetPosition = originalCameraPosition;
 
             if (crouching)
+            {
                 targetPosition.y -= cameraOffset;
+                targetPosition.z -= cameraOffsetAtras; // [ANIMACIONES]
+            }
 
             playerCamera.localPosition = Vector3.Lerp(
                 playerCamera.localPosition,

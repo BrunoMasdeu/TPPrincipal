@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -44,6 +45,19 @@ public sealed class PlayerSkin : NetworkBehaviour
                  "que tu cámara no dibuja, para no verte la cabeza por " +
                  "dentro. En las PCs de los demás se ven normal.")]
         public Renderer[] cabeza;
+
+        // [ANIMACIONES] Dos equipos pueden usar el mismo modelo con otro color.
+        [Header("Color de la ropa")]
+        [Tooltip("Materiales originales de la ropa (uniforme, casco, chaleco...). " +
+                 "Vacío = el modelo queda con sus colores originales.")]
+        public Material[] materialesRopa;
+
+        [Tooltip("Copia teñible de cada uno, en el mismo orden. El shader " +
+                 "original del soldado no acepta color, por eso hace falta.")]
+        public Material[] materialesTenidos;
+
+        [Tooltip("Color con el que se tiñe la ropa.")]
+        public Color colorRopa = Color.white;
     }
 
     // La cámara del jugador no dibuja esta capa (ver Culling Mask de MainCamera).
@@ -125,18 +139,68 @@ public sealed class PlayerSkin : NetworkBehaviour
                 agachado.GuardarPosicionCamara();
         }
 
-        // 5. Se apagan los otros modelos.
+        // 5. Se apagan los otros modelos (salvo que sea el mismo con otro color).
         foreach (Skin otro in skins)
         {
-            if (otro != elegido && otro.modelo != null)
+            if (otro != elegido && otro.modelo != null && otro.modelo != elegido.modelo)
                 otro.modelo.SetActive(false);
         }
+
+        TenirRopa(elegido); // [ANIMACIONES]
 
         // 6. Solo en mi PC: no veo mi propia cabeza.
         if (IsSpawned && IsOwner)
             OcultarCabezaPropia(elegido);
 
         SkinActual = elegido;
+    }
+
+    // [ANIMACIONES] Materiales con los que vino cada malla, para poder volver.
+    private readonly Dictionary<Renderer, Material[]> materialesOriginales = new();
+
+    /// <summary>
+    /// [ANIMACIONES] Cambia la ropa del modelo por su copia teñible y le pone
+    /// el color del skin. Lo demás vuelve a su material original, así dos
+    /// skins pueden compartir el mismo modelo.
+    /// </summary>
+    private void TenirRopa(Skin skin)
+    {
+        var color = new MaterialPropertyBlock();
+        color.SetColor("_BaseColor", skin.colorRopa);
+
+        foreach (Renderer malla in skin.modelo.GetComponentsInChildren<Renderer>(true))
+        {
+            if (!materialesOriginales.TryGetValue(malla, out Material[] originales))
+                materialesOriginales[malla] = originales = malla.sharedMaterials;
+
+            var puestos = (Material[])originales.Clone();
+            for (int i = 0; i < puestos.Length; i++)
+            {
+                Material tenido = CopiaTenida(skin, originales[i]);
+                if (tenido != null)
+                    puestos[i] = tenido;
+                malla.SetPropertyBlock(tenido != null ? color : null, i);
+            }
+
+            malla.sharedMaterials = puestos;
+        }
+    }
+
+    /// <summary>La copia teñible de un material de ropa, o null si no es ropa.</summary>
+    private static Material CopiaTenida(Skin skin, Material original)
+    {
+        if (original == null || skin.materialesRopa == null || skin.materialesTenidos == null)
+            return null;
+
+        for (int i = 0; i < skin.materialesRopa.Length && i < skin.materialesTenidos.Length; i++)
+        {
+            Material ropa = skin.materialesRopa[i];
+            // Por nombre también: otro script pudo haber instanciado el material.
+            if (ropa != null && (ropa == original || original.name.StartsWith(ropa.name)))
+                return skin.materialesTenidos[i];
+        }
+
+        return null;
     }
 
     /// <summary>

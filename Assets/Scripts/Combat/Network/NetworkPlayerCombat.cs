@@ -62,6 +62,12 @@ public class NetworkPlayerCombat : NetworkBehaviour
     /// </summary>
     public event Action<WeaponId, WeaponAttackType> AttackPresented;
 
+    /// <summary>
+    /// [ANIMACIONES] Si el último ataque presentado le pegó a un blanco
+    /// (lo informa el cuchillo). Se lee dentro de AttackPresented.
+    /// </summary>
+    public bool LastAttackHit { get; private set; }
+
     /// <summary>El GunSystem del arma en la mano (null con cuchillo o gancho).</summary>
     public GunSystem CurrentGun =>
         weaponInventory != null && weaponInventory.CurrentWeapon != null
@@ -176,12 +182,16 @@ public class NetworkPlayerCombat : NetworkBehaviour
     // Llamadas desde GunSystem y KnifeSystem (en la PC del dueño)
     // =====================================================================
 
-    /// <summary>El arma atacó: que todos lo escuchen y lo vean.</summary>
-    public void ReportShot()
+    /// <summary>
+    /// El arma atacó: que todos lo escuchen y lo vean. [ANIMACIONES]
+    /// hitTarget: true si el ataque le pegó a un blanco (lo usa el cuchillo
+    /// para elegir el sonido).
+    /// </summary>
+    public void ReportShot(bool hitTarget = false)
     {
         WeaponDefinition weapon = SelectedWeapon;
         if (IsSpawned && IsOwner && weapon != null)
-            ShotRpc(weapon.Id, weapon.AttackType);
+            ShotRpc(weapon.Id, weapon.AttackType, hitTarget);
     }
 
     /// <summary>
@@ -210,10 +220,11 @@ public class NetworkPlayerCombat : NetworkBehaviour
     private void ShotRpc(
         WeaponId weaponId,
         WeaponAttackType attackType,
+        bool hitTarget, // [ANIMACIONES]
         RpcParams rpcParams = default)
     {
         if (rpcParams.Receive.SenderClientId == OwnerClientId && CanAttackOnServer())
-            PresentAttackRpc(weaponId, attackType);
+            PresentAttackRpc(weaponId, attackType, hitTarget);
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
@@ -379,8 +390,9 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
     // SendTo.ClientsAndHost: todos ven y escuchan el ataque.
     [Rpc(SendTo.ClientsAndHost)]
-    private void PresentAttackRpc(WeaponId weaponId, WeaponAttackType attackType)
+    private void PresentAttackRpc(WeaponId weaponId, WeaponAttackType attackType, bool hitTarget)
     {
+        LastAttackHit = hitTarget; // [ANIMACIONES]
         AttackPresented?.Invoke(weaponId, attackType);
     }
 
