@@ -50,7 +50,7 @@ public class PlayerWeaponAudio : NetworkBehaviour
 
     [Header("Debug")]
     [Tooltip("Escribe en la Console cada ataque que llega y si tiene sonido configurado. Desactivalo antes de la entrega final.")]
-    [SerializeField] private bool debugLog = true;
+    [SerializeField] private bool debugLog;
 
     private bool wasReloading;
     private WeaponShotAudio reloadingSound;

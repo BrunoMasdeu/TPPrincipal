@@ -161,10 +161,6 @@ public class NetworkPlayerHealth : NetworkBehaviour
             return false;
 
         currentHealth.Value = after;
-        Debug.Log(
-            $"[Combat] Vida jugador {OwnerClientId}: {before} -> {after} " +
-            $"(atacante {attackerClientId})."
-        );
         if (!CombatValidationRules.IsLethalTransition(before, after))
             return true;
 
@@ -226,10 +222,6 @@ public class NetworkPlayerHealth : NetworkBehaviour
 
     private void OnHealthChanged(int previous, int current)
     {
-        Debug.Log(
-            $"[Combat] Vida replicada del jugador {OwnerClientId}: " +
-            $"{previous} -> {current} ({(IsServer ? "servidor" : "cliente")})."
-        );
         HealthChanged?.Invoke(current);
     }
 

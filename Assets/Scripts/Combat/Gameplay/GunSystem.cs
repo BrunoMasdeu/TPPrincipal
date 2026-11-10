@@ -170,8 +170,6 @@ public class GunSystem : MonoBehaviour
 
     private void Shoot()
     {
-        Debug.Log("DISPARÓ");
-
         readyToShoot = false;
 
         float x = Random.Range(-spread, spread);
@@ -191,8 +189,6 @@ public class GunSystem : MonoBehaviour
             hitMask,
             QueryTriggerInteraction.Ignore))
         {
-            Debug.Log("Impactó a: " + rayHit.collider.name);
-
             // [ZOMBIES] Los zombies tienen su propia vida (Zombie.cs). Se revisa
             // primero para que tenga prioridad aunque el prefab esté con el
             // tag "Enemy".
@@ -266,13 +262,6 @@ public class GunSystem : MonoBehaviour
         bulletsLeft--;
         bulletsShot--;
 
-        if (bulletsLeft == 0)
-        {
-            Debug.LogWarning(
-                "Cargador vacío. Presioná R para recargar."
-            );
-        }
-
         Invoke(nameof(ResetShot), timeBetweenShooting);
 
         if (bulletsShot > 0 && bulletsLeft > 0)
@@ -289,14 +278,9 @@ public class GunSystem : MonoBehaviour
     private void Reload()
     {
         if (extraBulletsLeft <= 0)
-        {
-            Debug.LogWarning("No quedan balas de reserva.");
             return;
-        }
 
         reloading = true;
-
-        Debug.Log("Recargando...");
 
         Invoke(nameof(ReloadFinished), reloadTime);
     }
@@ -313,11 +297,6 @@ public class GunSystem : MonoBehaviour
         extraBulletsLeft -= bulletsToLoad;
 
         reloading = false;
-
-        Debug.Log(
-            "Recarga completa. Cargador: " +
-            bulletsLeft + " | Reserva: " + extraBulletsLeft
-        );
     }
 
     public bool AddAmmo(int cantidad)
@@ -326,12 +305,6 @@ public class GunSystem : MonoBehaviour
             return false;
 
         extraBulletsLeft += cantidad;
-
-        Debug.Log(
-            "Munición recogida: +" + cantidad +
-            ". Cargador: " + bulletsLeft +
-            " | Reserva: " + extraBulletsLeft
-        );
 
         return true;
     }
