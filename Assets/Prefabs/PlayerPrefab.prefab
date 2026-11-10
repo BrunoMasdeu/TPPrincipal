@@ -8116,7 +8116,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 377557317
+  GlobalObjectIdHash: 3814868959
   InScenePlacedSourceGlobalObjectIdHash: 377557317
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -8629,6 +8629,10 @@ MonoBehaviour:
   jumpConfirmTime: 0.08
   landMinFallSpeed: 8
   airSoundCooldown: 0.5
+  landSoftFallSpeed: 6
+  landHardFallSpeed: 14
+  landSoftVolume: 0.4
+  landHardVolume: 1
   assumeGroundedIfNoHit: 1
   assumeMaxVerticalSpeed: 0.5
   assumeRequiredTime: 0.15
