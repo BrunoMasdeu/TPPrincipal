@@ -30,6 +30,14 @@ public class CajaArmas : MonoBehaviour
     public int precio = 800;
     public float distanciaParaAbrir = 2.5f;
 
+    [Header("Sonidos (los pone el WaveManager)")]
+    public AudioClip sonidoAmbiente;   // en loop mientras la caja está cerrada (3D)
+    public AudioClip sonidoApertura;   // al pagar
+    public AudioClip sonidoRuleta;     // cuando arranca la ruleta
+    public AudioClip sonidoPremio;     // cuando la ruleta frena en el arma
+    [Range(0f, 1f)] public float volumenAmbiente = 0.8f;
+    [Range(0f, 1f)] public float volumenEfectos = 1f;
+
     [Header("Aspecto")]
     public float escala = 2.5f;
     public Color dorado = new Color(1f, 0.78f, 0.25f);
@@ -42,6 +50,7 @@ public class CajaArmas : MonoBehaviour
     private static TextMeshProUGUI textoCartel;
 
     private Animator animador;
+    private AudioSource fuenteAmbiente;
     private Light luz;
     private ParticleSystem chispas;
     private bool abierta;
@@ -56,6 +65,7 @@ public class CajaArmas : MonoBehaviour
             animador.enabled = false;
 
         PintarDeDorado();
+        CrearSonidoAmbiente();
         CrearColision();
         CrearLuz();
         CrearChispas();
@@ -114,6 +124,11 @@ public class CajaArmas : MonoBehaviour
         abierta = true;
         ActualizarCartel(false);
 
+        // [ZOMBIES] Se apaga el ambiente de la caja y suena la apertura.
+        if (fuenteAmbiente != null)
+            fuenteAmbiente.Stop();
+        SonarEnCamara(sonidoApertura);
+
         // Elegir el premio: un arma que todavia no tengas.
         List<WeaponDefinition> todas = new List<WeaponDefinition>();
         inventario.CopyDefinitionsTo(todas);
@@ -153,8 +168,20 @@ public class CajaArmas : MonoBehaviour
 
         bool terminada = false;
         RuletaArmas.Mostrar(posibles, premio, () => terminada = true);
+        SonarEnCamara(sonidoRuleta);
+
+        // El sonido de premio suena justo cuando la ruleta frena en el arma.
+        float girando = 0f;
+        bool premioSonado = false;
         while (!terminada)
         {
+            girando += Time.deltaTime;
+            if (!premioSonado && girando >= RuletaArmas.DuracionGiro)
+            {
+                premioSonado = true;
+                SonarEnCamara(sonidoPremio);
+            }
+
             if (luz != null)
                 luz.intensity = intensidadLuz * Random.Range(1.5f, 3f);
             yield return null;
@@ -224,6 +251,32 @@ public class CajaArmas : MonoBehaviour
                 }
             }
         }
+    }
+
+    // [ZOMBIES] Sonido en loop que sale de la caja (se escucha al acercarse).
+    private void CrearSonidoAmbiente()
+    {
+        if (sonidoAmbiente == null)
+            return;
+
+        fuenteAmbiente = gameObject.AddComponent<AudioSource>();
+        fuenteAmbiente.clip = sonidoAmbiente;
+        fuenteAmbiente.loop = true;
+        fuenteAmbiente.volume = volumenAmbiente;
+        fuenteAmbiente.spatialBlend = 1f;
+        fuenteAmbiente.rolloffMode = AudioRolloffMode.Linear;
+        fuenteAmbiente.minDistance = 2f;
+        fuenteAmbiente.maxDistance = 15f;
+        fuenteAmbiente.dopplerLevel = 0f;
+        fuenteAmbiente.Play();
+    }
+
+    // Efectos que tiene que escuchar el jugador (no se cortan si la caja desaparece).
+    private void SonarEnCamara(AudioClip clip)
+    {
+        Camera camara = Camera.main;
+        if (clip != null && camara != null)
+            AudioSource.PlayClipAtPoint(clip, camara.transform.position, volumenEfectos);
     }
 
     private void CrearColision()

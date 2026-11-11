@@ -53456,6 +53456,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2119514347}
   - component: {fileID: 2119514346}
+  - component: {fileID: 2119514399}
   m_Layer: 0
   m_Name: Regla
   m_TagString: Untagged
@@ -53512,6 +53513,8 @@ MonoBehaviour:
   dropPrefabs: []
   dropChance: 1
   cajaArmasModelo: {fileID: 195412, guid: a991ce3caab51f44889616a93b745f92, type: 3}
+  sonidoMuerteJugador: {fileID: 8300000, guid: 72548c246faa94f9f97bb667ee818b5b, type: 3}
+  volumenMuerteJugador: 1
   testAutoKillSeconds: 0
   autoStart: 1
   timeBetweenWaves: 15
@@ -54569,6 +54572,31 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 4300000, guid: 368226022ad3541fdae89c0303df3a50, type: 3}
+--- !u!114 &2119514399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2119514345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf96d6c2c45748a7a565f4ee159181b7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  musicaRondas:
+  - {fileID: 8300000, guid: 6c14612c0a2b4ed5a5fb700ebecd93e7, type: 3}
+  - {fileID: 8300000, guid: ab82c647a407404581ab29c545a56894, type: 3}
+  - {fileID: 8300000, guid: e20543d5e406404ea38516efe725fd71, type: 3}
+  volumenMusica: 0.8
+  ambiente: {fileID: 8300000, guid: f4d82c5a375e468b99a0d87d32b7fbad, type: 3}
+  volumenAmbiente: 0.5
+  segundosEntrada: 2
+  segundosSalida: 4
+  cajaAmbiente: {fileID: 8300000, guid: 595dcdc0f6e245f39d58004b785e125b, type: 3}
+  cajaApertura: {fileID: 8300000, guid: 8b88d920f839417e86be3c795e17cb7c, type: 3}
+  cajaRuleta: {fileID: 8300000, guid: de48ce94c69f49388032c8ac5e31169e, type: 3}
+  cajaPremio: {fileID: 8300000, guid: f969103ffb53489cb23caee5df244fd3, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

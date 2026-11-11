@@ -47,11 +47,19 @@ public class WaveManager : MonoBehaviour
     // Se le agrega el script CajaArmas al crearla. Si queda vacío, no se suelta caja.
     [Header("Caja de armas")]
     public GameObject cajaArmasModelo;
+
+    // [ZOMBIES] Sonido cuando los zombies te matan.
+    [Header("Sonidos")]
+    public AudioClip sonidoMuerteJugador;
+    [Range(0f, 1f)] public float volumenMuerteJugador = 1f;
     // Precio de la caja según la oleada que la soltó (1ra, 2da...). Si hay más
     // oleadas que precios, se usa el último.
     public int[] preciosCaja = { 800, 1500 };
     // Las cajas que no se compran se acumulan.
     private readonly List<GameObject> cajas = new List<GameObject>();
+
+    // [ZOMBIES] Música, ambiente y sonidos de la caja (componente en este mismo objeto).
+    private SonidosOleadas sonidosOleadas;
 
     private NetworkPlayerCombat playerCombat;
 
@@ -119,6 +127,7 @@ public class WaveManager : MonoBehaviour
 
     private void Start()
     {
+        sonidosOleadas = GetComponent<SonidosOleadas>(); // [ZOMBIES]
         if (autoStart) StartCoroutine(ShowMenuNextFrame());
     }
 
@@ -172,6 +181,7 @@ public class WaveManager : MonoBehaviour
             zombiesRemaining = wave.zombieCount;
 
             hudMessage = "Oleada " + currentWave;
+            if (sonidosOleadas != null) sonidosOleadas.EmpiezaOleada(currentWave); // [ZOMBIES]
             yield return new WaitForSeconds(2f);
 
             List<bool> order = BuildSpawnOrder(wave);
@@ -184,6 +194,8 @@ public class WaveManager : MonoBehaviour
 
             while (zombiesRemaining > 0)
                 yield return null;
+
+            if (sonidosOleadas != null) sonidosOleadas.TerminaOleada(); // [ZOMBIES] fade out
 
             if (i < waves.Length - 1)
             {
@@ -279,6 +291,7 @@ public class WaveManager : MonoBehaviour
         GameObject caja = Instantiate(cajaArmasModelo, posicion, Quaternion.identity);
         caja.name = "CajaArmas (oleada " + currentWave + ")";
         CajaArmas compra = caja.AddComponent<CajaArmas>();
+        if (sonidosOleadas != null) sonidosOleadas.ConfigurarCaja(compra); // [ZOMBIES] antes de su Start
         if (preciosCaja != null && preciosCaja.Length > 0)
             compra.precio = preciosCaja[Mathf.Clamp(currentWave - 1, 0, preciosCaja.Length - 1)];
 
@@ -318,6 +331,15 @@ public class WaveManager : MonoBehaviour
         if (gameOver) return;
         gameOver = true;
         playerMove = player;
+
+        if (sonidosOleadas != null) sonidosOleadas.FinPartida(); // [ZOMBIES]
+
+        // [ZOMBIES] Sonido de que te comen.
+        if (sonidoMuerteJugador != null)
+        {
+            Vector3 donde = Camera.main != null ? Camera.main.transform.position : player.transform.position;
+            AudioSource.PlayClipAtPoint(sonidoMuerteJugador, donde, volumenMuerteJugador);
+        }
 
         StopAllCoroutines();
         started = false;

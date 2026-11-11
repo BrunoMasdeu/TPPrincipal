@@ -26,7 +26,7 @@ public class RuletaArmas : MonoBehaviour
     private const int IndiceGanador = 38;
 
     // Segundos que gira y segundos que queda mostrando el premio.
-    private const float DuracionGiro = 5f;
+    public const float DuracionGiro = 5f; // [ZOMBIES] público: la caja lo usa para el sonido de premio
     private const float TiempoMostrandoPremio = 1.5f;
 
     private static RuletaArmas instancia;
