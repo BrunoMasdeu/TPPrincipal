@@ -31,6 +31,7 @@ public class AchievementNotificationHUD : NetworkBehaviour
 
     // [ZOMBIES] Texto fijo "Logro desbloqueado" del panel: se oculta en los avisos de objetos.
     private TMP_Text encabezadoLogro;
+    private TMP_FontAsset fuenteOriginal; // [ZOMBIES] la de los logros, para volver a ponerla
 
     private Coroutine currentCoroutine;
 
@@ -87,6 +88,7 @@ public class AchievementNotificationHUD : NetworkBehaviour
 
         achievementIcon.enabled = true; // [ZOMBIES] un aviso sin icono lo pudo haber ocultado
         MostrarEncabezadoLogro(true);   // [ZOMBIES] los avisos de objetos lo ocultan
+        if (fuenteOriginal != null) achievementTitle.font = fuenteOriginal; // [ZOMBIES]
 
         // 2. Reiniciar la corrutina si ya había un logro mostrándose
         if (currentCoroutine != null)
@@ -106,6 +108,13 @@ public class AchievementNotificationHUD : NetworkBehaviour
 
         achievementTitle.text = texto;
         MostrarEncabezadoLogro(false);
+
+        // [ZOMBIES] Los avisos usan la fuente del modo zombies.
+        if (WaveManager.FuenteTextoTMP != null)
+        {
+            if (fuenteOriginal == null) fuenteOriginal = achievementTitle.font;
+            achievementTitle.font = WaveManager.FuenteTextoTMP;
+        }
         if (achievementIcon != null)
         {
             achievementIcon.sprite = icono;

@@ -53514,6 +53514,8 @@ MonoBehaviour:
   dropChance: 1
   cajaArmasModelo: {fileID: 195412, guid: a991ce3caab51f44889616a93b745f92, type: 3}
   sonidoMuerteJugador: {fileID: 8300000, guid: 72548c246faa94f9f97bb667ee818b5b, type: 3}
+  fuenteTitulos: {fileID: 12800000, guid: a114f19c57734fd0b9f50dd70bda565d, type: 3}
+  fuenteTexto: {fileID: 12800000, guid: d261603dbd324395911c94bd839acd7a, type: 3}
   volumenMuerteJugador: 1
   testAutoKillSeconds: 0
   autoStart: 1

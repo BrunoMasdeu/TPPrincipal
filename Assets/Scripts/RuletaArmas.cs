@@ -93,6 +93,8 @@ public class RuletaArmas : MonoBehaviour
                 casillaGanadora = casilla;
         }
 
+        if (WaveManager.FuenteTextoTMP != null)
+            titulo.font = WaveManager.FuenteTextoTMP; // [ZOMBIES] fuente del modo zombies
         titulo.text = "CAJA DE ARMAS";
         tira.anchoredPosition = Vector2.zero;
         panel.SetActive(true);

@@ -384,6 +384,8 @@ public class CajaArmas : MonoBehaviour
         if (cartel == null)
             CrearCartel();
 
+        if (WaveManager.FuenteTextoTMP != null)
+            textoCartel.font = WaveManager.FuenteTextoTMP; // [ZOMBIES] fuente del modo zombies
         textoCartel.text = "E: abrir caja ($" + caja.precio + ")";
         cartel.SetActive(true);
     }
