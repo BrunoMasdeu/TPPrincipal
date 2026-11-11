@@ -43,6 +43,12 @@ public class WaveManager : MonoBehaviour
     public GameObject[] dropPrefabs = System.Array.Empty<GameObject>();
     [Range(0f, 1f)] public float dropChance = 1f;
 
+    // [ZOMBIES] Modelo de la caja de armas que suelta el último zombie de cada oleada.
+    // Se le agrega el script CajaArmas al crearla. Si queda vacío, no se suelta caja.
+    [Header("Caja de armas")]
+    public GameObject cajaArmasModelo;
+    private GameObject cajaActual;
+
     private NetworkPlayerCombat playerCombat;
 
     private bool choosingDifficulty = false;
@@ -245,13 +251,33 @@ public class WaveManager : MonoBehaviour
         spawnedZombies.Add(zombie);
         string tipo = prefab == specialZombiePrefab ? "ESPECIAL" : "NORMAL";
         Debug.Log($"[Oleada {currentWave}] zombie {tipo} ({prefab.name}) spawneado por WaveManager. Vivos: {zombiesAlive}");
-        zombie.Initialize(playerBody, walkPoints, health, OnZombieDied);
+        zombie.Initialize(playerBody, walkPoints, health, () => OnZombieDied(zombie)); // [ZOMBIES] pasa qué zombie murió
         zombie.giveDamage *= damageMultiplier;
 
         if (testAutoKillSeconds > 0f)
             StartCoroutine(AutoKill(zombie, testAutoKillSeconds));
 
         return true;
+    }
+
+    // [ZOMBIES] Crea la caja de armas en el piso, donde murió el zombie.
+    private void SoltarCajaArmas(Vector3 posicion)
+    {
+        if (cajaArmasModelo == null)
+        {
+            Debug.LogWarning("WaveManager: falta asignar 'Caja Armas Modelo' en Regla, no se suelta caja.");
+            return;
+        }
+
+        if (NavMesh.SamplePosition(posicion, out NavMeshHit hit, 2f, NavMesh.AllAreas))
+            posicion = hit.position;
+
+        if (cajaActual != null)
+            Destroy(cajaActual);
+
+        cajaActual = Instantiate(cajaArmasModelo, posicion, Quaternion.identity);
+        cajaActual.name = "CajaArmas";
+        cajaActual.AddComponent<CajaArmas>();
     }
 
     private IEnumerator AutoKill(Zombie zombie, float seconds)
@@ -261,10 +287,15 @@ public class WaveManager : MonoBehaviour
             zombie.zombieHitDamage(float.MaxValue);
     }
 
-    private void OnZombieDied()
+    private void OnZombieDied(Zombie zombie)
     {
         zombiesAlive--;
         zombiesRemaining--;
+
+        // [ZOMBIES] El último zombie de la oleada suelta la caja de armas,
+        // menos en la última oleada (ahí ya ganaste).
+        if (zombiesRemaining == 0 && currentWave < waves.Length && zombie != null)
+            SoltarCajaArmas(zombie.transform.position);
 
         NetworkPlayerCombat combat = GetPlayerCombat();
         if (combat != null)
@@ -288,6 +319,10 @@ public class WaveManager : MonoBehaviour
         spawnedZombies.Clear();
         zombiesAlive = 0;
         zombiesRemaining = 0;
+
+        // [ZOMBIES] Si quedó una caja o la ruleta girando, se sacan.
+        if (cajaActual != null) Destroy(cajaActual);
+        RuletaArmas.Cerrar();
 
         hudMessage = "Has muerto";
 

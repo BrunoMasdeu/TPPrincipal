@@ -155,6 +155,10 @@ public class SpeedBoostPickup : NetworkBehaviour
             return;
         }
 
+        // [ZOMBIES] Aviso en pantalla de lo que agarraste.
+        AchievementNotificationHUD.AvisarEnZombies(
+            playerObject, "VELOCIDAD AUMENTADA", AchievementNotificationHUD.TipoAviso.Velocidad);
+
         if (WaveManager.IsActive)
         {
             NetworkObject.Despawn(true);

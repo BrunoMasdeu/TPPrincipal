@@ -128,31 +128,62 @@ public class Zombie : MonoBehaviour
         transform.position = Vector3.MoveTowards(transform.position, walkPoints[currentZombiePosition].transform.position, Time.deltaTime * zombieSpeed);
         transform.LookAt(walkPoints[currentZombiePosition].transform.position);
     }
+    // [ZOMBIES] Cada cuantos segundos el zombie recalcula el camino hacia el jugador.
+    private const float tiempoEntreCaminos = 0.25f;
+    private float proximoCamino;
+
     private void Pursueplayer()
     {
-        if(zombieAgent.SetDestination(playerBody.position))
+        if (!zombieAgent.isOnNavMesh) return;
+
+        // [ZOMBIES] Si venia de atacar, el agente estaba frenado: se lo vuelve a soltar.
+        zombieAgent.isStopped = false;
+
+        // [ZOMBIES] Antes se pedia un camino nuevo en TODOS los frames. Cada pedido
+        // cancela al anterior, y si el calculo tarda mas de un frame el zombie nunca
+        // recibe el camino y se queda corriendo en el lugar. Ahora se pide 4 veces
+        // por segundo, que alcanza para seguir al jugador.
+        if (Time.time >= proximoCamino)
         {
-            anim.SetBool("Walking", false);
-            anim.SetBool("Running", true);
-            anim.SetBool("Attacking", false);
-            anim.SetBool("Died", false);
+            proximoCamino = Time.time + tiempoEntreCaminos;
+            zombieAgent.SetDestination(playerBody.position);
         }
-        else
-        {
-            anim.SetBool("Walking", false);
-            anim.SetBool("Running", false);
-            anim.SetBool("Attacking", false);
-            anim.SetBool("Died", true);
-        }
+
+        // [ZOMBIES] Antes, si no habia camino (por ejemplo con el jugador en el aire),
+        // se activaba la animacion "Died", y el Animator no tiene salida de ese estado:
+        // el zombie quedaba vivo pero con la pose de muerto. Ahora, mientras persigue,
+        // usa siempre la animacion de correr.
+        anim.SetBool("Walking", false);
+        anim.SetBool("Running", true);
+        anim.SetBool("Attacking", false);
+        anim.SetBool("Died", false);
     }
     private void AttackPlayer()
     {
-        zombieAgent.SetDestination(transform.position);
+        // [ZOMBIES] Frenar en seco al llegar. Antes se le daba como destino su propia
+        // posicion en cada frame y el zombie seguia deslizandose hacia el jugador.
+        if (zombieAgent.isOnNavMesh)
+        {
+            zombieAgent.isStopped = true;
+            zombieAgent.velocity = Vector3.zero;
+        }
+
         transform.LookAt(LookPoint);
+
+        // [ZOMBIES] La animacion de ataque se pone siempre que el jugador esta en rango.
+        // Antes solo se ponia si el rayo de abajo tocaba algo; si no, el zombie quedaba
+        // quieto con la animacion de correr.
+        anim.SetBool("Walking", false);
+        anim.SetBool("Running", false);
+        anim.SetBool("Attacking", true);
+        anim.SetBool("Died", false);
+
         if(!previouslyAttack)
         {
             RaycastHit hitInfo;
-            if(Physics.Raycast(AttackingRaycastArea.transform.position, AttackingRaycastArea.transform.forward, out hitInfo, attackingRadius))
+            // [ZOMBIES] El rayo sale de la cabeza y el radio de ataque se mide desde los
+            // pies, por eso se le da medio metro extra: asi no falla justo en el borde.
+            if(Physics.Raycast(AttackingRaycastArea.transform.position, AttackingRaycastArea.transform.forward, out hitInfo, attackingRadius + 0.5f))
             {
                 Debug.Log("Attacking" + hitInfo.transform.name);
 
@@ -162,11 +193,6 @@ public class Zombie : MonoBehaviour
                 {
                     playerBody.playerHitDamage(giveDamage);
                 }
-
-                anim.SetBool("Walking", false);
-                anim.SetBool("Running", false);
-                anim.SetBool("Attacking", true);
-                anim.SetBool("Died", false);
             }
             previouslyAttack = true;
             Invoke(nameof(ActiveAttacking), timeBtwAttack);

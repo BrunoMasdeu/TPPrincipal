@@ -4672,7 +4672,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::GunSystem
   damage: 30
-  timeBetweenShooting: 0.5
+  timeBetweenShooting: 0.1
   spread: 0.02
   range: 1000
   reloadTime: 1
@@ -12695,7 +12695,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::GunSystem
   damage: 35
-  timeBetweenShooting: 0.4
+  timeBetweenShooting: 0.1
   spread: 0.02
   range: 1000
   reloadTime: 1
@@ -17187,6 +17187,9 @@ MonoBehaviour:
   iconTDM: {fileID: 21300000, guid: 40db88381d6c7d448acd0580c09f7c37, type: 3}
   iconCTF: {fileID: 21300000, guid: a5c0b3a82612bd84f91290e0008d11ba, type: 3}
   iconEasterEgg: {fileID: 21300000, guid: 0855418b1c3a0614ab8c5fb81f7b3bc2, type: 3}
+  iconVida: {fileID: 21300000, guid: b3cb54b0059993443a210ca694e874f0, type: 3}
+  iconBalas: {fileID: 21300000, guid: 7717c514a355d2c4aa7f26be3b4af2d4, type: 3}
+  iconVelocidad: {fileID: 0}
 --- !u!114 &8682546245016547520 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2957645624624120856, guid: 142d50d49634ea442a9a18208fcd710a, type: 3}

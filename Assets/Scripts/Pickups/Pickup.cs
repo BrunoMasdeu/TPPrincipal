@@ -75,7 +75,17 @@ public class Pickup : MonoBehaviour
         }
 
         if (aplicado)
+        {
+            // [ZOMBIES] Aviso en pantalla de lo que agarraste.
+            if (tipo == TipoPickup.Municion)
+                AchievementNotificationHUD.AvisarEnZombies(
+                    other, "+" + cantidadMunicion + " BALAS", AchievementNotificationHUD.TipoAviso.Balas);
+            else
+                AchievementNotificationHUD.AvisarEnZombies(
+                    other, "+" + cantidadVida + " VIDA", AchievementNotificationHUD.TipoAviso.Vida);
+
             StartCoroutine(OcultarYReaparecer());
+        }
     }
 
     private IEnumerator OcultarYReaparecer()

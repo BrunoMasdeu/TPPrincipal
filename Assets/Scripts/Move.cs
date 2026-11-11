@@ -361,6 +361,7 @@ public class Move : MonoBehaviour
             return;
 
         presentHealth -= TakeDamage;
+        ActualizarVidaHud(); // [ZOMBIES]
 
         if(presentHealth <= 0)
         {
@@ -374,7 +375,20 @@ public class Move : MonoBehaviour
             return false;
 
         presentHealth = playerHealth;
+        ActualizarVidaHud(); // [ZOMBIES]
         return true;
+    }
+
+    // [ZOMBIES] En el modo zombies la vida la lleva Move (presentHealth).
+    // Se muestra en el HUD que ya tiene el jugador.
+    private void ActualizarVidaHud()
+    {
+        if (!WaveManager.IsActive)
+            return;
+
+        NetworkPlayerHudPresenter hud = GetComponent<NetworkPlayerHudPresenter>();
+        if (hud != null && hud.View != null)
+            hud.View.SetHealth(Mathf.CeilToInt(presentHealth), Mathf.RoundToInt(playerHealth));
     }
 
     private void playerDie()
@@ -387,6 +401,7 @@ public class Move : MonoBehaviour
     public void Respawn()
     {
         presentHealth = playerHealth;
+        ActualizarVidaHud(); // [ZOMBIES]
         keyboardInputEnabled = true;
         ClearMovementInput();
         jumpPressed = false;
