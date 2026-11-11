@@ -386,8 +386,18 @@ public class CajaArmas : MonoBehaviour
 
         if (WaveManager.FuenteTextoTMP != null)
             textoCartel.font = WaveManager.FuenteTextoTMP; // [ZOMBIES] fuente del modo zombies
-        textoCartel.text = "E: abrir caja ($" + caja.precio + ")";
+
+        string texto = "E: abrir caja ($" + caja.precio + ")";
+
+        // [ZOMBIES] Las fuentes "dinámicas" dibujan cada letra la primera vez que se usa.
+        // Si el texto se arma antes de que estén dibujadas, la primera vez se ve
+        // garabateado. Por eso primero se agregan las letras y después se arma el texto.
+        if (textoCartel.font != null)
+            textoCartel.font.TryAddCharacters(texto);
+
         cartel.SetActive(true);
+        textoCartel.text = texto;
+        textoCartel.ForceMeshUpdate(true, true);
     }
 
     private static void CrearCartel()
