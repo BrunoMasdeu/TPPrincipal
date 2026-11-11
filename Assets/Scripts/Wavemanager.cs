@@ -217,6 +217,11 @@ public class WaveManager : MonoBehaviour
 
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+        
+        if (AchievementManager.Instance == null)
+            new GameObject("AchievementManager").AddComponent<AchievementManager>();
+        
+        AchievementManager.Instance.UnlockAchievement("win_zombies");
     }
 
     private List<bool> BuildSpawnOrder(Wave wave)
