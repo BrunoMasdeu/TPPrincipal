@@ -15,6 +15,7 @@ public class NetworkPlayerShop : NetworkBehaviour
     {
         public string Label;
         public WeaponDefinition Weapon;
+        public bool IsGrenade;
         [Min(0)] public int Price;
     }
 
@@ -43,6 +44,7 @@ public class NetworkPlayerShop : NetworkBehaviour
     private NetworkPlayerCombat combat;
     private NetworkPlayerInventory inventory;
     private NetworkPlayerHealth health;
+    private NetworkPlayerGrenades grenades;
 
     private bool menuOpen;
     private string feedback = "";
@@ -96,6 +98,7 @@ public class NetworkPlayerShop : NetworkBehaviour
         combat = GetComponent<NetworkPlayerCombat>();
         inventory = GetComponent<NetworkPlayerInventory>();
         health = GetComponent<NetworkPlayerHealth>();
+        grenades = GetComponent<NetworkPlayerGrenades>();
     }
 
     public override void OnNetworkSpawn()
@@ -190,6 +193,7 @@ public class NetworkPlayerShop : NetworkBehaviour
             ShopItem item = items[i];
 
             if (item != null &&
+                !item.IsGrenade &&
                 item.Weapon != null &&
                 item.Weapon.Id != WeaponId.None &&
                 inventory.HasWeaponInLoadout(item.Weapon.Id))
@@ -266,12 +270,18 @@ public class NetworkPlayerShop : NetworkBehaviour
 
         ShopItem item = items[index];
 
-        if (item == null ||
-            item.Weapon == null ||
-            item.Weapon.Id == WeaponId.None ||
-            item.Price < 0)
+        if (item == null || item.Price < 0 ||
+            (!item.IsGrenade && (item.Weapon == null || item.Weapon.Id == WeaponId.None)))
         {
             PurchaseFeedbackRpc("Articulo sin configurar.");
+            return;
+        }
+
+        if (item.IsGrenade)
+        {
+            PurchaseFeedbackRpc(grenades != null && grenades.TryBuyGrenadeOnServer(item.Price)
+                ? "Compraste: " + item.Label
+                : "Compra rechazada: saldo insuficiente o granada no disponible.");
             return;
         }
 
