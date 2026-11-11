@@ -56,8 +56,26 @@ public class WeaponPickup : NetworkBehaviour
     private void ShowVisual(WeaponId id)
     {
         foreach (PickupVisual v in visuals)
+        {
             if (v.model != null)
+            {
                 v.model.SetActive(v.weaponId == id);
+                if (v.model.activeSelf)
+                    PlaceVisualOnGround(v.model);
+            }
+        }
+    }
+
+    private void PlaceVisualOnGround(GameObject model)
+    {
+        float bottom = float.PositiveInfinity;
+        foreach (Renderer renderer in model.GetComponentsInChildren<Renderer>())
+        {
+            if (renderer.enabled)
+                bottom = Mathf.Min(bottom, renderer.bounds.min.y);
+        }
+        if (bottom < float.PositiveInfinity)
+            model.transform.position += Vector3.up * (transform.position.y + 0.02f - bottom);
     }
 
     private void Update()
@@ -75,42 +93,42 @@ public class WeaponPickup : NetworkBehaviour
         }
 
         // Cliente local: tecla E si este es el pickup más cercano en rango.
-        if (!IsLocalPlayerNear() || !IsClosestToLocalPlayer())
-            return;
-
         if (MatchDebugConsole.IsInputCaptured || NetworkPlayerShop.IsInputCaptured ||
-            Keyboard.current == null)
+            Keyboard.current == null || !Keyboard.current.eKey.wasPressedThisFrame)
             return;
 
-        if (Keyboard.current.eKey.wasPressedThisFrame)
+        if (CanLocalPlayerInteract())
             PickupRpc();
     }
 
-    private Transform LocalPlayer()
+    private bool CanLocalPlayerInteract()
     {
-        NetworkManager nm = NetworkManager.Singleton;
-        if (nm == null || nm.LocalClient == null || nm.LocalClient.PlayerObject == null)
-            return null;
-        return nm.LocalClient.PlayerObject.transform;
-    }
+        if (!IsSpawned || consumed || weaponId.Value == WeaponId.None)
+            return false;
 
-    private bool IsLocalPlayerNear()
-    {
-        Transform p = LocalPlayer();
-        return p != null &&
-               Vector3.Distance(p.position, transform.position) <= pickupRadius;
-    }
+        NetworkObject player = NetworkManager.LocalClient?.PlayerObject;
+        if (player == null ||
+            !player.TryGetComponent(out NetworkPlayerHealth health) ||
+            health.LifeState != PlayerLifeState.Alive ||
+            !player.TryGetComponent(out PlayerNetworkSetup setup) ||
+            !setup.LocalGameplayInputEnabled)
+            return false;
 
-    private bool IsClosestToLocalPlayer()
-    {
-        Transform p = LocalPlayer();
-        if (p == null) return false;
+        Vector3 position = player.transform.position;
+        float distance = (position - transform.position).sqrMagnitude;
+        if (distance > pickupRadius * pickupRadius)
+            return false;
 
-        float mine = Vector3.Distance(p.position, transform.position);
         foreach (WeaponPickup other in all)
         {
-            if (other != this && other != null &&
-                Vector3.Distance(p.position, other.transform.position) < mine)
+            if (other == this || other == null || other.consumed ||
+                other.weaponId.Value == WeaponId.None)
+                continue;
+
+            float otherDistance = (position - other.transform.position).sqrMagnitude;
+            if (otherDistance <= other.pickupRadius * other.pickupRadius &&
+                (otherDistance < distance ||
+                 (otherDistance == distance && other.NetworkObjectId < NetworkObjectId)))
                 return false;
         }
         return true;
@@ -147,9 +165,7 @@ public class WeaponPickup : NetworkBehaviour
     // Cartel en pantalla para el jugador local.
     private void OnGUI()
     {
-        if (!IsSpawned || consumed || weaponId.Value == WeaponId.None)
-            return;
-        if (!IsLocalPlayerNear() || !IsClosestToLocalPlayer())
+        if (!CanLocalPlayerInteract())
             return;
 
         GUI.Box(new Rect(Screen.width * 0.5f - 110f, Screen.height * 0.62f, 220f, 32f),

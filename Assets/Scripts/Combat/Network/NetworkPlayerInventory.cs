@@ -299,7 +299,7 @@ public class NetworkPlayerInventory : NetworkBehaviour
     // =====================================================================
 
     /// <summary>Lo llama NetworkPlayerHealth cuando el jugador muere.</summary>
-    public void DropWeaponOnDeathOnServer()
+    public void DropWeaponOnDeathOnServer(Vector3 deathPosition)
     {
         if (!IsServer || !IsSpawned || !inventoryMode || pickupPrefab == null)
             return;
@@ -308,16 +308,30 @@ public class NetworkPlayerInventory : NetworkBehaviour
         if (toDrop == WeaponId.None)
             return;
 
-        Vector3 position = transform.position;
-        if (Physics.Raycast(position + Vector3.up, Vector3.down, out RaycastHit hit,
-                10f, dropGroundMask, QueryTriggerInteraction.Ignore))
-            position = hit.point + Vector3.up * 0.5f;
-
-        WeaponPickup pickup = Instantiate(pickupPrefab, position, Quaternion.identity);
+        WeaponPickup pickup = Instantiate(pickupPrefab, FindDropPosition(deathPosition),
+            Quaternion.identity);
         pickup.NetworkObject.Spawn();
         pickup.SetWeaponOnServer(toDrop);
 
         RestoreSlotAfterDrop(toDrop);
+    }
+
+    private Vector3 FindDropPosition(Vector3 deathPosition)
+    {
+        Vector3 position = deathPosition;
+        float nearest = float.PositiveInfinity;
+        // Proyectar desde los pies conserva X/Z y evita usar el cuerpo como piso.
+        foreach (RaycastHit hit in Physics.RaycastAll(deathPosition + Vector3.up * 0.15f,
+                     Vector3.down, 10f, dropGroundMask, QueryTriggerInteraction.Ignore))
+        {
+            if (hit.distance >= nearest || hit.normal.y <= 0f ||
+                hit.collider.GetComponentInParent<PlayerNetworkSetup>() != null)
+                continue;
+
+            nearest = hit.distance;
+            position.y = hit.point.y;
+        }
+        return position;
     }
 
     private WeaponId ChooseDroppableWeapon()
