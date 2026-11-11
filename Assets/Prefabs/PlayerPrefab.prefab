@@ -11086,6 +11086,10 @@ MonoBehaviour:
     Visual: {fileID: 312362995853433359}
   - WeaponId: 7
     Visual: {fileID: 8481835674261410546}
+  pickupPrefab: {fileID: 256659584244551321, guid: 40613ad662c197f4d823a32d0e9cbc23, type: 3}
+  dropGroundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!114 &5225828390091857571
 MonoBehaviour:
   m_ObjectHideFlags: 0

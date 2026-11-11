@@ -25,6 +25,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
     private NetworkPlayerCombat combat;
     private NetworkPlayerCrouch crouch;
     private NetworkPlayerGrenades grenades;
+    private NetworkPlayerInventory inventory; // [DROP]
     private bool combatMode;
     private ulong respawnSequence;
 
@@ -47,6 +48,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
         combat = GetComponent<NetworkPlayerCombat>();
         crouch = GetComponent<NetworkPlayerCrouch>();
         grenades = GetComponent<NetworkPlayerGrenades>();
+        inventory = GetComponent<NetworkPlayerInventory>(); // [DROP]
     }
 
     public override void OnNetworkSpawn()
@@ -172,6 +174,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
         respawnAt.Value = NetworkManager.ServerTime.Time + respawnDelaySeconds;
         combat?.CancelReloadForDeath();
         crouch?.ForceStandingOnServer();
+        inventory?.DropWeaponOnDeathOnServer(); // [DROP]
 
         if (match.TryRegisterPlayerDeath(
             OwnerClientId, attackerClientId, out PlayerDeathInfo death))

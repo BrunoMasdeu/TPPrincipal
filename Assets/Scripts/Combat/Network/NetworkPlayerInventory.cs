@@ -24,7 +24,8 @@ public struct WeaponVisualBinding
 public class NetworkPlayerInventory : NetworkBehaviour
 {
     [Header("Definiciones disponibles")]
-    [SerializeField] private WeaponDefinition[] weaponDefinitions =
+    [SerializeField]
+    private WeaponDefinition[] weaponDefinitions =
         Array.Empty<WeaponDefinition>();
 
     [Header("Equipamiento inicial")]
@@ -34,8 +35,14 @@ public class NetworkPlayerInventory : NetworkBehaviour
     [SerializeField] private WeaponDefinition startingUtility;
 
     [Header("Objeto de cada arma dentro del jugador")]
-    [SerializeField] private WeaponVisualBinding[] weaponVisuals =
+    [SerializeField]
+    private WeaponVisualBinding[] weaponVisuals =
         Array.Empty<WeaponVisualBinding>();
+
+    // [DROP]
+    [Header("Drop al morir")]
+    [SerializeField] private WeaponPickup pickupPrefab;
+    [SerializeField] private LayerMask dropGroundMask = ~0;
 
     // Arma en la mano. Read Everyone: los demás deben ver qué arma tenés.
     // Write Server: el cliente solo puede pedir el cambio.
@@ -242,7 +249,7 @@ public class NetworkPlayerInventory : NetworkBehaviour
     // Servidor: tienda y loadout
     // =====================================================================
 
-    /// <summary>Lo llama NetworkPlayerCombat al confirmar una compra.</summary>
+    /// <summary>Lo llama NetworkPlayerCombat al confirmar una compra (y WeaponPickup al agarrar).</summary>
     public bool TryAddPurchasedWeaponOnServer(WeaponId weaponId)
     {
         if (!IsServer || !IsSpawned || !inventoryMode ||
@@ -286,6 +293,62 @@ public class NetworkPlayerInventory : NetworkBehaviour
     }
 
     public bool HasWeaponInLoadout(WeaponId weaponId) => IsInCurrentLoadout(weaponId);
+
+    // =====================================================================
+    // [DROP] Soltar el arma al morir (solo servidor)
+    // =====================================================================
+
+    /// <summary>Lo llama NetworkPlayerHealth cuando el jugador muere.</summary>
+    public void DropWeaponOnDeathOnServer()
+    {
+        if (!IsServer || !IsSpawned || !inventoryMode || pickupPrefab == null)
+            return;
+
+        WeaponId toDrop = ChooseDroppableWeapon();
+        if (toDrop == WeaponId.None)
+            return;
+
+        Vector3 position = transform.position;
+        if (Physics.Raycast(position + Vector3.up, Vector3.down, out RaycastHit hit,
+                10f, dropGroundMask, QueryTriggerInteraction.Ignore))
+            position = hit.point + Vector3.up * 0.5f;
+
+        WeaponPickup pickup = Instantiate(pickupPrefab, position, Quaternion.identity);
+        pickup.NetworkObject.Spawn();
+        pickup.SetWeaponOnServer(toDrop);
+
+        RestoreSlotAfterDrop(toDrop);
+    }
+
+    private WeaponId ChooseDroppableWeapon()
+    {
+        if (IsDroppable(selectedWeapon.Value)) return selectedWeapon.Value;
+        if (IsDroppable(primaryWeaponId)) return primaryWeaponId;
+        if (IsDroppable(sidearmWeaponId)) return sidearmWeaponId;
+        return WeaponId.None;
+    }
+
+    private bool IsDroppable(WeaponId id) =>
+        TryGetDefinition(id, out WeaponDefinition d) &&
+        (d.Slot == WeaponSlot.Primary || d.Slot == WeaponSlot.Secondary);
+
+    private void RestoreSlotAfterDrop(WeaponId dropped)
+    {
+        if (!TryGetDefinition(dropped, out WeaponDefinition def))
+            return;
+
+        if (def.Slot == WeaponSlot.Primary)
+            primaryWeaponId = IdIfSlot(startingPrimary, WeaponSlot.Primary);
+        else
+            sidearmWeaponId = IdIfSlot(startingSidearm, WeaponSlot.Secondary);
+
+        PublishLoadoutWeapons();
+
+        if (!IsInCurrentLoadout(selectedWeapon.Value))
+            selectedWeapon.Value = sidearmWeaponId != WeaponId.None
+                ? sidearmWeaponId
+                : meleeWeaponId;
+    }
 
     // =====================================================================
     // Catálogo y ayudantes
