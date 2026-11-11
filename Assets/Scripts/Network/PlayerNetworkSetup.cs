@@ -37,6 +37,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
     private Rigidbody playerRigidbody;
     private NetworkTransform networkTransform;
+    private NetworkPlayerHealth health;
     private PlayerActionLock actionLock; // bloqueo de acciones de Felipe
     private RenderTexture localMinimapTexture;
     private float nextRespawnRequestTime;
@@ -44,6 +45,8 @@ public class PlayerNetworkSetup : NetworkBehaviour
     private bool presentationControlsEnabled = true;
     private bool pauseControlsEnabled = true;
     private bool hudVisible = true;
+    private bool matchBodyLocked;
+    private RigidbodyConstraints livingBodyConstraints;
 
     private const float RespawnRequestCooldown = 0.5f;
 
@@ -51,6 +54,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
     {
         playerRigidbody = GetComponent<Rigidbody>();
         networkTransform = GetComponent<NetworkTransform>();
+        health = GetComponent<NetworkPlayerHealth>();
         actionLock = GetComponent<PlayerActionLock>();
         inventory ??= GetComponent<NetworkPlayerInventory>();
         combat ??= GetComponent<NetworkPlayerCombat>();
@@ -87,6 +91,8 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        UnlockMatchBody();
+        matchControlsEnabled = true;
         ReleaseLocalMinimap();
     }
 
@@ -149,20 +155,21 @@ public class PlayerNetworkSetup : NetworkBehaviour
     {
         if (!IsSpawned)
         {
-            ApplyRespawn(position, rotation);
+            TeleportPlayer(position, rotation);
             return;
         }
 
         // El host valida la zona de muerte. Como el NetworkTransform usa
         // autoridad del propietario, al cliente remoto se le ordena efectuar
         // el teletransporte sobre su propia instancia autoritativa.
-        if (!IsServer || Time.unscaledTime < nextRespawnRequestTime)
+        if (!IsServer || (health != null && health.LifeState != PlayerLifeState.Alive) ||
+            Time.unscaledTime < nextRespawnRequestTime)
             return;
 
         nextRespawnRequestTime = Time.unscaledTime + RespawnRequestCooldown;
 
         if (IsOwner)
-            ApplyRespawn(position, rotation);
+            TeleportPlayer(position, rotation);
         else
             RespawnOwnerRpc(position, rotation);
     }
@@ -170,10 +177,11 @@ public class PlayerNetworkSetup : NetworkBehaviour
     [Rpc(SendTo.Owner)]
     private void RespawnOwnerRpc(Vector3 position, Quaternion rotation)
     {
-        ApplyRespawn(position, rotation);
+        if (matchControlsEnabled)
+            TeleportPlayer(position, rotation);
     }
 
-    private void ApplyRespawn(Vector3 position, Quaternion rotation)
+    private void TeleportPlayer(Vector3 position, Quaternion rotation)
     {
         if (IsSpawned && !IsOwner)
             return;
@@ -182,8 +190,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
         if (playerRigidbody != null)
         {
-            playerRigidbody.linearVelocity = Vector3.zero;
-            playerRigidbody.angularVelocity = Vector3.zero;
+            StopBodyMotion();
             playerRigidbody.position = position;
             playerRigidbody.rotation = validRotation;
 
@@ -195,8 +202,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
             transform.SetPositionAndRotation(position, validRotation);
         }
 
-        // Teleport evita que la interpolacion recorra visualmente toda la
-        // distancia desde la zona de muerte hasta el punto de respawn.
+        // Teleport evita que las otras PCs interpolen el salto de posición.
         if (IsSpawned && networkTransform != null)
         {
             networkTransform.Teleport(
@@ -207,10 +213,35 @@ public class PlayerNetworkSetup : NetworkBehaviour
         }
     }
 
-    public void SetMatchControlsEnabled(bool enabled)
+    internal void ApplyMatchLife(PlayerLifeSnapshot life)
     {
-        matchControlsEnabled = enabled;
+        matchControlsEnabled = life.State == PlayerLifeState.Alive;
         ApplyLocalState();
+
+        if (matchControlsEnabled)
+        {
+            UnlockMatchBody();
+        }
+        else if (life.State == PlayerLifeState.Dead && !matchBodyLocked)
+        {
+            if (playerRigidbody != null)
+            {
+                livingBodyConstraints = playerRigidbody.constraints;
+                // Si murió en el aire, puede asentarse verticalmente en el piso.
+                playerRigidbody.constraints |= RigidbodyConstraints.FreezePositionX |
+                    RigidbodyConstraints.FreezePositionZ | RigidbodyConstraints.FreezeRotation;
+            }
+
+            matchBodyLocked = true;
+            TeleportPlayer(life.DeathPosition, life.DeathRotation);
+        }
+    }
+
+    private void UnlockMatchBody()
+    {
+        if (matchBodyLocked && playerRigidbody != null)
+            playerRigidbody.constraints = livingBodyConstraints;
+        matchBodyLocked = false;
     }
 
     /// <summary>
@@ -258,8 +289,8 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
         if (IsOwner)
         {
-            ApplyRespawn(position, rotation);
-            GetComponent<NetworkPlayerHealth>()?.ConfirmMatchRespawn(sequence, OwnerClientId);
+            TeleportPlayer(position, rotation);
+            health?.ConfirmMatchRespawn(sequence, OwnerClientId);
         }
         else
         {
@@ -273,8 +304,8 @@ public class PlayerNetworkSetup : NetworkBehaviour
         Quaternion rotation,
         ulong sequence)
     {
-        ApplyRespawn(position, rotation);
-        GetComponent<NetworkPlayerHealth>()?.ConfirmMatchRespawn(sequence, OwnerClientId);
+        TeleportPlayer(position, rotation);
+        health?.ConfirmMatchRespawn(sequence, OwnerClientId);
     }
 
     private void GuardarCheckpointInicial()
@@ -290,7 +321,7 @@ public class PlayerNetworkSetup : NetworkBehaviour
         bool localGameplay = localPresentation && matchControlsEnabled;
 
         if (cameraMovement != null)
-            cameraMovement.enabled = localPresentation;
+            cameraMovement.enabled = localGameplay;
         if (move != null)
             move.enabled = localGameplay;
         if (wallRun != null)
@@ -310,11 +341,17 @@ public class PlayerNetworkSetup : NetworkBehaviour
 
         ApplyHudState();
 
-        if (!localGameplay && playerRigidbody != null && IsOwner)
-        {
-            playerRigidbody.linearVelocity = Vector3.zero;
-            playerRigidbody.angularVelocity = Vector3.zero;
-        }
+        if (!localGameplay && IsOwner)
+            StopBodyMotion();
+    }
+
+    private void StopBodyMotion()
+    {
+        if (playerRigidbody == null || playerRigidbody.isKinematic)
+            return;
+
+        playerRigidbody.linearVelocity = Vector3.zero;
+        playerRigidbody.angularVelocity = Vector3.zero;
     }
 
     private void ApplyHudState()

@@ -2,6 +2,13 @@ using System;
 using Unity.Netcode;
 using UnityEngine;
 
+internal struct PlayerLifeSnapshot : INetworkSerializeByMemcpy
+{
+    public PlayerLifeState State;
+    public Vector3 DeathPosition;
+    public Quaternion DeathRotation;
+}
+
 /// <summary>Vida y respawn autoritativos del servidor para TDM/CTF.</summary>
 public class NetworkPlayerHealth : NetworkBehaviour
 {
@@ -11,8 +18,8 @@ public class NetworkPlayerHealth : NetworkBehaviour
     private readonly NetworkVariable<int> currentHealth = new(
         100, NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
-    private readonly NetworkVariable<PlayerLifeState> lifeState = new(
-        PlayerLifeState.Alive, NetworkVariableReadPermission.Everyone,
+    private readonly NetworkVariable<PlayerLifeSnapshot> life = new(
+        default, NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
     private readonly NetworkVariable<double> respawnAt = new(
         0d, NetworkVariableReadPermission.Everyone,
@@ -25,6 +32,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
     private NetworkPlayerCombat combat;
     private NetworkPlayerCrouch crouch;
     private NetworkPlayerGrenades grenades;
+    private NetworkPlayerInventory inventory;
     private bool combatMode;
     private ulong respawnSequence;
 
@@ -35,7 +43,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
     public int CurrentHealth => currentHealth.Value;
     public int MaxHealth => maxHealth;
     public bool IsCombatActive => combatMode;
-    public PlayerLifeState LifeState => lifeState.Value;
+    public PlayerLifeState LifeState => life.Value.State;
     public ulong LastDeathEventId => lastDeathEventId.Value;
     public float RespawnRemaining => respawnAt.Value > 0d && NetworkManager != null
         ? Mathf.Max(0f, (float)(respawnAt.Value - NetworkManager.ServerTime.Time))
@@ -47,6 +55,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
         combat = GetComponent<NetworkPlayerCombat>();
         crouch = GetComponent<NetworkPlayerCrouch>();
         grenades = GetComponent<NetworkPlayerGrenades>();
+        inventory = GetComponent<NetworkPlayerInventory>();
     }
 
     public override void OnNetworkSpawn()
@@ -70,20 +79,20 @@ public class NetworkPlayerHealth : NetworkBehaviour
 
         combatMode = true;
 
-        lifeState.OnValueChanged += OnLifeStateChanged;
+        life.OnValueChanged += OnLifeStateChanged;
         ApplyLocalControls();
 
         if (IsServer)
         {
             currentHealth.Value = maxHealth;
-            lifeState.Value = PlayerLifeState.Alive;
+            life.Value = default;
             respawnAt.Value = 0d;
             lastDeathEventId.Value = 0UL;
         }
 
         Debug.Log(
             $"[Combat] Vida de red ACTIVADA: cliente={OwnerClientId}, " +
-            $"vida={currentHealth.Value}/{maxHealth}, estado={lifeState.Value}."
+            $"vida={currentHealth.Value}/{maxHealth}, estado={LifeState}."
         );
     }
 
@@ -91,7 +100,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
     {
         currentHealth.OnValueChanged -= OnHealthChanged;
         if (combatMode)
-            lifeState.OnValueChanged -= OnLifeStateChanged;
+            life.OnValueChanged -= OnLifeStateChanged;
 
         HealthChanged = null;
         LifeStateChanged = null;
@@ -107,7 +116,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
             TryActivateCombatMode();
 
         if (!combatMode || !IsServer ||
-            lifeState.Value != PlayerLifeState.Dead ||
+            LifeState != PlayerLifeState.Dead ||
             NetworkManager.ServerTime.Time < respawnAt.Value ||
             NetworkMatchManager.Instance == null ||
             NetworkMatchManager.Instance.Phase != MatchPhase.Playing)
@@ -130,7 +139,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
         }
 
         respawnSequence++;
-        lifeState.Value = PlayerLifeState.Respawning;
+        life.Value = new PlayerLifeSnapshot { State = PlayerLifeState.Respawning };
         respawnAt.Value = 0d;
         playerSetup.RespawnForMatch(position, rotation, respawnSequence);
     }
@@ -149,7 +158,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
         NetworkMatchManager match = NetworkMatchManager.Instance;
 
         if (!combatMode || !IsServer || !IsSpawned ||
-            lifeState.Value != PlayerLifeState.Alive ||
+            LifeState != PlayerLifeState.Alive ||
             match == null || match.Phase != MatchPhase.Playing ||
             lobby == null ||
             !lobby.TryGetPlayerData(attackerClientId, out LobbyPlayerData attacker) ||
@@ -168,10 +177,18 @@ public class NetworkPlayerHealth : NetworkBehaviour
         if (!CombatValidationRules.IsLethalTransition(before, after))
             return true;
 
-        lifeState.Value = PlayerLifeState.Dead;
+        // El dueño del NetworkTransform y el pickup usan la misma pose de eliminación.
+        var deathPose = new PlayerLifeSnapshot
+        {
+            State = PlayerLifeState.Dead,
+            DeathPosition = transform.position,
+            DeathRotation = transform.rotation
+        };
+        life.Value = deathPose;
         respawnAt.Value = NetworkManager.ServerTime.Time + respawnDelaySeconds;
         combat?.CancelReloadForDeath();
         crouch?.ForceStandingOnServer();
+        inventory?.DropWeaponOnDeathOnServer(deathPose.DeathPosition);
 
         if (match.TryRegisterPlayerDeath(
             OwnerClientId, attackerClientId, out PlayerDeathInfo death))
@@ -211,7 +228,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
     private void ConfirmMatchRespawnOnServer(ulong sequence, ulong sender)
     {
         if (!IsServer || sender != OwnerClientId ||
-            lifeState.Value != PlayerLifeState.Respawning ||
+            LifeState != PlayerLifeState.Respawning ||
             sequence != respawnSequence ||
             NetworkMatchManager.Instance == null ||
             NetworkMatchManager.Instance.Phase != MatchPhase.Playing)
@@ -221,14 +238,14 @@ public class NetworkPlayerHealth : NetworkBehaviour
         combat?.ResetForRespawn();
         grenades?.ResetForRespawnOnServer();
         crouch?.ForceStandingOnServer();
-        lifeState.Value = PlayerLifeState.Alive;
+        life.Value = default;
         Debug.Log($"[Combat] Cliente {OwnerClientId} reapareció con {maxHealth} HP.");
     }
 
-    private void OnLifeStateChanged(PlayerLifeState previous, PlayerLifeState current)
+    private void OnLifeStateChanged(PlayerLifeSnapshot previous, PlayerLifeSnapshot current)
     {
         ApplyLocalControls();
-        LifeStateChanged?.Invoke(current);
+        LifeStateChanged?.Invoke(current.State);
     }
 
     private void OnHealthChanged(int previous, int current)
@@ -239,15 +256,14 @@ public class NetworkPlayerHealth : NetworkBehaviour
     private void ApplyLocalControls()
     {
         if (combatMode && IsOwner && playerSetup != null)
-            playerSetup.SetMatchControlsEnabled(
-                lifeState.Value == PlayerLifeState.Alive);
+            playerSetup.ApplyMatchLife(life.Value);
     }
 
     public bool Heal(int amount)
     {
         if (!IsSpawned || !IsServer ||
             !combatMode ||
-            lifeState.Value != PlayerLifeState.Alive ||
+            LifeState != PlayerLifeState.Alive ||
             amount <= 0)
         {
             return false;

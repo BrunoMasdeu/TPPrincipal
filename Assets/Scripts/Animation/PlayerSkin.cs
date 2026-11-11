@@ -64,6 +64,8 @@ public sealed class PlayerSkin : NetworkBehaviour
     private const string CapaCabezaPropia = "Head";
     private static readonly int EstadoAgachado = Animator.StringToHash("Crouch Idle");
     private const float VelocidadRetornoCamara = 20f;
+    private const float AlturaCamaraMuerte = 4f;
+    private const float RadioCamaraMuerte = 0.15f;
 
     [SerializeField] private Animator animator;
 
@@ -79,8 +81,15 @@ public sealed class PlayerSkin : NetworkBehaviour
     private NetworkPlayerCrouch agachado;
     private NetworkPlayerHealth vida;
     private Transform cabezaAnimada;
+    private Transform caderaAnimada;
     private Vector3 ojosEnCabeza;
     private bool siguiendoCabeza;
+    private Camera camaraJugador;
+    private bool mostrandoMuerte;
+    private Quaternion rotacionPrimeraPersona;
+    private Vector3 posicionPrimeraPersona;
+    private int capasPrimeraPersona;
+    private int capasObstaculosCamara;
 
     public Skin SkinActual { get; private set; }
 
@@ -88,11 +97,15 @@ public sealed class PlayerSkin : NetworkBehaviour
     {
         agachado = GetComponent<NetworkPlayerCrouch>();
         vida = GetComponent<NetworkPlayerHealth>();
+        camaraJugador = camara != null ? camara.GetComponent<Camera>() : null;
+        capasObstaculosCamara = Physics.DefaultRaycastLayers &
+            ~LayerMask.GetMask("Player", CapaCabezaPropia, "Ropa Jugador", "Iconos");
         AplicarSkin(EquipoDelDueno());
     }
 
     public override void OnNetworkDespawn()
     {
+        RestaurarCamaraPrimeraPersona();
         if (siguiendoCabeza && camara != null)
             camara.localPosition = SkinActual.posicionCamara;
         siguiendoCabeza = false;
@@ -100,19 +113,21 @@ public sealed class PlayerSkin : NetworkBehaviour
 
     private void LateUpdate()
     {
-        if (!IsSpawned || !IsOwner || cabezaAnimada == null || camara == null)
+        if (!IsSpawned || !IsOwner || camara == null)
+            return;
+
+        if (vida != null && vida.LifeState != PlayerLifeState.Alive)
+        {
+            MostrarCamaraMuerte();
+            return;
+        }
+
+        RestaurarCamaraPrimeraPersona();
+        if (cabezaAnimada == null)
             return;
 
         // La pose del Animator ya se evaluó, incluso si saltamos agachados.
         // Solo seguimos la posición de los ojos. El mouse sigue controlando la mirada.
-        if (vida != null && vida.LifeState != PlayerLifeState.Alive)
-        {
-            if (siguiendoCabeza)
-                camara.localPosition = SkinActual.posicionCamara;
-            siguiendoCabeza = false;
-            return;
-        }
-
         if (agachado.IsCrouched ||
             animator.GetCurrentAnimatorStateInfo(0).shortNameHash == EstadoAgachado ||
             animator.GetNextAnimatorStateInfo(0).shortNameHash == EstadoAgachado)
@@ -131,6 +146,44 @@ public sealed class PlayerSkin : NetworkBehaviour
                 siguiendoCabeza = false;
             }
         }
+    }
+
+    private void MostrarCamaraMuerte()
+    {
+        if (!mostrandoMuerte)
+        {
+            mostrandoMuerte = true;
+            rotacionPrimeraPersona = camara.localRotation;
+            posicionPrimeraPersona = camara.localPosition;
+            siguiendoCabeza = false;
+            if (camaraJugador != null)
+            {
+                capasPrimeraPersona = camaraJugador.cullingMask;
+                camaraJugador.cullingMask |= LayerMask.GetMask(CapaCabezaPropia);
+            }
+        }
+
+        Vector3 objetivo = caderaAnimada != null ? caderaAnimada.position : transform.position;
+        float altura = AlturaCamaraMuerte;
+        if (Physics.SphereCast(objetivo, RadioCamaraMuerte, Vector3.up, out RaycastHit techo,
+                altura, capasObstaculosCamara, QueryTriggerInteraction.Ignore))
+            altura = Mathf.Max(RadioCamaraMuerte, techo.distance);
+
+        camara.SetPositionAndRotation(objetivo + Vector3.up * altura,
+            Quaternion.LookRotation(Vector3.down, transform.forward));
+    }
+
+    private void RestaurarCamaraPrimeraPersona()
+    {
+        if (!mostrandoMuerte)
+            return;
+
+        mostrandoMuerte = false;
+        if (camara != null)
+            camara.SetLocalPositionAndRotation(
+                SkinActual?.posicionCamara ?? posicionPrimeraPersona, rotacionPrimeraPersona);
+        if (camaraJugador != null)
+            camaraJugador.cullingMask = capasPrimeraPersona;
     }
 
     private TeamId EquipoDelDueno()
@@ -182,6 +235,7 @@ public sealed class PlayerSkin : NetworkBehaviour
         }
 
         // 4. Cámara a la altura de los ojos de este modelo.
+        caderaAnimada = tieneAvatarHumano ? animator.GetBoneTransform(HumanBodyBones.Hips) : null;
         if (camara != null)
         {
             camara.localPosition = elegido.posicionCamara;
