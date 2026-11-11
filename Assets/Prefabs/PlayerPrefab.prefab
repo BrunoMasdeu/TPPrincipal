@@ -4672,7 +4672,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::GunSystem
   damage: 30
-  timeBetweenShooting: 0.1
+  timeBetweenShooting: 0.5
   spread: 0.02
   range: 1000
   reloadTime: 1
@@ -12695,7 +12695,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::GunSystem
   damage: 35
-  timeBetweenShooting: 0.1
+  timeBetweenShooting: 0.4
   spread: 0.02
   range: 1000
   reloadTime: 1

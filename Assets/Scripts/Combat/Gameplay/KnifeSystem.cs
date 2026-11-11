@@ -16,8 +16,6 @@ public class KnifeSystem : MonoBehaviour
 
     void Start()
     {
-        Debug.Log("KnifeSystem iniciado");
-
         // [MULTIJUGADOR]
         network = GetComponentInParent<NetworkPlayerCombat>();
     }
@@ -34,8 +32,6 @@ public class KnifeSystem : MonoBehaviour
 
         if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            Debug.Log("Clic detectado por el cuchillo");
-
             if (Time.time < nextAttackTime)
                 return;
 
@@ -69,24 +65,21 @@ public class KnifeSystem : MonoBehaviour
 
         if (tocoAlgo)
         {
-            Debug.Log("Cuchillo detectó: " + hit.collider.name);
-
             // [COMO HOY] Como en el GunSystem: el cuchillo también les pega a
             // los bots y a las dianas del tutorial.
             // [ZOMBIES] Los zombies tienen su propia vida (Zombie.cs). Se revisa
             // primero para que tenga prioridad aunque el prefab esté con el
             // tag "Enemy".
             Zombie zombie = hit.collider.GetComponentInParent<Zombie>();
+            movimientoBot bot = hit.collider.GetComponentInParent<movimientoBot>();
 
             if (zombie != null)
             {
                 zombie.zombieHitDamage(damage);
             }
-            else if (hit.collider.CompareTag("Enemy"))
+            else if (bot != null)
             {
-                movimientoBot bot = hit.collider.GetComponentInParent<movimientoBot>();
-                if (bot != null)
-                    bot.TakeDamage(damage);
+                bot.TakeDamageWithFeedback(damage, network);
             }
             else if (hit.collider.CompareTag("Target"))
             {
@@ -104,18 +97,7 @@ public class KnifeSystem : MonoBehaviour
                 hit.collider.GetComponentInParent<ShootingAi>();
 
             if (enemy != null)
-            {
                 enemy.TakeDamage(damage);
-                Debug.Log("Daño aplicado: " + damage);
-            }
-            else
-            {
-                Debug.Log("El objeto detectado no tiene ShootingAi");
-            }
-        }
-        else
-        {
-            Debug.Log("El cuchillo no detectó ningún objeto");
         }
     }
 

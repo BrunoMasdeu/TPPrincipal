@@ -271,6 +271,13 @@ public class NetworkPlayerCombat : NetworkBehaviour
         health.LifeState == PlayerLifeState.Alive &&
         (IsTutorialTraining() || WaveManager.IsActive || IsMatchPlaying());
 
+    internal void ConfirmTutorialBotHit(int appliedDamage, bool lethal)
+    {
+        // El tutorial es local y el bot ya confirmó el daño aplicado.
+        if (IsSpawned && IsOwner && IsTutorialTraining() && appliedDamage > 0)
+            HitConfirmed?.Invoke(appliedDamage, lethal);
+    }
+
     /// <summary>
     /// Único lugar donde el servidor daña a otro jugador, con cualquier arma
     /// (también las granadas). Si lo mata, paga la recompensa.
@@ -279,7 +286,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
         NetworkPlayerHealth victim,
         int damage,
         out int appliedDamage,
-        out ulong deathEventId)
+        out ulong deathEventId,
+        Vector3? damageOrigin = null)
     {
         appliedDamage = 0;
         deathEventId = 0UL;
@@ -290,6 +298,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
         if (!victim.ApplyDamageFromPlayer(
                 OwnerClientId,
                 damage,
+                damageOrigin ?? transform.position,
                 out appliedDamage,
                 out deathEventId))
             return false;

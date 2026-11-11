@@ -14,16 +14,19 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
 {
     [SerializeField] private PlayerHudView view;
     [SerializeField] private MatchHudPresenter matchHudPrefab;
+    [SerializeField] private DamageDirectionFeedback damageDirectionPrefab;
     private MatchHudPresenter matchHudInstance;
 
     private NetworkPlayerHealth health;
     private NetworkPlayerInventory inventory;
     private NetworkPlayerCombat combat;
     private NetworkPlayerGrenades grenades;
+    private Move movement;
     private bool subscribed;
     private bool requestedVisible = true;
     private bool wasReloading;
     private HitConfirmationFeedback hitFeedback;
+    private DamageDirectionFeedback damageDirection;
 
     public PlayerHudView View => view;
     public MatchHudPresenter MatchHudInstance => matchHudInstance;
@@ -36,7 +39,9 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
         inventory = GetComponent<NetworkPlayerInventory>();
         combat = GetComponent<NetworkPlayerCombat>();
         grenades = GetComponent<NetworkPlayerGrenades>();
-        view ??= GetComponentInChildren<PlayerHudView>(true);
+        movement = GetComponent<Move>();
+        if (view == null)
+            view = GetComponentInChildren<PlayerHudView>(true);
         if (view != null)
             hitFeedback = view.GetComponent<HitConfirmationFeedback>() ??
                 view.gameObject.AddComponent<HitConfirmationFeedback>();
@@ -86,8 +91,13 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
     public void SetHudVisible(bool visible)
     {
         requestedVisible = visible;
-        if (!visible && hitFeedback != null)
-            hitFeedback.Clear();
+        if (!visible)
+        {
+            if (hitFeedback != null)
+                hitFeedback.Clear();
+            if (damageDirection != null)
+                damageDirection.Clear();
+        }
         if (view != null)
             view.SetVisible(IsSpawned && IsOwner && visible);
         if (matchHudInstance != null)
@@ -140,6 +150,9 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
 
         health.HealthChanged += OnHealthChanged;
         health.LifeStateChanged += OnLifeStateChanged;
+        health.DamageReceived += OnDamageReceived;
+        if (movement != null)
+            movement.DamageReceived += OnDamageReceived;
         inventory.SelectedWeaponChanged += OnSelectedWeaponChanged;
         inventory.LoadoutChanged += OnLoadoutChanged;
         combat.AmmunitionChanged += OnAmmunitionChanged;
@@ -154,6 +167,8 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
     {
         if (hitFeedback != null)
             hitFeedback.Clear();
+        if (damageDirection != null)
+            damageDirection.Clear();
         if (!subscribed)
             return;
 
@@ -161,7 +176,10 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
         {
             health.HealthChanged -= OnHealthChanged;
             health.LifeStateChanged -= OnLifeStateChanged;
+            health.DamageReceived -= OnDamageReceived;
         }
+        if (movement != null)
+            movement.DamageReceived -= OnDamageReceived;
 
         if (inventory != null)
         {
@@ -195,10 +213,22 @@ public sealed class NetworkPlayerHudPresenter : NetworkBehaviour
             hitFeedback?.Present(lethal);
     }
 
+    private void OnDamageReceived(Vector3 origin)
+    {
+        if (!IsOwner || !requestedVisible || !IsHudVisible || damageDirectionPrefab == null)
+            return;
+
+        if (damageDirection == null)
+            damageDirection = Instantiate(damageDirectionPrefab, view.transform, false);
+        damageDirection.Present(origin, transform);
+    }
+
     private void OnLifeStateChanged(PlayerLifeState state)
     {
         if (state != PlayerLifeState.Alive && hitFeedback != null)
             hitFeedback.Clear();
+        if (state != PlayerLifeState.Dead && damageDirection != null)
+            damageDirection.Clear();
         if (view == null || health == null)
             return;
 

@@ -241,9 +241,7 @@ public sealed class PlayerAnimationController : NetworkBehaviour
             speedDampTime,
             Time.deltaTime
         );
-        // [ANIMACIONES] El agachado ya viaja por red (NetworkPlayerCrouch).
-        // Se ve en todas las PCs, también en la del dueño. Para que las manos
-        // no se vayan de la vista, se ajusta "Camera Offset" del Crouch.
+        // Todas las copias usan la postura confirmada por NetworkPlayerCrouch.
         animator.SetBool(AgachadoParam, crouch != null && crouch.IsCrouched);
         PublicarMovimiento(horizontalSpeed, running, haciaAtras);
         UpdateWallRunPresentation(horizontalSpeed);
