@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -14,6 +15,7 @@ public class NetworkPlayerShop : NetworkBehaviour
     {
         public string Label;
         public WeaponDefinition Weapon;
+        public bool IsGrenade;
         [Min(0)] public int Price;
     }
 
@@ -21,13 +23,13 @@ public class NetworkPlayerShop : NetworkBehaviour
     [SerializeField, Min(1f)] private float purchaseSeconds = 15f;
 
     [Header("Catalogo")]
-    [SerializeField] private ShopItem[] items =
-    {
-        new ShopItem { Label = "AK", Price = 600 },
-        new ShopItem { Label = "Gancho", Price = 300 },
-        new ShopItem { Label = "M4", Price = 500 },
-        new ShopItem { Label = "Revolver", Price = 250 }
-    };
+    [SerializeField] private ShopItem[] items;
+
+    [Header("Panel de la tienda")]
+    [SerializeField] private GameObject panelTienda;
+    [SerializeField] private TextMeshProUGUI remainingTimeText;
+    [SerializeField] private TextMeshProUGUI moneyText;
+    [SerializeField] private TextMeshProUGUI feedbackText;
 
     private readonly NetworkVariable<double> purchaseEndsAt = new(
         0d,
@@ -42,10 +44,10 @@ public class NetworkPlayerShop : NetworkBehaviour
     private NetworkPlayerCombat combat;
     private NetworkPlayerInventory inventory;
     private NetworkPlayerHealth health;
+    private NetworkPlayerGrenades grenades;
 
     private bool menuOpen;
     private string feedback = "";
-    private Vector2 scroll;
     private CursorLockMode previousCursorLock;
     private bool previousCursorVisible;
 
@@ -92,9 +94,11 @@ public class NetworkPlayerShop : NetworkBehaviour
 
     private void Awake()
     {
+        panelTienda.SetActive(false);
         combat = GetComponent<NetworkPlayerCombat>();
         inventory = GetComponent<NetworkPlayerInventory>();
         health = GetComponent<NetworkPlayerHealth>();
+        grenades = GetComponent<NetworkPlayerGrenades>();
     }
 
     public override void OnNetworkSpawn()
@@ -161,6 +165,8 @@ public class NetworkPlayerShop : NetworkBehaviour
         {
             CloseMenu();
         }
+
+        RefreshShopUi();
     }
 
     public void BeginPurchaseWindowOnServer()
@@ -175,29 +181,30 @@ public class NetworkPlayerShop : NetworkBehaviour
             Mathf.Max(1f, purchaseSeconds);
     }
 
-        private void RegisterOwnedItems()
+    private void RegisterOwnedItems()
+    {
+        if (!IsServer)
+            return;
+
+        uint mask = 0u;
+
+        for (int i = 0; i < ItemCount; i++)
         {
-            if (!IsServer)
-                return;
+            ShopItem item = items[i];
 
-            uint mask = 0u;
-
-            for (int i = 0; i < ItemCount; i++)
+            if (item != null &&
+                !item.IsGrenade &&
+                item.Weapon != null &&
+                item.Weapon.Id != WeaponId.None &&
+                inventory.HasWeaponInLoadout(item.Weapon.Id))
             {
-                ShopItem item = items[i];
-
-                if (item != null &&
-                    item.Weapon != null &&
-                    item.Weapon.Id != WeaponId.None &&
-                    inventory.HasWeaponInLoadout(item.Weapon.Id))
-                {
-                    mask |= 1u << i;
-                }
+                mask |= 1u << i;
             }
-
-            if (mask != ownedItems.Value)
-                ownedItems.Value = mask;
         }
+
+        if (mask != ownedItems.Value)
+            ownedItems.Value = mask;
+    }
 
 
     private bool OwnsItem(int index)
@@ -214,12 +221,18 @@ public class NetworkPlayerShop : NetworkBehaviour
         openShop = this;
         feedback = "";
 
+        panelTienda.SetActive(true);
+        RefreshShopUi();
+
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
     }
 
     private void CloseMenu()
     {
+        if (panelTienda != null)
+            panelTienda.SetActive(false);
+
         if (!menuOpen)
             return;
 
@@ -239,55 +252,61 @@ public class NetworkPlayerShop : NetworkBehaviour
         }
     }
 
-        [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
-        private void BuyItemRpc(int index, RpcParams rpcParams = default)
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
+    private void BuyItemRpc(int index, RpcParams rpcParams = default)
+    {
+        if (!IsServer ||
+            rpcParams.Receive.SenderClientId != OwnerClientId)
+            return;
+
+        if (!CanUseShop)
         {
-            if (!IsServer ||
-                rpcParams.Receive.SenderClientId != OwnerClientId)
-                return;
-
-            if (!CanUseShop)
-            {
-                PurchaseFeedbackRpc("El tiempo de compra termino.");
-                return;
-            }
-
-            if (index < 0 || index >= ItemCount)
-                return;
-
-            ShopItem item = items[index];
-
-            if (item == null ||
-                item.Weapon == null ||
-                item.Weapon.Id == WeaponId.None ||
-                item.Price < 0)
-            {
-                PurchaseFeedbackRpc("Articulo sin configurar.");
-                return;
-            }
-
-            RegisterOwnedItems();
-
-            if (OwnsItem(index))
-            {
-                PurchaseFeedbackRpc("Ya tenes ese objeto.");
-                return;
-            }
-
-            if (!combat.TryBuyWeaponOnServer(
-                    item.Weapon.Id,
-                    item.Price))
-            {
-                PurchaseFeedbackRpc(
-                    "Compra rechazada: saldo insuficiente, " +
-                    "arma propia o configuracion invalida.");
-                return;
-            }
-
-            RegisterOwnedItems();
-
-            PurchaseFeedbackRpc("Compraste: " + item.Label);
+            PurchaseFeedbackRpc("El tiempo de compra termino.");
+            return;
         }
+
+        if (index < 0 || index >= ItemCount)
+            return;
+
+        ShopItem item = items[index];
+
+        if (item == null || item.Price < 0 ||
+            (!item.IsGrenade && (item.Weapon == null || item.Weapon.Id == WeaponId.None)))
+        {
+            PurchaseFeedbackRpc("Articulo sin configurar.");
+            return;
+        }
+
+        if (item.IsGrenade)
+        {
+            PurchaseFeedbackRpc(grenades != null && grenades.TryBuyGrenadeOnServer(item.Price)
+                ? "Compraste: " + item.Label
+                : "Compra rechazada: saldo insuficiente o granada no disponible.");
+            return;
+        }
+
+        RegisterOwnedItems();
+
+        if (OwnsItem(index))
+        {
+            PurchaseFeedbackRpc("Ya tenes ese objeto.");
+            return;
+        }
+
+        if (!combat.TryBuyWeaponOnServer(
+                item.Weapon.Id,
+                item.Price))
+        {
+            PurchaseFeedbackRpc(
+                "Compra rechazada: saldo insuficiente, " +
+                "arma propia o configuracion invalida.");
+            return;
+        }
+
+        RegisterOwnedItems();
+
+        PurchaseFeedbackRpc("Compraste: " + item.Label);
+    }
 
 
     [Rpc(SendTo.Owner)]
@@ -296,88 +315,25 @@ public class NetworkPlayerShop : NetworkBehaviour
         feedback = message;
     }
 
-    private void OnGUI()
+    private void RefreshShopUi()
     {
-        if (!IsSpawned || !IsOwner)
-            return;
+        if (remainingTimeText != null)
+            remainingTimeText.text = $"Tiempo restante: {RemainingSeconds:0.0}s";
 
-        if (!menuOpen)
+        if (moneyText != null && combat != null)
+            moneyText.text = $"Dinero: ${combat.Money}";
+
+        if (feedbackText != null)
         {
-            if (CanUseShop)
-            {
-                GUI.Box(
-                    new Rect(12f, Screen.height - 48f, 330f, 36f),
-                    $"B: tienda | {RemainingSeconds:0.0}s | " +
-                    $"Saldo: ${combat.Money}");
-            }
-
-            return;
+            feedbackText.text = string.IsNullOrEmpty(feedback)
+                ? "B / Esc: cerrar tienda"
+                : feedback;
         }
+    }
 
-        float width = Mathf.Min(430f, Screen.width - 20f);
-        float height = Mathf.Min(380f, Screen.height - 20f);
-
-        Rect area = new Rect(
-            (Screen.width - width) * 0.5f,
-            (Screen.height - height) * 0.5f,
-            width,
-            height);
-
-        GUI.Box(area, string.Empty);
-
-        GUILayout.BeginArea(new Rect(
-            area.x + 12f,
-            area.y + 12f,
-            area.width - 24f,
-            area.height - 24f));
-
-        GUILayout.Label("TIENDA | B / Esc: cerrar");
-        GUILayout.Label($"Tiempo restante: {RemainingSeconds:0.0}s");
-        GUILayout.Label($"Dinero: ${combat.Money}");
-        GUILayout.Space(10f);
-
-        scroll = GUILayout.BeginScrollView(scroll);
-
-        for (int i = 0; i < ItemCount; i++)
-        {
-            ShopItem item = items[i];
-
-            if (item == null)
-                continue;
-
-            bool configured = item.Weapon != null;
-            bool owned = OwnsItem(i);
-
-            string text = owned
-                ? $"{item.Label} - YA LO TENES"
-                : $"{item.Label} - ${item.Price}";
-
-            if (!configured)
-                text += " (sin configurar)";
-
-            bool previousEnabled = GUI.enabled;
-
-            GUI.enabled = previousEnabled &&
-                          configured &&
-                          !owned &&
-                          item.Price >= 0 &&
-                          combat.Money >= item.Price &&
-                          CanUseShop;
-
-            if (GUILayout.Button(text, GUILayout.Height(40f)))
-                BuyItemRpc(i);
-
-            GUI.enabled = previousEnabled;
-        }
-
-        GUILayout.EndScrollView();
-
-        GUILayout.Space(8f);
-        GUILayout.Label(feedback);
-
-        if (GUILayout.Button("Cerrar"))
-            CloseMenu();
-
-        GUILayout.EndArea();
+    public void TryBuyItem(int index)
+    {
+        if (IsOwner && menuOpen && CanUseShop)
+            BuyItemRpc(index);
     }
 }

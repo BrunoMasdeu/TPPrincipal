@@ -33,7 +33,9 @@ public class Grenade : MonoBehaviour
             return;
 
         // [TECLAS] La tecla sale de Controles (se cambia en Opciones).
-        if (Keyboard.current[Controles.Tecla(Accion.Granada)].wasPressedThisFrame && grenades > 0)
+        int availableGrenades = network != null ? network.GrenadeCount : grenades;
+        if (Keyboard.current[Controles.Tecla(Accion.Granada)].wasPressedThisFrame &&
+            availableGrenades > 0)
         {
             // [MULTIJUGADOR] La dirección se toma acá, en la PC del jugador.
             // En red se le pide al servidor que ejecute ThrowGrenade.
@@ -42,9 +44,10 @@ public class Grenade : MonoBehaviour
             if (network != null)
                 network.RequestThrow(direction);
             else
+            {
                 ThrowGrenade(direction);
-
-            grenades--; // [MULTIJUGADOR] antes estaba al final de ThrowGrenade
+                grenades--;
+            }
         }
     }
 

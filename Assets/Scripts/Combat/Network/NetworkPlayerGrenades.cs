@@ -6,10 +6,10 @@ using UnityEngine;
 /// <summary>
 /// Parte de red de las granadas de Felipe (Grenade y GrenadeExplosion).
 ///
-/// - Grenade lee la tecla G en la PC del dueño, descuenta la granada y llama
-///   a RequestThrow con la dirección de la cámara.
-/// - El servidor revisa que se pueda lanzar y ejecuta el ThrowGrenade de
-///   Felipe, que crea la granada en red (Spawn).
+/// - Grenade lee la tecla G en la PC del dueño y llama a RequestThrow con
+///   la dirección de la cámara.
+/// - El servidor administra el stock, descuenta cada granada aceptada y
+///   ejecuta el ThrowGrenade de Felipe para crearla en red.
 /// - La explosión (GrenadeExplosion) ocurre solo en el servidor.
 /// </summary>
 [DisallowMultipleComponent]
@@ -19,14 +19,19 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
 {
     [Header("Reglas")]
     [SerializeField, Min(0.05f)] private float throwCooldownSeconds = 0.5f;
-    [SerializeField, Min(0)] private int startingGrenades = 3;
+    [SerializeField, Min(0), Tooltip("Granadas iniciales en los modos sin tienda.")]
+    private int startingGrenades = 3;
 
     // [ANIMACIONES] Tiempo entre apretar la tecla y que la granada salga de
     // la mano, para que coincida con la animación de lanzar.
     [SerializeField, Min(0f)] private float throwDelaySeconds = 0.5f;
 
+    private readonly NetworkVariable<int> grenadeCount = new(
+        0, NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
+
     private Grenade grenade;
     private NetworkPlayerHealth health;
+    private NetworkPlayerCombat combat;
     private double nextThrowAt;
     private int lastCount = -1;
 
@@ -38,8 +43,10 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
     /// </summary>
     public event Action<float> ThrowPresented;
 
-    /// <summary>Granadas que le quedan al dueño (las cuenta Grenade).</summary>
-    public int GrenadeCount => FelipeGrenade != null ? FelipeGrenade.grenades : 0;
+    public int GrenadeCount => grenadeCount.Value;
+
+    private static bool UsesPurchasedGrenades => CombatValidationRules.IsCombatMode(
+        NetworkLobbySession.Instance?.SelectedGameModeId ?? GameModeId.None);
 
     // Referencias de la granada de Felipe (las usan los tests del prefab).
     public NetworkObject GrenadePrefab =>
@@ -56,6 +63,7 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
     {
         grenade = GetComponent<Grenade>();
         health = GetComponent<NetworkPlayerHealth>();
+        combat = GetComponent<NetworkPlayerCombat>();
 
         // Grenade lee el teclado: solo se enciende en el dueño.
         SetLocalInputEnabled(false);
@@ -63,8 +71,9 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (IsOwner && grenade != null)
-            grenade.grenades = startingGrenades;
+        lastCount = -1;
+        if (IsServer)
+            grenadeCount.Value = UsesPurchasedGrenades ? 0 : startingGrenades;
     }
 
     public override void OnNetworkDespawn()
@@ -97,6 +106,17 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
             RequestThrowRpc(direction);
     }
 
+    internal bool TryBuyGrenadeOnServer(int price)
+    {
+        if (!IsServer || !IsSpawned || !UsesPurchasedGrenades ||
+            !HasRequiredReferences || GrenadeCount == int.MaxValue ||
+            !combat.TrySpendMoneyOnServer(price))
+            return false;
+
+        grenadeCount.Value++;
+        return true;
+    }
+
     // SendTo.Server: solo el servidor puede crear objetos de red.
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
     private void RequestThrowRpc(Vector3 direction, RpcParams rpcParams = default)
@@ -104,8 +124,9 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
         double now = NetworkManager.ServerTime.Time;
 
         if (rpcParams.Receive.SenderClientId != OwnerClientId ||
-            grenade == null || health == null ||
+            !HasRequiredReferences || health == null ||
             health.LifeState != PlayerLifeState.Alive ||
+            GrenadeCount <= 0 ||
             !CanThrowNow() ||
             now < nextThrowAt ||
             direction.sqrMagnitude < 0.5f)
@@ -113,6 +134,7 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
 
         // [ANIMACIONES] No se puede volver a lanzar hasta que salga esta.
         nextThrowAt = now + Mathf.Max(throwCooldownSeconds, throwDelaySeconds);
+        grenadeCount.Value = GrenadeValidationRules.CountAfterThrow(GrenadeCount);
 
         // [ANIMACIONES] Primero todos ven el gesto; la granada sale después.
         PresentThrowRpc(throwDelaySeconds);
@@ -155,15 +177,9 @@ public sealed class NetworkPlayerGrenades : NetworkBehaviour
         if (!IsServer || !IsSpawned)
             return;
 
+        StopAllCoroutines();
         nextThrowAt = 0d;
-        RefillOwnerRpc();
-    }
-
-    // SendTo.Owner: las granadas las cuenta la PC del dueño.
-    [Rpc(SendTo.Owner)]
-    private void RefillOwnerRpc()
-    {
-        if (grenade != null)
-            grenade.grenades = startingGrenades;
+        if (!UsesPurchasedGrenades)
+            grenadeCount.Value = startingGrenades;
     }
 }
