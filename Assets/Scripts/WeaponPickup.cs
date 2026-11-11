@@ -57,25 +57,38 @@ public class WeaponPickup : NetworkBehaviour
     {
         foreach (PickupVisual v in visuals)
         {
-            if (v.model != null)
-            {
-                v.model.SetActive(v.weaponId == id);
-                if (v.model.activeSelf)
-                    PlaceVisualOnGround(v.model);
-            }
+            if (v.model == null)
+                continue;
+
+            bool visible = v.weaponId == id;
+            v.model.SetActive(visible);
+            if (visible)
+                AlignVisualToPickup(v.model);
         }
     }
 
-    private void PlaceVisualOnGround(GameObject model)
+    private void AlignVisualToPickup(GameObject model)
     {
-        float bottom = float.PositiveInfinity;
+        Bounds? bounds = null;
         foreach (Renderer renderer in model.GetComponentsInChildren<Renderer>())
         {
-            if (renderer.enabled)
-                bottom = Mathf.Min(bottom, renderer.bounds.min.y);
+            if (!renderer.enabled || renderer is not (MeshRenderer or SkinnedMeshRenderer))
+                continue;
+
+            Bounds rendererBounds = renderer.bounds;
+            Bounds combined = bounds ?? rendererBounds;
+            combined.Encapsulate(rendererBounds);
+            bounds = combined;
         }
-        if (bottom < float.PositiveInfinity)
-            model.transform.position += Vector3.up * (transform.position.y + 0.02f - bottom);
+
+        if (bounds is not Bounds visualBounds)
+            return;
+
+        // Las mallas hijas conservan offsets del arma equipada. Alinea su base
+        // visible con la posición que usa el servidor para recoger el arma.
+        Vector3 visualBase = visualBounds.center;
+        visualBase.y = visualBounds.min.y;
+        model.transform.position += transform.position + Vector3.up * 0.02f - visualBase;
     }
 
     private void Update()
