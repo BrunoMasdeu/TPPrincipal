@@ -76,7 +76,7 @@ public class WeaponShotAudio : MonoBehaviour
 
     [Header("Debug")]
     [Tooltip("Escribe en la Console el estado del audio cada vez que suena un disparo. Desactivalo antes de la entrega final.")]
-    [SerializeField] private bool debugLog = true;
+    [SerializeField] private bool debugLog;
 
     private AudioSource audioSource;
     private AudioListener listener;

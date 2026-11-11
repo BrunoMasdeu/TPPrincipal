@@ -9,16 +9,11 @@ public class Crouch : MonoBehaviour
 
     [Header("Agacharse")]
     public float crouchHeight = 1.2f;
-    public float cameraOffset = 0.5f;
-    // [ANIMACIONES] Cuánto retrocede la cámara al agacharse, para que siga a
-    // la cabeza del modelo. En 0 se comporta igual que antes.
-    public float cameraOffsetAtras = 0f;
     public float transitionSpeed = 10f;
     // [TECLAS] La tecla ya no es un campo (crouchKey): sale de Controles.
 
     private float originalHeight;
     private Vector3 originalCenter;
-    private Vector3 originalCameraPosition;
     private bool crouching;
 
     // [MULTIJUGADOR] En red, el servidor confirma si el jugador está agachado
@@ -38,20 +33,6 @@ public class Crouch : MonoBehaviour
             originalHeight = capsule.height;
             originalCenter = capsule.center;
         }
-
-        if (playerCamera != null)
-            originalCameraPosition = playerCamera.localPosition;
-    }
-
-    /// <summary>
-    /// [MULTIJUGADOR] PlayerSkin mueve la cámara a la altura de los ojos del
-    /// modelo de cada equipo. Se vuelve a tomar esa posición como la de parado,
-    /// si no el agachado la devolvería a la del otro modelo.
-    /// </summary>
-    public void GuardarPosicionCamara()
-    {
-        if (playerCamera != null)
-            originalCameraPosition = playerCamera.localPosition;
     }
 
     private void Update()
@@ -97,23 +78,6 @@ public class Crouch : MonoBehaviour
             originalCenter.y - heightDifference / 2f,
             originalCenter.z
         );
-
-        if (playerCamera != null)
-        {
-            Vector3 targetPosition = originalCameraPosition;
-
-            if (crouching)
-            {
-                targetPosition.y -= cameraOffset;
-                targetPosition.z -= cameraOffsetAtras; // [ANIMACIONES]
-            }
-
-            playerCamera.localPosition = Vector3.Lerp(
-                playerCamera.localPosition,
-                targetPosition,
-                transitionSpeed * Time.deltaTime
-            );
-        }
     }
 
     // [MULTIJUGADOR] public: el servidor también lo usa para validar.

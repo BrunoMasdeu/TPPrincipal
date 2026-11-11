@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 5137587705340145220}
   - component: {fileID: 1420661273397733484}
   - component: {fileID: 1686867167562837223}
-  - component: {fileID: 5429101691538218998}
   - component: {fileID: 2127296001097602610}
   - component: {fileID: 2775010641112964720}
   m_Layer: 0
@@ -115,23 +114,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.4720001, y: 0.22600001, z: 0.21999995}
   m_Center: {x: 0, y: 0.113000005, z: -0.007910402}
---- !u!114 &5429101691538218998
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1899822728827400409}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8d59e27dd55d977489af13aac630c0cb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  tipo: 1
-  vida: {fileID: 473741637287895018, guid: 34cab5dfd181d7649a96c42238c445a4, type: 3}
-  cantidadVida: 50
-  cantidadMunicion: 30
-  tiempoReaparicion: 20
 --- !u!114 &2127296001097602610
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -173,6 +155,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   ShowTopMostFoldoutHeaderGroup: 1
   cantidadVida: 25
+  darMunicionEnVezDeVida: 1
   serverValidationDistance: 2.5
   tiempoReaparicion: 20
   visual: {fileID: 8860063159295289460}

@@ -34,9 +34,10 @@ public class GrenadeExplosion : MonoBehaviour
             return;
 
         exploded = true;
+        Vector3 origin = transform.position;
 
         Collider[] hits = Physics.OverlapSphere(
-            transform.position,
+            origin,
             explosionRadius,
             damageLayers,
             QueryTriggerInteraction.Ignore
@@ -64,7 +65,14 @@ public class GrenadeExplosion : MonoBehaviour
             if (player != null)
             {
                 if (attacker != null)
-                    attacker.TryApplyDamageToPlayerOnServer(player, damage, out _, out _);
+                    attacker.TryApplyDamageToPlayerOnServer(player, damage, out _, out _, origin);
+                continue;
+            }
+
+            movimientoBot bot = hit.GetComponentInParent<movimientoBot>();
+            if (bot != null)
+            {
+                bot.TakeDamageWithFeedback(damage, attacker);
                 continue;
             }
 

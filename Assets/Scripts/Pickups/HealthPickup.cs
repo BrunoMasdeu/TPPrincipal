@@ -8,9 +8,15 @@ public class HealthPickup : NetworkBehaviour
 {
     [Header("Configuracion")]
     [SerializeField] private int cantidadVida = 25;
+
+    // [ZOMBIES] La caja de balas usa este mismo script (por la red, el giro y
+    // el desaparecer), pero con esto tildado recarga la municion en vez de curar.
+    [SerializeField] private bool darMunicionEnVezDeVida = false;
     [SerializeField] private float serverValidationDistance = 2.5f;
 
     [Header("Reaparicion")]
+    [SerializeField] private bool desaparecerAlAgarrar = true;
+
     [Min(0.1f)]
     [SerializeField] private float tiempoReaparicion = 30f;
 
@@ -138,14 +144,50 @@ public class HealthPickup : NetworkBehaviour
             return;
         }
 
-        NetworkPlayerHealth health =
-            playerObject.GetComponent<NetworkPlayerHealth>();
+        if (darMunicionEnVezDeVida)
+        {
+            // [ZOMBIES] Caja de balas: llena todas las armas (cargador y reserva).
+            NetworkPlayerCombat combat =
+                playerObject.GetComponent<NetworkPlayerCombat>();
 
-        if (health == null || !health.Heal(cantidadVida))
-            return;
+            if (combat == null)
+                return;
 
-        collected.Value = true;
-        respawnCoroutine = StartCoroutine(RespawnAfterDelay());
+            combat.RefillAllWeaponsOnServer();
+
+            AchievementNotificationHUD.AvisarEnZombies(
+                playerObject, "MUNICION RECARGADA", AchievementNotificationHUD.TipoAviso.Balas);
+        }
+        else
+        {
+            if (WaveManager.IsActive)
+            {
+                Move move = playerObject.GetComponentInChildren<Move>();
+                if (move == null || !move.HealToFull())
+                    return;
+            }
+            else
+            {
+                NetworkPlayerHealth health =
+                    playerObject.GetComponent<NetworkPlayerHealth>();
+
+                if (health == null || !health.Heal(cantidadVida))
+                    return;
+            }
+
+            // [ZOMBIES] Aviso en pantalla de lo que agarraste.
+            AchievementNotificationHUD.AvisarEnZombies(
+                playerObject, "VIDA AL 100%", AchievementNotificationHUD.TipoAviso.Vida);
+        }
+
+if (desaparecerAlAgarrar)
+{
+    NetworkObject.Despawn(true);
+    return;
+}
+
+collected.Value = true;
+respawnCoroutine = StartCoroutine(RespawnAfterDelay());
     }
 
     private IEnumerator RespawnAfterDelay()

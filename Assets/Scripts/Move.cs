@@ -47,6 +47,7 @@ public class Move : MonoBehaviour
     private const float SameWallNormalDot = 0.99f;
 
     public event Action Jumped;
+    public event Action<Vector3> DamageReceived;
 
     public bool IsRunning => running;
 
@@ -355,17 +356,42 @@ public class Move : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(groundCheck.position, groundDistance);
     }
-    public void playerHitDamage(float TakeDamage)
+    public void playerHitDamage(float TakeDamage, Vector3? damageOrigin = null)
     {
         if (presentHealth <= 0f || TakeDamage <= 0f)
             return;
 
         presentHealth -= TakeDamage;
+        ActualizarVidaHud(); // [ZOMBIES]
+        if (damageOrigin.HasValue)
+            DamageReceived?.Invoke(damageOrigin.Value);
 
         if(presentHealth <= 0)
         {
             playerDie();
         }
+    }
+
+    public bool HealToFull()
+    {
+        if (presentHealth <= 0f || presentHealth >= playerHealth)
+            return false;
+
+        presentHealth = playerHealth;
+        ActualizarVidaHud(); // [ZOMBIES]
+        return true;
+    }
+
+    // [ZOMBIES] En el modo zombies la vida la lleva Move (presentHealth).
+    // Se muestra en el HUD que ya tiene el jugador.
+    private void ActualizarVidaHud()
+    {
+        if (!WaveManager.IsActive)
+            return;
+
+        NetworkPlayerHudPresenter hud = GetComponent<NetworkPlayerHudPresenter>();
+        if (hud != null && hud.View != null)
+            hud.View.SetHealth(Mathf.CeilToInt(presentHealth), Mathf.RoundToInt(playerHealth));
     }
 
     private void playerDie()
@@ -378,6 +404,7 @@ public class Move : MonoBehaviour
     public void Respawn()
     {
         presentHealth = playerHealth;
+        ActualizarVidaHud(); // [ZOMBIES]
         keyboardInputEnabled = true;
         ClearMovementInput();
         jumpPressed = false;

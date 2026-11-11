@@ -5266,8 +5266,9 @@ GameObject:
   - component: {fileID: 2701799590949945906}
   - component: {fileID: -7908924888979135789}
   - component: {fileID: 2620591157595553826}
+  - component: {fileID: 6631840275590123417}
   m_Layer: 0
-  m_Name: Zombie 1
+  m_Name: Zombie_Normal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5369,7 +5370,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0cf5afe843ac02c4daceb26ca20565e6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Game::Zombie
   giveDamage: 5
   zombieAgent: {fileID: 5823408055782595479}
@@ -5384,7 +5385,7 @@ MonoBehaviour:
   - {fileID: 0}
   zombieSpeed: 0.3
   onlyPatrol: 1
-  patrolSpeed: 1.5
+  patrolSpeed: 2.5
   timeBtwAttack: 1
   anim: {fileID: 1025460886878452708}
   visionRadius: 1000
@@ -5418,14 +5419,15 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9b06af89dcaa1b54798e0e47107c3f44, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Game::ZombieDrop
   dropPrefabs:
-  - {fileID: 6506831427102013842, guid: b912e97d4987c1d45bec340b0d178c24, type: 3}
+  - {fileID: 9056164674149821590, guid: 4d0ed55738eb7f74c858490463249f65, type: 3}
   - {fileID: 1899822728827400409, guid: addcf7ee97be1a148b3944b949b348a5, type: 3}
   - {fileID: 2061172121314114720, guid: 21046a49c442b1845bcbd3f7b0dec76b, type: 3}
   dropChance: 1
   spawnHeight: 0.5
+  duracionDrop: 10
 --- !u!1 &8134379907627362769
 GameObject:
   m_ObjectHideFlags: 0
@@ -6204,3 +6206,36 @@ Transform:
   - {fileID: 5742603450740660278}
   m_Father: {fileID: 3287850796800353173}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6631840275590123417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8012044164244743118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c3e9a51d2b84f6a9e0c5b1d4a6f2e83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  grunidos:
+  - {fileID: 8300000, guid: 69812e02fdf6c421a938309cc2d45922, type: 3}
+  - {fileID: 8300000, guid: 8b8be6e6b3dd044d782ae23b59519a28, type: 3}
+  - {fileID: 8300000, guid: 50be8f631d6a14da58b3ef230ec1c022, type: 3}
+  quejidos:
+  - {fileID: 8300000, guid: fb7fbee5d5ed64bd1a8ca1ad242ba7eb, type: 3}
+  - {fileID: 8300000, guid: 381951b7e211640659f2659520c3145b, type: 3}
+  - {fileID: 8300000, guid: 967208deb0e2849fdaf89dcc7413d1a9, type: 3}
+  gritosAtaque: []
+  pasos:
+  - {fileID: 8300000, guid: cfaa31361f7ba4a23b747862467ff938, type: 3}
+  golpeAlJugador: []
+  volumenVoz: 1
+  volumenPasos: 0.6
+  volumenGolpe: 1
+  grunidoCadaMin: 4
+  grunidoCadaMax: 8
+  pasoCaminando: 0.6
+  pasoCorriendo: 0.35
+  distanciaMinima: 2
+  distanciaMaxima: 25

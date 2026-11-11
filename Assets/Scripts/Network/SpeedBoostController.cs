@@ -34,6 +34,9 @@ public class SpeedBoostController : NetworkBehaviour
         }
     }
 
+    // [ZOMBIES] Para que el cartel del modo zombies muestre el multiplicador.
+    public float ActiveMultiplier => activeMultiplier.Value;
+
     private void Awake()
     {
         if (movement == null)
@@ -94,6 +97,10 @@ public class SpeedBoostController : NetworkBehaviour
     private void OnGUI()
     {
         if (!IsOwner || RemainingSeconds <= 0f)
+            return;
+
+        // [ZOMBIES] En el modo zombies lo muestra el WaveManager, con su fuente y en su columna.
+        if (WaveManager.IsActive)
             return;
 
         if (boostStyle == null)

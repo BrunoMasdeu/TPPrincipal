@@ -5,7 +5,7 @@ using UnityEngine;
 public class ZombieDrop : MonoBehaviour
 {
     [Header("Objetos que puede soltar")]
-    [Tooltip("Munición, botiquín y potenciador de velocidad.")]
+    [Tooltip("Munición, botiquín y potenciador de velocidad. Se elige uno al azar.")]
     public GameObject[] dropPrefabs;
 
     [Header("Configuración")]
@@ -13,7 +13,18 @@ public class ZombieDrop : MonoBehaviour
     [Tooltip("Altura sobre el suelo a la que aparece el objeto.")]
     [Min(0f)] public float spawnHeight = 0.5f;
 
+    [Tooltip("Segundos que el objeto queda en el suelo antes de desaparecer si nadie lo agarra. 0 = no desaparece.")]
+    [Min(0f)]
+    public float duracionDrop = 10f;
+
     private bool alreadyDropped;
+
+    // [ZOMBIES] El último zombie de la oleada suelta solo la caja de armas:
+    // el WaveManager llama a esto para que no suelte además un objeto.
+    public void CancelarDrop()
+    {
+        alreadyDropped = true;
+    }
 
     public void Drop()
     {
@@ -47,7 +58,19 @@ public class ZombieDrop : MonoBehaviour
 
         if (drop.TryGetComponent(out NetworkObject networkObject))
         {
-            networkObject.Spawn();
+            NetworkManager manager = NetworkManager.Singleton;
+            if (manager != null && manager.IsServer)
+            {
+                networkObject.Spawn();
+
+                if (duracionDrop > 0f)
+                    drop.AddComponent<DespawnTimer>().seconds = duracionDrop;
+            }
+            else
+            {
+                Debug.LogWarning("ZombieDrop: no hay servidor activo, el objeto no se puede spawnear.");
+                Destroy(drop);
+            }
         }
     }
 }

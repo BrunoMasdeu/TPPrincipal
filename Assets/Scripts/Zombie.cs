@@ -37,16 +37,18 @@ public class Zombie : MonoBehaviour
     public bool playerInvisionRadius;
     public bool playerInattackingRadius;
 
-    // Aviso al WaveManager cuando el zombie muere
     private Action onDeath;
+
+    // [ZOMBIES] Sonidos de este zombie (voz, pasos, golpe al jugador). Puede no estar.
+    private ZombieSonidos sonidos;
 
     private void Awake()
     {
         presentHealth = zombieHealth;
         zombieAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        sonidos = GetComponent<ZombieSonidos>(); // [ZOMBIES]
     }
 
-    // Lo llama el WaveManager justo después de instanciar el zombie
     public void Initialize(Transform player, GameObject[] points, float health, Action deathCallback)
     {
         playerBody = player;
@@ -56,8 +58,7 @@ public class Zombie : MonoBehaviour
         zombieHealth = health;
         presentHealth = health;
 
-        // Estilo Black Ops: siempre persiguen al jugador
-        visionRadius = 1000f;
+        visionRadius = 10000f;
 
         onDeath = deathCallback;
     }
@@ -66,7 +67,6 @@ public class Zombie : MonoBehaviour
     {
         if (isDead) return;
 
-        // Modo patrulla: solo camina por los walkPoints, ignora al jugador.
         if (onlyPatrol)
         {
             Patrol();
@@ -101,7 +101,6 @@ public class Zombie : MonoBehaviour
 
         if (!patrolHasDestination || arrived)
         {
-            // Elige un punto distinto al actual.
             if (walkPoints.Length > 1)
             {
                 currentZombiePosition =
@@ -133,31 +132,64 @@ public class Zombie : MonoBehaviour
         transform.position = Vector3.MoveTowards(transform.position, walkPoints[currentZombiePosition].transform.position, Time.deltaTime * zombieSpeed);
         transform.LookAt(walkPoints[currentZombiePosition].transform.position);
     }
+    // [ZOMBIES] Cada cuantos segundos el zombie recalcula el camino hacia el jugador.
+    private const float tiempoEntreCaminos = 0.25f;
+    private float proximoCamino;
+
     private void Pursueplayer()
     {
-        if(zombieAgent.SetDestination(playerBody.position))
+        if (!zombieAgent.isOnNavMesh) return;
+
+        // [ZOMBIES] Si venia de atacar, el agente estaba frenado: se lo vuelve a soltar.
+        zombieAgent.isStopped = false;
+
+        // [ZOMBIES] Antes se pedia un camino nuevo en TODOS los frames. Cada pedido
+        // cancela al anterior, y si el calculo tarda mas de un frame el zombie nunca
+        // recibe el camino y se queda corriendo en el lugar. Ahora se pide 4 veces
+        // por segundo, que alcanza para seguir al jugador.
+        if (Time.time >= proximoCamino)
         {
-            anim.SetBool("Walking", false);
-            anim.SetBool("Running", true);
-            anim.SetBool("Attacking", false);
-            anim.SetBool("Died", false);
+            proximoCamino = Time.time + tiempoEntreCaminos;
+            zombieAgent.SetDestination(playerBody.position);
         }
-        else
-        {
-            anim.SetBool("Walking", false);
-            anim.SetBool("Running", false);
-            anim.SetBool("Attacking", false);
-            anim.SetBool("Died", true);
-        }
+
+        // [ZOMBIES] Antes, si no habia camino (por ejemplo con el jugador en el aire),
+        // se activaba la animacion "Died", y el Animator no tiene salida de ese estado:
+        // el zombie quedaba vivo pero con la pose de muerto. Ahora, mientras persigue,
+        // usa siempre la animacion de correr.
+        anim.SetBool("Walking", false);
+        anim.SetBool("Running", true);
+        anim.SetBool("Attacking", false);
+        anim.SetBool("Died", false);
     }
     private void AttackPlayer()
     {
-        zombieAgent.SetDestination(transform.position);
+        // [ZOMBIES] Frenar en seco al llegar. Antes se le daba como destino su propia
+        // posicion en cada frame y el zombie seguia deslizandose hacia el jugador.
+        if (zombieAgent.isOnNavMesh)
+        {
+            zombieAgent.isStopped = true;
+            zombieAgent.velocity = Vector3.zero;
+        }
+
         transform.LookAt(LookPoint);
+
+        // [ZOMBIES] La animacion de ataque se pone siempre que el jugador esta en rango.
+        // Antes solo se ponia si el rayo de abajo tocaba algo; si no, el zombie quedaba
+        // quieto con la animacion de correr.
+        anim.SetBool("Walking", false);
+        anim.SetBool("Running", false);
+        anim.SetBool("Attacking", true);
+        anim.SetBool("Died", false);
+
         if(!previouslyAttack)
         {
+            if (sonidos != null) sonidos.Ataque(); // [ZOMBIES] grito al atacar
+
             RaycastHit hitInfo;
-            if(Physics.Raycast(AttackingRaycastArea.transform.position, AttackingRaycastArea.transform.forward, out hitInfo, attackingRadius))
+            // [ZOMBIES] El rayo sale de la cabeza y el radio de ataque se mide desde los
+            // pies, por eso se le da medio metro extra: asi no falla justo en el borde.
+            if(Physics.Raycast(AttackingRaycastArea.transform.position, AttackingRaycastArea.transform.forward, out hitInfo, attackingRadius + 0.5f))
             {
                 Debug.Log("Attacking" + hitInfo.transform.name);
 
@@ -165,13 +197,13 @@ public class Zombie : MonoBehaviour
 
                 if(playerBody != null)
                 {
-                    playerBody.playerHitDamage(giveDamage);
-                }
+                    float vidaAntes = playerBody.presentHealth; // [ZOMBIES]
+                    playerBody.playerHitDamage(giveDamage, transform.position);
 
-                anim.SetBool("Walking", false);
-                anim.SetBool("Running", false);
-                anim.SetBool("Attacking", true);
-                anim.SetBool("Died", false);
+                    // [ZOMBIES] Impacto y mordida solo si el golpe de verdad te bajó la vida.
+                    if (sonidos != null && playerBody.presentHealth < vidaAntes)
+                        sonidos.GolpeAlJugador();
+                }
             }
             previouslyAttack = true;
             Invoke(nameof(ActiveAttacking), timeBtwAttack);
@@ -181,15 +213,32 @@ public class Zombie : MonoBehaviour
     {
         previouslyAttack = false;
     }
+    // [ZOMBIES] Igual que el de abajo, pero avisa al jugador que disparó para que
+    // muestre la marca de impacto en la mira (misma lógica que los bots del tutorial).
+    public bool zombieHitDamage(float takeDamage, NetworkPlayerCombat atacante)
+    {
+        if (isDead || takeDamage <= 0f) return false;
+
+        int danioAplicado = Mathf.RoundToInt(Mathf.Min(takeDamage, presentHealth));
+        bool murio = zombieHitDamage(takeDamage);
+
+        if (atacante != null)
+            atacante.ConfirmZombieHit(danioAplicado, murio);
+
+        return murio;
+    }
+
     public bool zombieHitDamage(float takeDamage)
     {
         if (isDead) return false;
 
         presentHealth -= takeDamage;
+        if (sonidos != null) sonidos.Quejido(); // [ZOMBIES] le pegó una bala
 
         if(presentHealth <= 0)
         {
             isDead = true;
+            if (sonidos != null) sonidos.Morir(); // [ZOMBIES]
 
             anim.SetBool("Walking", false);
             anim.SetBool("Running", false);
@@ -211,9 +260,11 @@ public class Zombie : MonoBehaviour
         playerInattackingRadius = false;
         playerInvisionRadius = false;
 
-        GetComponent<ZombieDrop>()?.Drop();
+        // [ZOMBIES] Primero se avisa al WaveManager (si es el último de la oleada
+        // suelta la caja y cancela el drop) y después se suelta el objeto.
         onDeath?.Invoke();
         onDeath = null;
+        GetComponent<ZombieDrop>()?.Drop();
 
         UnityEngine.Object.Destroy(gameObject, 1.5f);
     }

@@ -361,12 +361,21 @@ public Vector2 jumpInterval
     /// Al morir invoca el evento <see cref="OnTargetDestroyed"/> y destruye el objeto.
     /// </summary>
     /// <param name="damage">Cantidad de daño a infligir.</param>
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage) => TakeDamageWithFeedback(damage, null);
+
+    internal void TakeDamageWithFeedback(int damage, NetworkPlayerCombat attacker)
     {
-        if (dead) return;
-        health -= damage;
-        if (health > 0) return;
-        dead = true;
+        if (dead || health <= 0 || damage <= 0)
+            return;
+
+        int appliedDamage = Mathf.Min(damage, health);
+        health -= appliedDamage;
+        dead = health == 0;
+        if (attacker != null)
+            attacker.ConfirmTutorialBotHit(appliedDamage, dead);
+        if (!dead)
+            return;
+
         OnTargetDestroyed?.Invoke(gameObject.tag);
         Destroy(gameObject);
     }

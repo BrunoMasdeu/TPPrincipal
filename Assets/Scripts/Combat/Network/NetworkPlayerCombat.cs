@@ -271,6 +271,21 @@ public class NetworkPlayerCombat : NetworkBehaviour
         health.LifeState == PlayerLifeState.Alive &&
         (IsTutorialTraining() || WaveManager.IsActive || IsMatchPlaying());
 
+    // [ZOMBIES] Marca de impacto en la mira al pegarle a un zombie. El modo
+    // zombies es local (como el tutorial) y el zombie ya aplicó el daño.
+    internal void ConfirmZombieHit(int appliedDamage, bool lethal)
+    {
+        if (IsSpawned && IsOwner && WaveManager.IsActive && appliedDamage > 0)
+            HitConfirmed?.Invoke(appliedDamage, lethal);
+    }
+
+    internal void ConfirmTutorialBotHit(int appliedDamage, bool lethal)
+    {
+        // El tutorial es local y el bot ya confirmó el daño aplicado.
+        if (IsSpawned && IsOwner && IsTutorialTraining() && appliedDamage > 0)
+            HitConfirmed?.Invoke(appliedDamage, lethal);
+    }
+
     /// <summary>
     /// Único lugar donde el servidor daña a otro jugador, con cualquier arma
     /// (también las granadas). Si lo mata, paga la recompensa.
@@ -279,7 +294,8 @@ public class NetworkPlayerCombat : NetworkBehaviour
         NetworkPlayerHealth victim,
         int damage,
         out int appliedDamage,
-        out ulong deathEventId)
+        out ulong deathEventId,
+        Vector3? damageOrigin = null)
     {
         appliedDamage = 0;
         deathEventId = 0UL;
@@ -290,6 +306,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
         if (!victim.ApplyDamageFromPlayer(
                 OwnerClientId,
                 damage,
+                damageOrigin ?? transform.position,
                 out appliedDamage,
                 out deathEventId))
             return false;
@@ -302,6 +319,18 @@ public class NetworkPlayerCombat : NetworkBehaviour
 
         // Punto común para armas, cuchillo y granadas. Nunca se confirma un rechazo.
         ConfirmHitRpc(appliedDamage, victim.LifeState == PlayerLifeState.Dead);
+        return true;
+    }
+
+    // [ZOMBIES] Cobra un precio (la caja de armas). Devuelve false si no alcanza la plata.
+    public bool TrySpendMoneyOnServer(int price)
+    {
+        if (!IsServer || !IsSpawned ||
+            price < 0 || money.Value < price ||
+            health == null || health.LifeState != PlayerLifeState.Alive)
+            return false;
+
+        money.Value -= price;
         return true;
     }
 

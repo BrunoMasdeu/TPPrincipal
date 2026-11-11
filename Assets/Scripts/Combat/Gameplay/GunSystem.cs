@@ -170,8 +170,6 @@ public class GunSystem : MonoBehaviour
 
     private void Shoot()
     {
-        Debug.Log("DISPARÓ");
-
         readyToShoot = false;
 
         float x = Random.Range(-spread, spread);
@@ -191,26 +189,19 @@ public class GunSystem : MonoBehaviour
             hitMask,
             QueryTriggerInteraction.Ignore))
         {
-            Debug.Log("Impactó a: " + rayHit.collider.name);
-
             // [ZOMBIES] Los zombies tienen su propia vida (Zombie.cs). Se revisa
             // primero para que tenga prioridad aunque el prefab esté con el
             // tag "Enemy".
             Zombie zombie = rayHit.collider.GetComponentInParent<Zombie>();
+            movimientoBot bot = rayHit.collider.GetComponentInParent<movimientoBot>();
 
             if (zombie != null)
             {
-                zombie.zombieHitDamage(damage);
+                zombie.zombieHitDamage(damage, network); // [ZOMBIES] con marca de impacto
             }
-            else if (rayHit.collider.CompareTag("Enemy"))
+            else if (bot != null)
             {
-                movimientoBot enemy =
-                    rayHit.collider.GetComponentInParent<movimientoBot>();
-
-                if (enemy != null)
-                {
-                    enemy.TakeDamage(damage);
-                }
+                bot.TakeDamageWithFeedback(damage, network);
             }
             else if (rayHit.collider.CompareTag("Target"))
             {
@@ -231,7 +222,7 @@ public class GunSystem : MonoBehaviour
 
             bool characterHit = zombie != null ||
                 rayHit.collider.GetComponentInParent<NetworkPlayerHealth>() != null ||
-                rayHit.collider.GetComponentInParent<movimientoBot>() != null ||
+                bot != null ||
                 rayHit.collider.GetComponentInParent<ShootingAi>() != null ||
                 rayHit.collider.CompareTag("Target");
             if (!characterHit)
@@ -266,13 +257,6 @@ public class GunSystem : MonoBehaviour
         bulletsLeft--;
         bulletsShot--;
 
-        if (bulletsLeft == 0)
-        {
-            Debug.LogWarning(
-                "Cargador vacío. Presioná R para recargar."
-            );
-        }
-
         Invoke(nameof(ResetShot), timeBetweenShooting);
 
         if (bulletsShot > 0 && bulletsLeft > 0)
@@ -289,14 +273,9 @@ public class GunSystem : MonoBehaviour
     private void Reload()
     {
         if (extraBulletsLeft <= 0)
-        {
-            Debug.LogWarning("No quedan balas de reserva.");
             return;
-        }
 
         reloading = true;
-
-        Debug.Log("Recargando...");
 
         Invoke(nameof(ReloadFinished), reloadTime);
     }
@@ -313,11 +292,6 @@ public class GunSystem : MonoBehaviour
         extraBulletsLeft -= bulletsToLoad;
 
         reloading = false;
-
-        Debug.Log(
-            "Recarga completa. Cargador: " +
-            bulletsLeft + " | Reserva: " + extraBulletsLeft
-        );
     }
 
     public bool AddAmmo(int cantidad)
@@ -326,12 +300,6 @@ public class GunSystem : MonoBehaviour
             return false;
 
         extraBulletsLeft += cantidad;
-
-        Debug.Log(
-            "Munición recogida: +" + cantidad +
-            ". Cargador: " + bulletsLeft +
-            " | Reserva: " + extraBulletsLeft
-        );
 
         return true;
     }

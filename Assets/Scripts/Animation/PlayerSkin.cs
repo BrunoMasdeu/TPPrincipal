@@ -62,6 +62,8 @@ public sealed class PlayerSkin : NetworkBehaviour
 
     // La cámara del jugador no dibuja esta capa (ver Culling Mask de MainCamera).
     private const string CapaCabezaPropia = "Head";
+    private static readonly int EstadoAgachado = Animator.StringToHash("Crouch Idle");
+    private const float VelocidadRetornoCamara = 20f;
 
     [SerializeField] private Animator animator;
 
@@ -74,11 +76,61 @@ public sealed class PlayerSkin : NetworkBehaviour
              "(tutorial, zombies, carrera).")]
     [SerializeField] private Skin[] skins;
 
+    private NetworkPlayerCrouch agachado;
+    private NetworkPlayerHealth vida;
+    private Transform cabezaAnimada;
+    private Vector3 ojosEnCabeza;
+    private bool siguiendoCabeza;
+
     public Skin SkinActual { get; private set; }
 
     public override void OnNetworkSpawn()
     {
+        agachado = GetComponent<NetworkPlayerCrouch>();
+        vida = GetComponent<NetworkPlayerHealth>();
         AplicarSkin(EquipoDelDueno());
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (siguiendoCabeza && camara != null)
+            camara.localPosition = SkinActual.posicionCamara;
+        siguiendoCabeza = false;
+    }
+
+    private void LateUpdate()
+    {
+        if (!IsSpawned || !IsOwner || cabezaAnimada == null || camara == null)
+            return;
+
+        // La pose del Animator ya se evaluó, incluso si saltamos agachados.
+        // Solo seguimos la posición de los ojos. El mouse sigue controlando la mirada.
+        if (vida != null && vida.LifeState != PlayerLifeState.Alive)
+        {
+            if (siguiendoCabeza)
+                camara.localPosition = SkinActual.posicionCamara;
+            siguiendoCabeza = false;
+            return;
+        }
+
+        if (agachado.IsCrouched ||
+            animator.GetCurrentAnimatorStateInfo(0).shortNameHash == EstadoAgachado ||
+            animator.GetNextAnimatorStateInfo(0).shortNameHash == EstadoAgachado)
+        {
+            camara.position = cabezaAnimada.TransformPoint(ojosEnCabeza);
+            siguiendoCabeza = true;
+        }
+        else if (siguiendoCabeza)
+        {
+            Vector3 posicionDePie = SkinActual.posicionCamara;
+            camara.localPosition = Vector3.Lerp(camara.localPosition, posicionDePie,
+                1f - Mathf.Exp(-VelocidadRetornoCamara * Time.deltaTime));
+            if ((camara.localPosition - posicionDePie).sqrMagnitude < 0.000001f)
+            {
+                camara.localPosition = posicionDePie;
+                siguiendoCabeza = false;
+            }
+        }
     }
 
     private TeamId EquipoDelDueno()
@@ -116,7 +168,8 @@ public sealed class PlayerSkin : NetworkBehaviour
 
         // 3. Las armas pasan a la mano derecha del modelo. Se le pide la mano
         //    al Animator porque cada esqueleto le pone otro nombre al hueso.
-        Transform mano = animator != null && animator.isHuman
+        bool tieneAvatarHumano = animator != null && animator.isHuman;
+        Transform mano = tieneAvatarHumano
             ? animator.GetBoneTransform(HumanBodyBones.RightHand)
             : null;
 
@@ -132,11 +185,17 @@ public sealed class PlayerSkin : NetworkBehaviour
         if (camara != null)
         {
             camara.localPosition = elegido.posicionCamara;
-
-            // El agachado de Felipe recuerda dónde está la cámara parado.
-            Crouch agachado = GetComponent<Crouch>();
-            if (agachado != null)
-                agachado.GuardarPosicionCamara();
+            // Los equipos que comparten avatar también comparten este anclaje.
+            Transform cabeza = agachado != null && tieneAvatarHumano
+                ? animator.GetBoneTransform(HumanBodyBones.Head)
+                : null;
+            if (cabeza != cabezaAnimada)
+            {
+                cabezaAnimada = cabeza;
+                if (cabezaAnimada != null)
+                    ojosEnCabeza = cabezaAnimada.InverseTransformPoint(camara.position);
+            }
+            siguiendoCabeza = false;
         }
 
         // 5. Se apagan los otros modelos (salvo que sea el mismo con otro color).
