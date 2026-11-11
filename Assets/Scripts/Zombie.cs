@@ -247,9 +247,11 @@ public class Zombie : MonoBehaviour
         playerInattackingRadius = false;
         playerInvisionRadius = false;
 
-        GetComponent<ZombieDrop>()?.Drop();
+        // [ZOMBIES] Primero se avisa al WaveManager (si es el último de la oleada
+        // suelta la caja y cancela el drop) y después se suelta el objeto.
         onDeath?.Invoke();
         onDeath = null;
+        GetComponent<ZombieDrop>()?.Drop();
 
         UnityEngine.Object.Destroy(gameObject, 1.5f);
     }

@@ -322,6 +322,18 @@ public class NetworkPlayerCombat : NetworkBehaviour
         return true;
     }
 
+    // [ZOMBIES] Cobra un precio (la caja de armas). Devuelve false si no alcanza la plata.
+    public bool TrySpendMoneyOnServer(int price)
+    {
+        if (!IsServer || !IsSpawned ||
+            price < 0 || money.Value < price ||
+            health == null || health.LifeState != PlayerLifeState.Alive)
+            return false;
+
+        money.Value -= price;
+        return true;
+    }
+
     public bool TryBuyWeaponOnServer(WeaponId weaponId, int price)
     {
         if (!IsServer || !IsSpawned ||

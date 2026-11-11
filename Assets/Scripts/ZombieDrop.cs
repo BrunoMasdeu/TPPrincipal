@@ -19,6 +19,13 @@ public class ZombieDrop : MonoBehaviour
 
     private bool alreadyDropped;
 
+    // [ZOMBIES] El último zombie de la oleada suelta solo la caja de armas:
+    // el WaveManager llama a esto para que no suelte además un objeto.
+    public void CancelarDrop()
+    {
+        alreadyDropped = true;
+    }
+
     public void Drop()
     {
         if (alreadyDropped)

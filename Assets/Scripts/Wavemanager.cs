@@ -47,7 +47,11 @@ public class WaveManager : MonoBehaviour
     // Se le agrega el script CajaArmas al crearla. Si queda vacío, no se suelta caja.
     [Header("Caja de armas")]
     public GameObject cajaArmasModelo;
-    private GameObject cajaActual;
+    // Precio de la caja según la oleada que la soltó (1ra, 2da...). Si hay más
+    // oleadas que precios, se usa el último.
+    public int[] preciosCaja = { 800, 1500 };
+    // Las cajas que no se compran se acumulan.
+    private readonly List<GameObject> cajas = new List<GameObject>();
 
     private NetworkPlayerCombat playerCombat;
 
@@ -272,12 +276,14 @@ public class WaveManager : MonoBehaviour
         if (NavMesh.SamplePosition(posicion, out NavMeshHit hit, 2f, NavMesh.AllAreas))
             posicion = hit.position;
 
-        if (cajaActual != null)
-            Destroy(cajaActual);
+        GameObject caja = Instantiate(cajaArmasModelo, posicion, Quaternion.identity);
+        caja.name = "CajaArmas (oleada " + currentWave + ")";
+        CajaArmas compra = caja.AddComponent<CajaArmas>();
+        if (preciosCaja != null && preciosCaja.Length > 0)
+            compra.precio = preciosCaja[Mathf.Clamp(currentWave - 1, 0, preciosCaja.Length - 1)];
 
-        cajaActual = Instantiate(cajaArmasModelo, posicion, Quaternion.identity);
-        cajaActual.name = "CajaArmas";
-        cajaActual.AddComponent<CajaArmas>();
+        cajas.RemoveAll(c => c == null);
+        cajas.Add(caja);
     }
 
     private IEnumerator AutoKill(Zombie zombie, float seconds)
@@ -294,8 +300,13 @@ public class WaveManager : MonoBehaviour
 
         // [ZOMBIES] El último zombie de la oleada suelta la caja de armas,
         // menos en la última oleada (ahí ya ganaste).
-        if (zombiesRemaining == 0 && currentWave < waves.Length && zombie != null)
+        // Ese zombie suelta solo la caja, no un objeto además.
+        if (zombiesRemaining == 0 && currentWave < waves.Length && zombie != null &&
+            cajaArmasModelo != null)
+        {
+            zombie.GetComponent<ZombieDrop>()?.CancelarDrop();
             SoltarCajaArmas(zombie.transform.position);
+        }
 
         NetworkPlayerCombat combat = GetPlayerCombat();
         if (combat != null)
@@ -320,8 +331,10 @@ public class WaveManager : MonoBehaviour
         zombiesAlive = 0;
         zombiesRemaining = 0;
 
-        // [ZOMBIES] Si quedó una caja o la ruleta girando, se sacan.
-        if (cajaActual != null) Destroy(cajaActual);
+        // [ZOMBIES] Si quedaron cajas sin comprar (o una abriéndose), se sacan.
+        foreach (GameObject caja in cajas)
+            if (caja != null) Destroy(caja);
+        cajas.Clear();
         RuletaArmas.Cerrar();
 
         hudMessage = "Has muerto";
