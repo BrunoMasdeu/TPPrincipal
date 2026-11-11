@@ -502,10 +502,11 @@ public class WaveManager : MonoBehaviour
             renglon = Renglon(renglon, "$" + (combat != null ? combat.Money : 0), 40f * e, Dorado);
             renglon = Renglon(renglon, "Dificultad: " + difficultyName, 22f * e, BlancoHueso);
 
-            // Los FPS los sigue calculando el contador del HUD (respeta "Mostrar FPS"
-            // del menú); acá solo se muestran en su lugar y con la fuente del modo.
-            if (fpsTexto != null && fpsTexto.enabled)
-                renglon = Renglon(renglon, fpsTexto.text, 20f * e, new Color(BlancoHueso.r, BlancoHueso.g, BlancoHueso.b, 0.75f));
+            // El menú de pausa de Zombies detiene el tiempo. El contador
+            // forma parte del HUD de la partida y se oculta durante la pausa.
+            if (Time.timeScale > 0f && fpsCounter != null && !string.IsNullOrEmpty(fpsCounter.TextoActual))
+                renglon = Renglon(renglon, fpsCounter.TextoActual, 20f * e,
+                    new Color(BlancoHueso.r, BlancoHueso.g, BlancoHueso.b, 0.75f));
 
             // Potenciador de velocidad activo: lo mismo que mostraba su cartel
             // (multiplicador y segundos que quedan), en la misma columna.
@@ -568,7 +569,7 @@ public class WaveManager : MonoBehaviour
     private const float PosicionAviso = 130f; // distancia desde arriba, debajo de "ZOMBIES: N"
     private const float EscalaAviso = 0.7f;   // tamaño del aviso (1 = el original)
     private bool hudAdaptado;
-    private TMP_Text fpsTexto;
+    private FPSCounter fpsCounter;
 
     private void LateUpdate()
     {
@@ -593,6 +594,7 @@ public class WaveManager : MonoBehaviour
             return; // el jugador todavía no apareció: se vuelve a intentar el próximo cuadro
 
         hudAdaptado = true;
+        fpsCounter = hud.View.GetComponentInChildren<FPSCounter>(true);
         TMP_FontAsset fuente = FuenteTextoTMP;
 
         // Los avisos (logros y objetos agarrados) van arriba al centro, debajo de
@@ -615,13 +617,6 @@ public class WaveManager : MonoBehaviour
         {
             if (fuente != null)
                 texto.font = fuente;
-
-            // El texto original de FPS queda invisible: se dibuja abajo de la dificultad.
-            if (texto.gameObject.name == "FPS")
-            {
-                fpsTexto = texto;
-                texto.color = new Color(0f, 0f, 0f, 0f);
-            }
         }
     }
 

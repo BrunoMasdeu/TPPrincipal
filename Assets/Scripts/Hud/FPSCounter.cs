@@ -7,17 +7,24 @@ public class FPSCounter : MonoBehaviour
 
     private float deltaTime;
 
+    public string TextoActual { get; private set; }
+
     private void Update()
     {
-        // [MENU] Se muestra o se oculta según Opciones > Video > Mostrar FPS.
-        textoFPS.enabled = ConfiguracionVideo.MostrarFPS;
-        if (!textoFPS.enabled)
+        bool mostrar = ConfiguracionVideo.MostrarFPS;
+        // En Zombies, WaveManager dibuja el valor junto al dinero y la dificultad.
+        textoFPS.enabled = mostrar && !WaveManager.IsActive;
+        if (!mostrar)
+        {
+            TextoActual = null;
             return;
+        }
 
         deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
 
         float fps = 1.0f / deltaTime;
-
-        textoFPS.text = "FPS: " + Mathf.Ceil(fps);
+        TextoActual = "FPS: " + Mathf.Ceil(fps);
+        if (textoFPS.enabled)
+            textoFPS.text = TextoActual;
     }
 }
