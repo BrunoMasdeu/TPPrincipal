@@ -202,6 +202,21 @@ public class Zombie : MonoBehaviour
     {
         previouslyAttack = false;
     }
+    // [ZOMBIES] Igual que el de abajo, pero avisa al jugador que disparó para que
+    // muestre la marca de impacto en la mira (misma lógica que los bots del tutorial).
+    public bool zombieHitDamage(float takeDamage, NetworkPlayerCombat atacante)
+    {
+        if (isDead || takeDamage <= 0f) return false;
+
+        int danioAplicado = Mathf.RoundToInt(Mathf.Min(takeDamage, presentHealth));
+        bool murio = zombieHitDamage(takeDamage);
+
+        if (atacante != null)
+            atacante.ConfirmZombieHit(danioAplicado, murio);
+
+        return murio;
+    }
+
     public bool zombieHitDamage(float takeDamage)
     {
         if (isDead) return false;

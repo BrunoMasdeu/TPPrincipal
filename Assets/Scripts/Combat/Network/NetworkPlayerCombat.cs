@@ -271,6 +271,14 @@ public class NetworkPlayerCombat : NetworkBehaviour
         health.LifeState == PlayerLifeState.Alive &&
         (IsTutorialTraining() || WaveManager.IsActive || IsMatchPlaying());
 
+    // [ZOMBIES] Marca de impacto en la mira al pegarle a un zombie. El modo
+    // zombies es local (como el tutorial) y el zombie ya aplicó el daño.
+    internal void ConfirmZombieHit(int appliedDamage, bool lethal)
+    {
+        if (IsSpawned && IsOwner && WaveManager.IsActive && appliedDamage > 0)
+            HitConfirmed?.Invoke(appliedDamage, lethal);
+    }
+
     internal void ConfirmTutorialBotHit(int appliedDamage, bool lethal)
     {
         // El tutorial es local y el bot ya confirmó el daño aplicado.

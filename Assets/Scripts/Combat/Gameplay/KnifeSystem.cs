@@ -75,7 +75,7 @@ public class KnifeSystem : MonoBehaviour
 
             if (zombie != null)
             {
-                zombie.zombieHitDamage(damage);
+                zombie.zombieHitDamage(damage, network); // [ZOMBIES] con marca de impacto
             }
             else if (bot != null)
             {
