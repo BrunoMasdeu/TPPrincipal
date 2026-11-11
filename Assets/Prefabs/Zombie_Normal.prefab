@@ -5266,6 +5266,7 @@ GameObject:
   - component: {fileID: 2701799590949945906}
   - component: {fileID: -7908924888979135789}
   - component: {fileID: 2620591157595553826}
+  - component: {fileID: 6631840275590123417}
   m_Layer: 0
   m_Name: Zombie_Normal
   m_TagString: Untagged
@@ -6205,3 +6206,36 @@ Transform:
   - {fileID: 5742603450740660278}
   m_Father: {fileID: 3287850796800353173}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6631840275590123417
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8012044164244743118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c3e9a51d2b84f6a9e0c5b1d4a6f2e83, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  grunidos:
+  - {fileID: 8300000, guid: 69812e02fdf6c421a938309cc2d45922, type: 3}
+  - {fileID: 8300000, guid: 8b8be6e6b3dd044d782ae23b59519a28, type: 3}
+  - {fileID: 8300000, guid: 50be8f631d6a14da58b3ef230ec1c022, type: 3}
+  quejidos:
+  - {fileID: 8300000, guid: fb7fbee5d5ed64bd1a8ca1ad242ba7eb, type: 3}
+  - {fileID: 8300000, guid: 381951b7e211640659f2659520c3145b, type: 3}
+  - {fileID: 8300000, guid: 967208deb0e2849fdaf89dcc7413d1a9, type: 3}
+  gritosAtaque: []
+  pasos:
+  - {fileID: 8300000, guid: cfaa31361f7ba4a23b747862467ff938, type: 3}
+  golpeAlJugador: []
+  volumenVoz: 1
+  volumenPasos: 0.6
+  volumenGolpe: 1
+  grunidoCadaMin: 4
+  grunidoCadaMax: 8
+  pasoCaminando: 0.6
+  pasoCorriendo: 0.35
+  distanciaMinima: 2
+  distanciaMaxima: 25

@@ -39,10 +39,14 @@ public class Zombie : MonoBehaviour
 
     private Action onDeath;
 
+    // [ZOMBIES] Sonidos de este zombie (voz, pasos, golpe al jugador). Puede no estar.
+    private ZombieSonidos sonidos;
+
     private void Awake()
     {
         presentHealth = zombieHealth;
         zombieAgent = GetComponent<UnityEngine.AI.NavMeshAgent>();
+        sonidos = GetComponent<ZombieSonidos>(); // [ZOMBIES]
     }
 
     public void Initialize(Transform player, GameObject[] points, float health, Action deathCallback)
@@ -180,6 +184,8 @@ public class Zombie : MonoBehaviour
 
         if(!previouslyAttack)
         {
+            if (sonidos != null) sonidos.Ataque(); // [ZOMBIES] grito al atacar
+
             RaycastHit hitInfo;
             // [ZOMBIES] El rayo sale de la cabeza y el radio de ataque se mide desde los
             // pies, por eso se le da medio metro extra: asi no falla justo en el borde.
@@ -191,7 +197,12 @@ public class Zombie : MonoBehaviour
 
                 if(playerBody != null)
                 {
+                    float vidaAntes = playerBody.presentHealth; // [ZOMBIES]
                     playerBody.playerHitDamage(giveDamage, transform.position);
+
+                    // [ZOMBIES] Impacto y mordida solo si el golpe de verdad te bajó la vida.
+                    if (sonidos != null && playerBody.presentHealth < vidaAntes)
+                        sonidos.GolpeAlJugador();
                 }
             }
             previouslyAttack = true;
@@ -222,10 +233,12 @@ public class Zombie : MonoBehaviour
         if (isDead) return false;
 
         presentHealth -= takeDamage;
+        if (sonidos != null) sonidos.Quejido(); // [ZOMBIES] le pegó una bala
 
         if(presentHealth <= 0)
         {
             isDead = true;
+            if (sonidos != null) sonidos.Morir(); // [ZOMBIES]
 
             anim.SetBool("Walking", false);
             anim.SetBool("Running", false);
