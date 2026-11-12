@@ -116,7 +116,8 @@ public sealed class MatchHudPresenter : MonoBehaviour
             !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null &&
             Keyboard.current[Controles.Tecla(Accion.Marcador)].isPressed);
         if(visible && !finished && !MatchDebugConsole.IsInputCaptured &&
-            !NetworkPlayerShop.IsInputCaptured && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+            !NetworkPlayerShop.IsInputCaptured && !OpcionesEnPausa.Ocupado && // [OPCIONES] Esc cierra Opciones primero
+            Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
             ToggleQuitPanel(!quitPanelOpen);
 
         if (Time.unscaledTime < nextRefresh)
@@ -331,6 +332,8 @@ public sealed class MatchHudPresenter : MonoBehaviour
     public void ToggleQuitPanel(bool isQuitOpen)
     {
         view.SetQuitPanel(isQuitOpen);
+        if (!isQuitOpen)
+            OpcionesEnPausa.Cerrar(); // [OPCIONES]
         if (isQuitOpen == quitPanelOpen)
             return;
         quitPanelOpen = isQuitOpen;

@@ -52,6 +52,8 @@ public sealed class ScenePauseMenu : MonoBehaviour
                 button.onClick.AddListener(TogglePause);
         }
 
+        OpcionesEnPausa.AgregarBoton(pausePanel); // [OPCIONES] botón para abrir Opciones
+
         if (FindAnyObjectByType<EventSystem>() == null)
         {
             GameObject eventSystem = new GameObject("EventSystem");
@@ -62,7 +64,8 @@ public sealed class ScenePauseMenu : MonoBehaviour
 
     private void Update()
     {
-        if (!returningToMenu && Keyboard.current != null &&
+        // [OPCIONES] Con Opciones abierto, Esc cierra Opciones y no la pausa.
+        if (!returningToMenu && !OpcionesEnPausa.Ocupado && Keyboard.current != null &&
             Keyboard.current.escapeKey.wasPressedThisFrame)
             TogglePause();
 
@@ -116,6 +119,7 @@ public sealed class ScenePauseMenu : MonoBehaviour
 
     private void ClosePause()
     {
+        OpcionesEnPausa.Cerrar(); // [OPCIONES]
         pausePanel.SetActive(false);
         if (changedTimeScale)
             Time.timeScale = previousTimeScale;
