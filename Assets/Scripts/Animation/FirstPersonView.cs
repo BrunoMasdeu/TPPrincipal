@@ -139,6 +139,26 @@ public sealed class FirstPersonView : MonoBehaviour
         readyToRender = true;
     }
 
+    /// <summary>
+    /// [GANCHO] Dónde se ve en pantalla un punto que cuelga de los brazos (por ejemplo
+    /// la punta del gancho). Los brazos y el arma solo se mueven mientras se dibuja la
+    /// cámara, así que lo que se dibuja aparte (como el cable) usa esto para seguirlos.
+    /// Devuelve false si este frame no hay brazos en primera persona.
+    /// </summary>
+    public bool TryGetViewPose(Vector3 position, Quaternion rotation,
+        out Vector3 viewPosition, out Quaternion viewRotation)
+    {
+        viewPosition = position;
+        viewRotation = rotation;
+        if (!readyToRender || !showArms)
+            return false;
+
+        // La misma cuenta que PoseShoulder, aplicada a un punto cualquiera.
+        viewPosition = viewPivot + viewTilt * (position - worldPivot) * wallScale;
+        viewRotation = viewTilt * rotation;
+        return true;
+    }
+
     private void BindView(PlayerSkin.Skin skin)
     {
         ReleaseView();
