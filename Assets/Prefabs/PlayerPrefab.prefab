@@ -4899,7 +4899,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 134.84595, y: 44.3}
+  m_AnchoredPosition: {x: 134.84595, y: 37.1936}
   m_SizeDelta: {x: 96.0591, y: 49.2506}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &160069301208991417
@@ -4957,15 +4957,15 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 48
+  m_fontSize: 38
   m_fontSizeBase: 48
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
   m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -4996,7 +4996,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: -0.07260132, w: -8.834534}
+  m_margin: {x: 0, y: 0, z: -0.07260132, w: -0.1833267}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -6004,7 +6004,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 5
           m_FloatArgument: 0
-          m_StringArgument: ''
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!1 &2412046304447440141
@@ -10533,8 +10533,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 104.6, y: 38.9}
-  m_SizeDelta: {x: 136.0859, y: 51.7827}
+  m_AnchoredPosition: {x: 103.15878, y: 36.881306}
+  m_SizeDelta: {x: 158.5793, y: 45.4385}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1694319538030130503
 CanvasRenderer:
@@ -10591,15 +10591,15 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 42
+  m_fontSize: 35.45
   m_fontSizeBase: 42
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
-  m_VerticalAlignment: 256
+  m_HorizontalAlignment: 2
+  m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
   m_characterHorizontalScale: 1
@@ -15876,18 +15876,23 @@ MonoBehaviour:
   items:
   - Label: AK
     Weapon: {fileID: 11400000, guid: 16997cb19e704fd4686fc5b0a9532515, type: 2}
+    IsGrenade: 0
     Price: 600
   - Label: M4
     Weapon: {fileID: 11400000, guid: d7d5c2c192cd16c4da5efab3132af787, type: 2}
+    IsGrenade: 0
     Price: 500
   - Label: Revolver
     Weapon: {fileID: 11400000, guid: 3b8f7d56ab2a6354ab5018fffeed33cf, type: 2}
+    IsGrenade: 0
     Price: 250
   - Label: Pistola
     Weapon: {fileID: 11400000, guid: 86d321765143bf84c829903a87b9b7b0, type: 2}
+    IsGrenade: 0
     Price: 150
   - Label: AWM
     Weapon: {fileID: 11400000, guid: 3ed2e4198d77cda4da4077661c98f854, type: 2}
+    IsGrenade: 0
     Price: 750
   - Label: Granada
     Weapon: {fileID: 0}
@@ -21762,7 +21767,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
   m_IgnoreReversedGraphics: 1
   m_BlockingObjects: 0
