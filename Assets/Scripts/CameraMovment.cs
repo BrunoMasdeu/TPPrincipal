@@ -5,7 +5,6 @@ using UnityEngine.InputSystem;
 public class CameraMovement : MonoBehaviour
 {
     [Header("Vista")]
-    public float mouseSensitivity = 0.2f;
     [Range(0.01f, 0.3f)]
     public float nearClipPlane = 0.05f;
 
@@ -14,12 +13,17 @@ public class CameraMovement : MonoBehaviour
 
     private float xRotation = 0f;
     private Camera playerCamera;
+    private Move playerMove;
 
     void Awake()
     {
         playerCamera = GetComponent<Camera>();
+        playerMove = GetComponentInParent<Move>();
 
         ApplyNearClipPlane();
+
+        if (playerMove == null)
+            Debug.LogError("No se encontró el componente Move en el jugador.");
     }
 
     void OnValidate()
@@ -36,8 +40,6 @@ public class CameraMovement : MonoBehaviour
         if (playerCamera == null)
             return;
 
-        // Un plano cercano pequeno evita que sus esquinas atraviesen una pared
-        // cuando la camara se aproxima o la observa desde un angulo oblicuo.
         playerCamera.nearClipPlane = Mathf.Clamp(
             nearClipPlane,
             0.01f,
@@ -55,16 +57,20 @@ public class CameraMovement : MonoBehaviour
     {
         if (MatchDebugConsole.IsInputCaptured)
             return;
+
         if (NetworkPlayerShop.IsInputCaptured)
             return;
 
-        if (Cursor.lockState != CursorLockMode.Locked || Mouse.current == null)
+        if (Cursor.lockState != CursorLockMode.Locked ||
+            Mouse.current == null ||
+            playerMove == null ||
+            player == null)
             return;
 
         Vector2 mouse = Mouse.current.delta.ReadValue();
 
-        float mouseX = mouse.x * mouseSensitivity;
-        float mouseY = mouse.y * mouseSensitivity;
+        float mouseX = mouse.x * playerMove.sensibilidad;
+        float mouseY = mouse.y * playerMove.sensibilidad;
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);

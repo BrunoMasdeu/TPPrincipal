@@ -27,6 +27,14 @@ public class Move : MonoBehaviour
     [Header("Referencias")]
     public Transform orientation;
 
+    [Header("Sensibilidad")]
+    public float sensibilidad = 0.2f;
+
+    public void CambiarSensibilidad(float valor)
+    {
+        sensibilidad = valor;
+    }
+
     [HideInInspector]
     public bool wallrunning;
 
