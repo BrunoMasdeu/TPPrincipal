@@ -30,8 +30,6 @@ BuildTest/
 # Datos generados por Adaptive Probe Volumes
 Assets/Scenes/GameScene/*Baking Set*.bytes
 
-# Datos generados por Unity
-Assets/Resources/
 
 # Recursos
 
