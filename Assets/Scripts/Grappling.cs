@@ -2,6 +2,9 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// [GANCHO] Corre después de FirstPersonView (200) para que el cable salga del
+// gancho que se ve en primera persona.
+[DefaultExecutionOrder(201)]
 public class Grappling : MonoBehaviour
 {
     public static event Action OnPlayerGrapple;
@@ -56,6 +59,7 @@ public class Grappling : MonoBehaviour
     private float grapplingCdTimer;
 
     private Rigidbody rb;
+    private FirstPersonView vistaPrimeraPersona; // [GANCHO]
     private Vector3 grapplePoint;
     private Vector3 grappleNormal;
     private Vector3 velocityBeforeGrapple;
@@ -64,6 +68,7 @@ public class Grappling : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        vistaPrimeraPersona = GetComponentInChildren<FirstPersonView>(true); // [GANCHO]
 
         // Evita que el Rigidbody haga girar el personaje
         rb.constraints |= RigidbodyConstraints.FreezeRotation;
@@ -251,7 +256,7 @@ public class Grappling : MonoBehaviour
     {
         if (lr != null && cableOrigin != null)
         {
-            lr.SetPosition(0, cableOrigin.position);
+            lr.SetPosition(0, EnPrimeraPersona(cableOrigin.position)); // [GANCHO]
             lr.SetPosition(1, activeHook != null ? activeHook.transform.position : grapplePoint);
         }
     }
@@ -359,6 +364,10 @@ public class Grappling : MonoBehaviour
         Vector3 dockPosition = GetHookDockPosition();
         Quaternion dockRotation = GetHookDockRotation();
 
+        // [GANCHO] Vuelve a la mano que se ve en pantalla, no a la del cuerpo.
+        if (vistaPrimeraPersona != null)
+            vistaPrimeraPersona.TryGetViewPose(dockPosition, dockRotation, out dockPosition, out dockRotation);
+
         MoveHookTowards(dockPosition, hookReturnSpeed);
         activeHook.transform.rotation = Quaternion.Slerp(
             activeHook.transform.rotation,
@@ -407,6 +416,19 @@ public class Grappling : MonoBehaviour
         hookVisualOffset.localPosition = hookVisualPositionOffset;
         hookVisualOffset.localRotation = Quaternion.Euler(hookVisualRotationOffset);
         hookVisualOffset.localScale = Vector3.one * hookRuntimeScale;
+    }
+
+    /// <summary>
+    /// [GANCHO] En primera persona el arma se dibuja corrida hacia la cámara.
+    /// Pasa un punto de la mano a donde se ve en pantalla (si no, lo deja igual).
+    /// </summary>
+    private Vector3 EnPrimeraPersona(Vector3 punto)
+    {
+        if (vistaPrimeraPersona != null &&
+            vistaPrimeraPersona.TryGetViewPose(punto, Quaternion.identity, out Vector3 enPantalla, out _))
+            return enPantalla;
+
+        return punto;
     }
 
     private Vector3 GetHookDockPosition()

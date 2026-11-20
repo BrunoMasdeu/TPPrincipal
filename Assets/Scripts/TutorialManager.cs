@@ -99,7 +99,8 @@ public class TutorialManager : MonoBehaviour
     private void Update()
     {
         // 1. Detectar la tecla Escape para pausar/reanudar
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
+        // [OPCIONES] Con Opciones abierto, Esc cierra Opciones y no la pausa.
+        if (!OpcionesEnPausa.Ocupado && Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             TogglePause();
         }
@@ -305,6 +306,7 @@ public class TutorialManager : MonoBehaviour
         if (isPaused)
         {
             // Pausar
+            OpcionesEnPausa.AgregarBoton(pauseMenuPanel); // [OPCIONES]
             pauseMenuPanel.SetActive(true);
             Time.timeScale = 0f; // Congela el tiempo y las físicas
             Cursor.lockState = CursorLockMode.None; // Libera el cursor
@@ -314,6 +316,7 @@ public class TutorialManager : MonoBehaviour
         else
         {
             // Reanudar
+            OpcionesEnPausa.Cerrar(); // [OPCIONES]
             pauseMenuPanel.SetActive(false);
             Time.timeScale = 1f; // Devuelve el tiempo a la normalidad
             Cursor.lockState = CursorLockMode.Locked; // Bloquea el cursor al centro

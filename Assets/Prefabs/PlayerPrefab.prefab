@@ -9285,7 +9285,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game::GunSystem
   damage: 25
-  timeBetweenShooting: 0.5
+  timeBetweenShooting: 0.3
   spread: 0.01
   range: 100
   reloadTime: 1.3
@@ -15583,8 +15583,8 @@ MonoBehaviour:
   hookProjectilePrefab: {fileID: 1766287349905986318, guid: 4d4fbd84f243ba64ab7ee69c72101ccd, type: 3}
   cableOrigin: {fileID: 1997574747742480843}
   hookStored: {fileID: 8366291195947002097}
-  hookProjectileSpeed: 15
-  hookReturnSpeed: 20
+  hookProjectileSpeed: 30
+  hookReturnSpeed: 35
   hookArrivalDistance: 0.03
   hookRotationSpeed: 15
   hookVisualPositionOffset: {x: 0, y: -0.0017, z: -0.0025}
@@ -15596,7 +15596,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 256
   maxGrappleDistance: 20
-  grappleForce: 8
+  grappleForce: 12
   stopDistance: 1
   grapplingCd: 1
 --- !u!114 &370442685910085628
