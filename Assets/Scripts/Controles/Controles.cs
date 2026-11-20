@@ -68,8 +68,7 @@ public static class Controles
     }
 
     /// <summary>
-    /// Asigna la tecla a la acción y la guarda al instante.
-    /// Devuelve false (y no cambia nada) si otra acción ya usa esa tecla.
+    /// Comprueba si la tecla está libre para la acción en la configuración guardada.
     /// </summary>
     public static bool Asignar(Accion accion, Key tecla)
     {
@@ -78,11 +77,21 @@ public static class Controles
         Accion? otra = QuienUsa(tecla);
         if (otra.HasValue && otra.Value != accion)
             return false;
-
-        teclas[accion] = tecla;
-        PlayerPrefs.SetInt(Clave(accion), (int)tecla);
-        PlayerPrefs.Save();
         return true;
+    }
+
+    /// <summary>Aplica y persiste un conjunto de cambios en una sola operación.</summary>
+    public static void AplicarCambios(Dictionary<Accion, Key> cambios)
+    {
+        CargarSiHaceFalta();
+
+        foreach (KeyValuePair<Accion, Key> par in cambios)
+            teclas[par.Key] = par.Value;
+
+        foreach (KeyValuePair<Accion, Key> par in cambios)
+            PlayerPrefs.SetInt(Clave(par.Key), (int)par.Value);
+
+        PlayerPrefs.Save();
     }
 
     /// <summary>La acción que ya usa esa tecla, o null si está libre.</summary>

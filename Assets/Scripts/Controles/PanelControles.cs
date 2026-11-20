@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -13,8 +15,8 @@ using UnityEngine.UI;
 /// - Cada fila del panel tiene un botón que muestra la tecla actual.
 /// - Al tocar el botón se espera la próxima tecla que apriete el jugador
 ///   (Esc cancela) y se asigna a esa acción.
-/// - Si la tecla ya la usa otra acción, se rechaza y se muestra un aviso.
-/// - Los cambios se guardan al instante (lo hace Controles).
+/// - Los cambios se muestran como borrador hasta que se guardan explícitamente.
+/// - El guardado se habilita solo si todas las asignaciones pendientes son válidas.
 /// </summary>
 public class PanelControles : MonoBehaviour
 {
@@ -30,9 +32,17 @@ public class PanelControles : MonoBehaviour
 
     [Header("Texto para avisos (opcional)")]
     [SerializeField] private TMP_Text textoAviso;
+    [SerializeField] private TMP_Text textoAvisoCambiosSinGuardar;
+
+    [Header("Botones UI")]
+    [SerializeField] private Button buttonGuardar;
 
     // La fila que está esperando una tecla nueva (null si ninguna).
     private Fila filaEsperando;
+
+    // Cambios visibles en el panel que todavía no se aplicaron a Controles.
+    private readonly Dictionary<Accion, Key> keyValues = new Dictionary<Accion, Key>();
+    private bool asignacionInvalida;
 
     private void Awake()
     {
@@ -49,9 +59,17 @@ public class PanelControles : MonoBehaviour
     private void OnEnable()
     {
         // Cada vez que se abre Opciones se muestran las teclas actuales.
+        keyValues.Clear();
+        asignacionInvalida = false;
         filaEsperando = null;
         MostrarAviso("");
+        ActualizarEstadoGuardado();
         ActualizarTextos();
+    }
+
+    private void OnDisable()
+    {
+        DescartarCambiosPendientes();
     }
 
     private void Update()
@@ -63,7 +81,9 @@ public class PanelControles : MonoBehaviour
         if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             filaEsperando = null;
+            asignacionInvalida = false;
             MostrarAviso("");
+            ActualizarEstadoGuardado();
             ActualizarTextos();
             return;
         }
@@ -82,9 +102,12 @@ public class PanelControles : MonoBehaviour
     /// <summary>Lo llama el botón RESTAURAR (OnClick en el Inspector).</summary>
     public void Restaurar()
     {
+        keyValues.Clear();
+        asignacionInvalida = false;
         Controles.RestaurarPorDefecto();
         filaEsperando = null;
         MostrarAviso("Se restauraron las teclas por defecto.");
+        ActualizarEstadoGuardado();
         ActualizarTextos();
     }
 
@@ -106,27 +129,118 @@ public class PanelControles : MonoBehaviour
         Accion accion = filaEsperando.accion;
         filaEsperando = null;
 
-        if (Controles.EsReservada(tecla))
+        Key cambioAnterior;
+        bool teniaCambioAnterior = keyValues.TryGetValue(accion, out cambioAnterior);
+        if (tecla == Controles.Tecla(accion))
+            keyValues.Remove(accion);
+        else
+            keyValues[accion] = tecla;
+
+        string error = ValidarAsignacion(accion, tecla);
+        if (error != null)
         {
-            MostrarAviso($"La tecla {Controles.Nombre(tecla)} está reservada.");
-        }
-        else if (!Controles.Asignar(accion, tecla))
-        {
-            Accion otra = Controles.QuienUsa(tecla).Value;
-            MostrarAviso($"La tecla {Controles.Nombre(tecla)} ya la usa \"{NombreAccion(otra)}\".");
+            if (teniaCambioAnterior)
+                keyValues[accion] = cambioAnterior;
+            else
+                keyValues.Remove(accion);
+
+            asignacionInvalida = true;
+            MostrarAviso(error);
         }
         else
         {
+            asignacionInvalida = false;
             MostrarAviso("");
         }
 
+        ActualizarEstadoGuardado();
+        ActualizarTextos();
+    }
+
+    public void GuardarCambios()
+    {
+        if (asignacionInvalida || keyValues.Count == 0 || ValidarCambiosPendientes() != null)
+        {
+            ActualizarEstadoGuardado();
+            return;
+        }
+
+        Controles.AplicarCambios(keyValues);
+        keyValues.Clear();
+        asignacionInvalida = false;
+        filaEsperando = null;
+        MostrarAviso("Se guardaron los cambios.");
+        ActualizarEstadoGuardado();
         ActualizarTextos();
     }
 
     private void ActualizarTextos()
     {
         foreach (Fila fila in filas)
-            PonerTexto(fila, Controles.Nombre(Controles.Tecla(fila.accion)));
+        {
+            Key tecla;
+            if (!keyValues.TryGetValue(fila.accion, out tecla))
+                tecla = Controles.Tecla(fila.accion);
+            PonerTexto(fila, Controles.Nombre(tecla));
+        }
+    }
+
+    private string ValidarCambiosPendientes()
+    {
+        foreach (KeyValuePair<Accion, Key> cambio in keyValues)
+        {
+            string error = ValidarAsignacion(cambio.Key, cambio.Value);
+            if (error != null)
+                return error;
+        }
+
+        return null;
+    }
+
+    private string ValidarAsignacion(Accion accion, Key tecla)
+    {
+        if (Controles.EsReservada(tecla))
+            return $"La tecla {Controles.Nombre(tecla)} está reservada.";
+        if (tecla == Key.None)
+            return "No se puede asignar una tecla vacía.";
+
+        if (!Controles.Asignar(accion, tecla))
+        {
+            Accion? otra = Controles.QuienUsa(tecla);
+            if (otra.HasValue)
+                return $"La tecla {Controles.Nombre(tecla)} ya la usa \"{NombreAccion(otra.Value)}\".";
+        }
+
+        foreach (KeyValuePair<Accion, Key> cambio in keyValues)
+        {
+            if (cambio.Key != accion && cambio.Value == tecla)
+                return $"La tecla {Controles.Nombre(tecla)} ya la usa \"{NombreAccion(cambio.Key)}\".";
+        }
+
+        return null;
+    }
+
+    private void ActualizarEstadoGuardado()
+    {
+        if (buttonGuardar != null)
+            buttonGuardar.interactable = !asignacionInvalida && keyValues.Count > 0 &&
+                                         ValidarCambiosPendientes() == null;
+
+        if (textoAvisoCambiosSinGuardar != null)
+            textoAvisoCambiosSinGuardar.text = keyValues.Count > 0
+                ? "*Cambios pendientes sin guardar"
+                : "";
+    }
+
+    private void DescartarCambiosPendientes()
+    {
+        keyValues.Clear();
+        asignacionInvalida = false;
+        filaEsperando = null;
+        if (buttonGuardar != null)
+            buttonGuardar.interactable = false;
+        if (textoAvisoCambiosSinGuardar != null)
+            textoAvisoCambiosSinGuardar.text = "";
     }
 
     // El texto de la tecla es el que está adentro del botón.
