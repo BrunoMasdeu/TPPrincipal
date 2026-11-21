@@ -11,6 +11,48 @@ public class PlayerSkinTests
 
     private static PlayerSkin.Skin Skin(TeamId equipo) => new() { equipo = equipo };
 
+    [TestCase(16f / 9f)]
+    [TestCase(16f / 10f)]
+    [TestCase(21f / 9f)]
+    public void OjosYPlanoCercanoQuedanDentroDelColliderAlMirarEnCualquierDireccion(float aspect)
+    {
+        GameObject prefab = Prefab();
+        CapsuleCollider capsule = prefab.GetComponent<CapsuleCollider>();
+        Camera camera = prefab.transform.Find("MainCamera").GetComponent<Camera>();
+        CameraMovement movement = camera.GetComponent<CameraMovement>();
+        Assert.That(camera.nearClipPlane, Is.EqualTo(movement.nearClipPlane));
+
+        SerializedProperty skins = new SerializedObject(prefab.GetComponent<PlayerSkin>())
+            .FindProperty("skins");
+        float scale = prefab.transform.lossyScale.x;
+        float radius = capsule.radius * scale;
+        float halfSegment = (capsule.height * 0.5f - capsule.radius) * scale;
+        Vector3 center = prefab.transform.TransformPoint(capsule.center);
+        Vector3 bottom = center - prefab.transform.up * halfSegment;
+        Vector3 top = center + prefab.transform.up * halfSegment;
+        float near = camera.nearClipPlane;
+        float halfHeight = near * Mathf.Tan(camera.fieldOfView * Mathf.Deg2Rad * 0.5f);
+
+        for (int skin = 0; skin < skins.arraySize; skin++)
+        {
+            Vector3 eye = prefab.transform.TransformPoint(skins.GetArrayElementAtIndex(skin)
+                .FindPropertyRelative("posicionCamara").vector3Value);
+            for (int pitch = -90; pitch <= 90; pitch += 5)
+            for (int yaw = 0; yaw < 360; yaw += 10)
+            for (int x = -1; x <= 1; x += 2)
+            for (int y = -1; y <= 1; y += 2)
+            {
+                Vector3 corner = eye + prefab.transform.rotation * Quaternion.Euler(pitch, yaw, 0f) *
+                    new Vector3(x * halfHeight * aspect, y * halfHeight, near);
+                Vector3 segment = top - bottom;
+                float t = Mathf.Clamp01(Vector3.Dot(corner - bottom, segment) / segment.sqrMagnitude);
+                float distance = Vector3.Distance(corner, bottom + segment * t);
+                Assert.That(distance, Is.LessThan(radius),
+                    $"Skin {skin}, pitch {pitch}, yaw {yaw}: la cámara puede ver a través de una pared.");
+            }
+        }
+    }
+
     // ---- Elegir el skin ----
 
     [Test]

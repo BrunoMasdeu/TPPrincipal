@@ -15480,10 +15480,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.19974892
-  m_Height: 1.9726745
+  m_Radius: 0.4
+  m_Height: 2
   m_Direction: 1
-  m_Center: {x: 0.025880935, y: 0.98633724, z: 0.016105937}
+  m_Center: {x: 0, y: 1, z: 0}
 --- !u!54 &9116529792869211555
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -22766,7 +22766,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.12
+  near clip plane: 0.04
   far clip plane: 1000
   field of view: 60
   orthographic: 0
@@ -22850,7 +22850,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69beeb79b3d5028499169eedf6516dda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game::CameraMovement
-  nearClipPlane: 0.12
+  nearClipPlane: 0.04
   player: {fileID: 8454067315323432492}
 --- !u!1 &8796518355898571109
 GameObject:
