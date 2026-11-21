@@ -280,6 +280,8 @@ public class PlayerNetworkSetup : NetworkBehaviour
         IsSpawned && IsOwner && matchControlsEnabled &&
         presentationControlsEnabled && pauseControlsEnabled;
 
+    public Camera PlayerCamera => IsOwner ? playerCamera : null;
+
     // Separado del checkpoint de carrera: la salud confirma el teletransporte
     // antes de volver a habilitar controles y vida.
     public void RespawnForMatch(Vector3 position, Quaternion rotation, ulong sequence)

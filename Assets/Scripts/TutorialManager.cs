@@ -112,6 +112,15 @@ public class TutorialManager : MonoBehaviour
             return;
 
         CheckInputs();
+
+        //Si se presiona el click derecho o se esta manteniendo presionado y tiene seleccionado el Sniper, se desactiva el panel del tutorial
+        if (Mouse.current != null && Mouse.current.rightButton.isPressed && playerNetworkSetup != null && playerNetworkSetup.TryGetComponent(out NetworkPlayerInventory inventory))
+        {
+            if (inventory.SelectedWeaponId == WeaponId.Sniper)
+                tutorialPanel.SetActive(false);
+        }
+        else
+            tutorialPanel.SetActive(true);
     }
 
     private void LoadStep(int index)
@@ -305,8 +314,6 @@ public class TutorialManager : MonoBehaviour
 
         if (isPaused)
         {
-            // Pausar
-            OpcionesEnPausa.AgregarBoton(pauseMenuPanel); // [OPCIONES]
             pauseMenuPanel.SetActive(true);
             Time.timeScale = 0f; // Congela el tiempo y las físicas
             Cursor.lockState = CursorLockMode.None; // Libera el cursor
