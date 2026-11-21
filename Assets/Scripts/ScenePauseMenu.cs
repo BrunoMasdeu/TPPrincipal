@@ -52,8 +52,6 @@ public sealed class ScenePauseMenu : MonoBehaviour
                 button.onClick.AddListener(TogglePause);
         }
 
-        OpcionesEnPausa.AgregarBoton(pausePanel); // [OPCIONES] botón para abrir Opciones
-
         if (FindAnyObjectByType<EventSystem>() == null)
         {
             GameObject eventSystem = new GameObject("EventSystem");

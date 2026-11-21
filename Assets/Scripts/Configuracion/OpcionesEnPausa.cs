@@ -17,8 +17,6 @@ using UnityEngine.UI;
 public class OpcionesEnPausa : MonoBehaviour
 {
     private const string NombrePrefab = "Canv_Options";
-    private const string NombreBoton = "ButtonOpciones";
-
     private static OpcionesEnPausa abierto;
     private static int frameCerrado = -1;
 
@@ -27,53 +25,6 @@ public class OpcionesEnPausa : MonoBehaviour
     /// Los menús de pausa lo usan para no cerrarse con el mismo Esc.
     /// </summary>
     public static bool Ocupado => abierto != null || frameCerrado == Time.frameCount;
-
-    /// <summary>Agrega el botón OPCIONES al panel de pausa (una sola vez).</summary>
-    public static void AgregarBoton(GameObject panel)
-    {
-        if (panel == null || panel.transform.Find(NombreBoton) != null)
-            return;
-
-        Transform modelo = panel.transform.Find("ButtonPermanecer");
-        Transform otro = panel.transform.Find("ButtonVolverMenu");
-        if (modelo == null)
-            return;
-
-        RectTransform rectPanel = (RectTransform)panel.transform;
-        RectTransform rectModelo = (RectTransform)modelo;
-
-        // Espacio para una fila más de botones: el alto del botón + un margen.
-        float alto = rectModelo.sizeDelta.y;
-        float extra = alto * 1.6f;
-
-        // Se agranda el panel hacia abajo (el borde de arriba queda donde estaba).
-        rectPanel.sizeDelta += new Vector2(0f, extra);
-        rectPanel.anchoredPosition -= new Vector2(0f, extra / 2f);
-        foreach (RectTransform hijo in rectPanel)
-        {
-            if (Mathf.Approximately(hijo.anchorMin.y, 0.5f) && Mathf.Approximately(hijo.anchorMax.y, 0.5f))
-                hijo.anchoredPosition += new Vector2(0f, extra / 2f);
-        }
-
-        // El botón nuevo va centrado, debajo del botón más bajo.
-        float masBajo = rectModelo.anchoredPosition.y;
-        if (otro != null)
-            masBajo = Mathf.Min(masBajo, ((RectTransform)otro).anchoredPosition.y);
-
-        GameObject boton = Instantiate(modelo.gameObject, rectPanel, false);
-        boton.name = NombreBoton;
-        RectTransform rectBoton = (RectTransform)boton.transform;
-        rectBoton.anchoredPosition = new Vector2(0f, masBajo - extra);
-
-        TMP_Text texto = boton.GetComponentInChildren<TMP_Text>(true);
-        if (texto != null)
-            texto.text = "OPCIONES";
-
-        // La copia trae la acción de "Reanudar": se reemplaza por abrir Opciones.
-        Button componente = boton.GetComponent<Button>();
-        componente.onClick = new Button.ButtonClickedEvent();
-        componente.onClick.AddListener(Abrir);
-    }
 
     public static void Abrir()
     {

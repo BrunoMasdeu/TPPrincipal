@@ -208,8 +208,6 @@ public sealed class MatchHudView : MonoBehaviour
     {
         if (quitPanel != null)
         {
-            if (isQuitPanel)
-                OpcionesEnPausa.AgregarBoton(quitPanel); // [OPCIONES]
             quitPanel.SetActive(isQuitPanel);
         }
     }
