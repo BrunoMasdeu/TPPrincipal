@@ -27,6 +27,10 @@ public class Zombie : MonoBehaviour
     private bool patrolHasDestination;
     private bool patrolAnimationSet;
 
+    [Header("Alcance del ataque")]
+    [Tooltip("Máxima diferencia vertical permitida entre el zombie y el jugador.")]
+    public float attackVerticalRange = 3f;
+
     public float timeBtwAttack;
     bool previouslyAttack;
 
@@ -74,7 +78,7 @@ public class Zombie : MonoBehaviour
         }
 
         playerInvisionRadius = Physics.CheckSphere(transform.position, visionRadius, PlayerLayer);
-        playerInattackingRadius = Physics.CheckSphere(transform.position, attackingRadius, PlayerLayer);
+        playerInattackingRadius = IsPlayerInAttackRange();
 
         if(!playerInvisionRadius && !playerInattackingRadius) Guard();
         if(playerInvisionRadius && !playerInattackingRadius) Pursueplayer();
@@ -186,29 +190,24 @@ public class Zombie : MonoBehaviour
         {
             if (sonidos != null) sonidos.Ataque(); // [ZOMBIES] grito al atacar
 
-            RaycastHit hitInfo;
-            // [ZOMBIES] El rayo sale de la cabeza y el radio de ataque se mide desde los
-            // pies, por eso se le da medio metro extra: asi no falla justo en el borde.
-            if(Physics.Raycast(AttackingRaycastArea.transform.position, AttackingRaycastArea.transform.forward, out hitInfo, attackingRadius + 0.5f))
-            {
-                Debug.Log("Attacking" + hitInfo.transform.name);
+                Move player = playerBody != null
+                    ? playerBody.GetComponentInParent<Move>()
+                    : null;
 
-                Move playerBody = hitInfo.transform.GetComponent<Move>();
-
-                if(playerBody != null)
+                if (player != null)
                 {
-                    float vidaAntes = playerBody.presentHealth; // [ZOMBIES]
-                    playerBody.playerHitDamage(giveDamage, transform.position);
+                    float vidaAntes = player.presentHealth;
+                    player.playerHitDamage(giveDamage, transform.position);
 
-                    // [ZOMBIES] Impacto y mordida solo si el golpe de verdad te bajó la vida.
-                    if (sonidos != null && playerBody.presentHealth < vidaAntes)
+                    if (sonidos != null && player.presentHealth < vidaAntes)
                         sonidos.GolpeAlJugador();
                 }
-            }
-            previouslyAttack = true;
-            Invoke(nameof(ActiveAttacking), timeBtwAttack);
+
+                previouslyAttack = true;
+                Invoke(nameof(ActiveAttacking), timeBtwAttack);
         }
     }
+    
     private void ActiveAttacking()
     {
         previouslyAttack = false;
@@ -249,6 +248,19 @@ public class Zombie : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    private bool IsPlayerInAttackRange()
+    {
+        if (playerBody == null)
+            return false;
+
+        Vector3 difference = playerBody.position - transform.position;
+        float horizontalDistance =
+            Vector3.ProjectOnPlane(difference, Vector3.up).magnitude;
+
+        return horizontalDistance <= attackingRadius &&
+            Mathf.Abs(difference.y) <= attackVerticalRange;
     }
 
     private void zombieDie()
