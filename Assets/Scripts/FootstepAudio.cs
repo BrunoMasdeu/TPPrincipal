@@ -87,6 +87,15 @@ public class FootstepAudio : MonoBehaviour
     [Tooltip("Tiempo mínimo entre aterrizajes o saltos estimados. No silencia los saltos confirmados por Move.")]
     [SerializeField] private float airSoundCooldown = 0.5f;
 
+    [Tooltip("Velocidad de caída (m/s) de un aterrizaje 'suave' (un salto normal).")]
+    [SerializeField] private float landSoftFallSpeed = 6f;
+    [Tooltip("Velocidad de caída (m/s) de un aterrizaje 'fuerte' (caída desde altura).")]
+    [SerializeField] private float landHardFallSpeed = 14f;
+    [Tooltip("Volumen del aterrizaje suave (0 a 1).")]
+    [SerializeField] private float landSoftVolume = 0.4f;
+    [Tooltip("Volumen del aterrizaje fuerte (0 a 1).")]
+    [SerializeField] private float landHardVolume = 1f;
+
     [Header("Respaldo si el piso no tiene Collider")]
     [Tooltip("Si el raycast no detecta nada debajo pero el jugador se mueve en plano (casi sin velocidad vertical), se asume que está pisando el suelo y suenan los Default Clips. Evita tener que ponerle Collider a cada pieza de piso. Si en un salto o en el gancho llegara a sonar un paso en el aire, desactivalo.")]
     [SerializeField] private bool assumeGroundedIfNoHit = true;
