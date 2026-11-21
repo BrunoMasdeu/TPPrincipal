@@ -4,6 +4,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Camera))]
 public class CameraMovement : MonoBehaviour
 {
+    public const string ClaveSensibilidad = "SensibilidadMouse";
+
     [Header("Vista")]
     [Range(0.01f, 0.3f)]
     public float nearClipPlane = 0.05f;
@@ -69,8 +71,9 @@ public class CameraMovement : MonoBehaviour
 
         Vector2 mouse = Mouse.current.delta.ReadValue();
 
-        float mouseX = mouse.x * playerMove.sensibilidad;
-        float mouseY = mouse.y * playerMove.sensibilidad;
+        float sensibilidad = PlayerPrefs.GetFloat(ClaveSensibilidad, playerMove.sensibilidad);
+        float mouseX = mouse.x * sensibilidad;
+        float mouseY = mouse.y * sensibilidad;
 
         xRotation -= mouseY;
         xRotation = Mathf.Clamp(xRotation, -90f, 90f);

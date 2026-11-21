@@ -28,7 +28,8 @@ public class Move : MonoBehaviour
     public Transform orientation;
 
     [Header("Sensibilidad")]
-    public float sensibilidad = 0.2f;
+    public const float SensibilidadPredeterminada = 0.2f;
+    public float sensibilidad = SensibilidadPredeterminada;
 
     public void CambiarSensibilidad(float valor)
     {

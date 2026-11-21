@@ -17,9 +17,15 @@ public class AplicarConfiguracionMira : MonoBehaviour
         new Color(1f, 0.4f, 0.7f)
     };
 
-    private void Start()
+    private void OnEnable()
     {
+        CrosshairSettings.MiraCambiada += AplicarMira;
         AplicarMira();
+    }
+
+    private void OnDisable()
+    {
+        CrosshairSettings.MiraCambiada -= AplicarMira;
     }
 
     private void AplicarMira()
