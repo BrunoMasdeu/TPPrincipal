@@ -81,7 +81,7 @@ public partial class ConnectionManager
         GameModeDefinition definition = hasSession ? lobbySession.SelectedDefinition : null;
         SetInteractable(tdmButton, hostCanConfigure);
         SetInteractable(ctfButton, hostCanConfigure);
-        SetButtonLabel(tdmButton, hasSession && lobbySession.SelectedGameModeId == GameModeId.TDM ? "[TEAM DEADMATCH]" : "TEAM DEADMATCH");
+        SetButtonLabel(tdmButton, hasSession && lobbySession.SelectedGameModeId == GameModeId.TDM ? "[MUERTE POR EQUIPOS]" : "MUERTE POR EQUIPOS");
         SetButtonLabel(ctfButton, hasSession && lobbySession.SelectedGameModeId == GameModeId.CTF ? "[CAPTURA LA BANDERA]" : "CAPTURA LA BANDERA");
 
         foreach (PlayerCountControl control in playerCountControls)
