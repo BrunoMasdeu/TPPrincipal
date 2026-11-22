@@ -9025,8 +9025,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 150, y: 55}
+  m_AnchoredPosition: {x: -0.00078106, y: 0.000012636}
+  m_SizeDelta: {x: 304.71, y: 45.016}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &217623979050656914
 RectTransform:
@@ -12096,7 +12096,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: TDM
+  m_text: TEAM DEADMATCH
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8a48e09d7afc5ec48b1ba9186b48e76e, type: 2}
   m_sharedMaterial: {fileID: -1440268060298377818, guid: 8a48e09d7afc5ec48b1ba9186b48e76e, type: 2}
@@ -17116,7 +17116,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 52}
+  m_AnchoredPosition: {x: 0, y: 85}
   m_SizeDelta: {x: 340, y: 87.2324}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &4416907530931302583
@@ -17823,8 +17823,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -70.6, y: -20}
-  m_SizeDelta: {x: 118.7458, y: 45.0158}
+  m_AnchoredPosition: {x: 0.000050068, y: 9}
+  m_SizeDelta: {x: 304.71, y: 45.016}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &4773665419373746011
 GameObject:
@@ -21641,8 +21641,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: -228, y: 50.73999}
-  m_SizeDelta: {x: 341.81836, y: 445.25}
+  m_AnchoredPosition: {x: -237.26093, y: 30.511}
+  m_SizeDelta: {x: 377.981, y: 466.533}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &6401547303308493410
 RectTransform:
@@ -23406,8 +23406,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 150, y: 55}
+  m_AnchoredPosition: {x: 0.0014915, y: -0.000012636}
+  m_SizeDelta: {x: 304.71, y: 45.016}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &7463944464349838451
 RectTransform:
@@ -25685,8 +25685,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 62.395298, y: -20}
-  m_SizeDelta: {x: 118.7458, y: 45.0158}
+  m_AnchoredPosition: {x: 0.0001297, y: -46}
+  m_SizeDelta: {x: 304.71, y: 45.016}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8163565835070419891
 MonoBehaviour:
@@ -26363,7 +26363,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: CTF
+  m_text: CAPTURA LA BANCERA
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8a48e09d7afc5ec48b1ba9186b48e76e, type: 2}
   m_sharedMaterial: {fileID: -1440268060298377818, guid: 8a48e09d7afc5ec48b1ba9186b48e76e, type: 2}
@@ -27525,7 +27525,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -3.0012, y: 160}
+  m_AnchoredPosition: {x: -3, y: 172}
   m_SizeDelta: {x: 324, y: 49.162}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &9024611417137632580

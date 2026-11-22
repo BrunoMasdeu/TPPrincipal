@@ -30,6 +30,8 @@ public class NetworkPlayerShop : NetworkBehaviour
     [SerializeField] private TextMeshProUGUI remainingTimeText;
     [SerializeField] private TextMeshProUGUI moneyText;
     [SerializeField] private TextMeshProUGUI feedbackText;
+    [SerializeField] private TextMeshProUGUI controlTienda;
+    [SerializeField] private TextMeshProUGUI closeKeyInPanel;
 
     private readonly NetworkVariable<double> purchaseEndsAt = new(
         0d,
@@ -140,6 +142,13 @@ public class NetworkPlayerShop : NetworkBehaviour
 
         if (!IsOwner)
             return;
+
+        if (CanUseShop)
+            controlTienda.text = $"Abrir tienda: [{Controles.Nombre(Controles.Tecla(Accion.Tienda))}]";
+        else
+            controlTienda.text = "";
+
+        if (closeKeyInPanel != null) closeKeyInPanel.text = $"{Controles.Nombre(Controles.Tecla(Accion.Tienda))} / Esc: cerrar tienda";
 
         if (menuOpen &&
             (!CanUseShop || MatchDebugConsole.IsInputCaptured))
@@ -326,7 +335,7 @@ public class NetworkPlayerShop : NetworkBehaviour
         if (feedbackText != null)
         {
             feedbackText.text = string.IsNullOrEmpty(feedback)
-                ? "B / Esc: cerrar tienda"
+                ? ""
                 : feedback;
         }
     }

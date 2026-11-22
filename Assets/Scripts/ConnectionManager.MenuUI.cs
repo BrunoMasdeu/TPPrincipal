@@ -81,8 +81,8 @@ public partial class ConnectionManager
         GameModeDefinition definition = hasSession ? lobbySession.SelectedDefinition : null;
         SetInteractable(tdmButton, hostCanConfigure);
         SetInteractable(ctfButton, hostCanConfigure);
-        SetButtonLabel(tdmButton, hasSession && lobbySession.SelectedGameModeId == GameModeId.TDM ? "[TDM]" : "TDM");
-        SetButtonLabel(ctfButton, hasSession && lobbySession.SelectedGameModeId == GameModeId.CTF ? "[CTF]" : "CTF");
+        SetButtonLabel(tdmButton, hasSession && lobbySession.SelectedGameModeId == GameModeId.TDM ? "[TEAM DEADMATCH]" : "TEAM DEADMATCH");
+        SetButtonLabel(ctfButton, hasSession && lobbySession.SelectedGameModeId == GameModeId.CTF ? "[CAPTURA LA BANDERA]" : "CAPTURA LA BANDERA");
 
         foreach (PlayerCountControl control in playerCountControls)
         {
@@ -110,7 +110,7 @@ public partial class ConnectionManager
             mapDescriptionDisplay.text = map == null ? "El host selecciona el mapa para la partida."
                 : map.MapId == MapId.ArenaIndustrial
                     ? "Combate en un complejo industrial con vagones, edificaciones y múltiples rutas."
-                    : "Escenario de prueba de combate por equipos.";
+                    : "Entorno industrial con una fabrica central.";
         if (mapPreview != null) {
             mapPreview.sprite = map != null ? map.PreviewImage : null;
             mapPreview.enabled = true;
