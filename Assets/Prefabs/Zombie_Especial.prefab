@@ -2637,6 +2637,7 @@ GameObject:
   - component: {fileID: 4628992390960615733}
   - component: {fileID: 2907318965082691814}
   - component: {fileID: 5417702983316624101}
+  - component: {fileID: 7562302525404684109}
   m_Layer: 0
   m_Name: Zombie_Especial
   m_TagString: Untagged
@@ -2653,7 +2654,7 @@ Transform:
   m_GameObject: {fileID: 7586816188765469219}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 41.36611, y: -17.147823, z: -5.529885}
+  m_LocalPosition: {x: 29.175076, y: -17.14782, z: -18.036905}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2738,10 +2739,10 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.20232487
-  m_Height: 1.8685132
+  m_Radius: 0.1868593
+  m_Height: 1.535023
   m_Direction: 1
-  m_Center: {x: -0.009707451, y: 0.91503614, z: -0.011086464}
+  m_Center: {x: -0.01387271, y: 0.748291, z: -0.011086464}
 --- !u!114 &2907318965082691814
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2774,6 +2775,7 @@ MonoBehaviour:
   zombieSpeed: 0.2
   onlyPatrol: 0
   patrolSpeed: 1.5
+  attackVerticalRange: 3
   timeBtwAttack: 1
   anim: {fileID: 3573768180596614474}
   visionRadius: 1000
@@ -2816,6 +2818,27 @@ MonoBehaviour:
   pasoCorriendo: 0.35
   distanciaMinima: 2
   distanciaMaxima: 25
+--- !u!135 &7562302525404684109
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7586816188765469219}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.1216678
+  m_Center: {x: -0.02999317, y: 1.649383, z: 1.878893e-10}
 --- !u!1 &7723883193725870770
 GameObject:
   m_ObjectHideFlags: 0
