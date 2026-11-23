@@ -237,6 +237,7 @@ public class Zombie : MonoBehaviour
         if(presentHealth <= 0)
         {
             isDead = true;
+            DisableZombieColliders();
             if (sonidos != null) sonidos.Morir(); // [ZOMBIES]
 
             anim.SetBool("Walking", false);
@@ -248,6 +249,14 @@ public class Zombie : MonoBehaviour
             return true;
         }
         return false;
+    }
+
+    private void DisableZombieColliders()
+    {
+        Collider[] colliders = GetComponentsInChildren<Collider>(true);
+
+        foreach (Collider col in colliders)
+            col.enabled = false;
     }
 
     private bool IsPlayerInAttackRange()
