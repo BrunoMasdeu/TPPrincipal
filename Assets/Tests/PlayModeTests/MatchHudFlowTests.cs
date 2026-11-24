@@ -89,9 +89,9 @@ namespace HudIntegrationTests
             Assert.That(hud, Is.Not.Null);
             TdmMatchManager tdm = session.GetComponent<TdmMatchManager>();
             Variable<int>(tdm, "redEliminations").Value = 7;
-            Assert.That(Text(hud, "PanelSuperior/EquipoRojoScore/Puntos"), Is.EqualTo("7"));
+            Assert.That(Text(hud, "PanelPrincipal/PanelSuperior/EquipoRojoScore/Puntos"), Is.EqualTo("7"));
             Variable<int>(player.GetComponent<NetworkPlayerCombat>(), "money").Value = 1234;
-            Assert.That(Text(hud, "DineroTxt"), Is.EqualTo("$1234"));
+            Assert.That(Text(hud, "PanelPrincipal/DineroTxt"), Is.EqualTo("$1234"));
             var statistics = (NetworkList<PlayerMatchStats>)typeof(TdmMatchManager)
                 .GetField("playerStats", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(tdm);
             statistics.Add(new PlayerMatchStats(network.LocalClientId, localTeam, 4, 2));
@@ -114,12 +114,14 @@ namespace HudIntegrationTests
             Variable<MatchResultData>(match, "result").Value = new MatchResultData(TeamId.Blue, MatchEndReason.ScoreLimit, false);
             Variable<MatchPhase>(match, "phase").Value = MatchPhase.Finished;
             yield return null;
-            Assert.That(Text(hud, "PanelResultadoPartida/PanelResultado/Txt_ResultTitle"), Is.EqualTo("VICTORIA DEL EQUIPO AZUL"));
+            Assert.That(Text(hud, "PanelResultadoPartida/Txt_ResultTitle"),
+                Is.EqualTo(localTeam == TeamId.Blue ? "VICTORIA" : "DERROTA"));
+            Assert.That(Text(hud, "PanelResultadoPartida/WinTeam"), Is.EqualTo("Gana el equipo azul"));
             Assert.That(hud.transform.Find("PanelResultadoPartida").gameObject.activeSelf, Is.True);
             Assert.That(Cursor.lockState, Is.EqualTo(CursorLockMode.None));
             Assert.That(player.GetComponent<PlayerNetworkSetup>().LocalGameplayInputEnabled, Is.False);
             // El botón de salida sobrevive al despawn que provoca Shutdown.
-            hud.transform.Find("PanelResultadoPartida/PanelResultado/ButtonReturnMenu").GetComponent<Button>().onClick.Invoke();
+            hud.transform.Find("PanelResultadoPartida/ButtonReturnMenu").GetComponent<Button>().onClick.Invoke();
             float deadline = Time.realtimeSinceStartup + 10;
             while (Object.FindFirstObjectByType<MatchHudPresenter>() != null && Time.realtimeSinceStartup < deadline)
                 yield return null;

@@ -43,6 +43,9 @@ public sealed class MatchHudView : MonoBehaviour
     [SerializeField] private GameObject resultPanel;
     [SerializeField] private TMP_Text resultTitle;
     [SerializeField] private TMP_Text winningTeam;
+    [SerializeField] private Image winningTeamFrame;
+    [SerializeField] private Color redWinnerColor = new(1f, 0.24f, 0.24f);
+    [SerializeField] private Color blueWinnerColor = new(0f, 0.72f, 1f);
     [SerializeField] private TMP_Text resultRedScore;
     [SerializeField] private TMP_Text resultBlueScore;
     [SerializeField] private TMP_Text modeScore;
@@ -59,6 +62,7 @@ public sealed class MatchHudView : MonoBehaviour
         tabRedScore != null && tabBlueScore != null && timeText != null && scoreLimit != null &&
         moneyText != null && modeTitle != null && phaseText != null && deathFeed != null &&
         deathFeedPanel != null && flagsText != null && tabPanel != null && tableHint != null && resultPanel != null && resultTitle != null &&
+        winningTeam != null && winningTeamFrame != null &&
         resultRedScore != null && resultBlueScore != null && resultHint != null &&
         lobbyButton != null && leaveButton != null && ValidRows(redPlayers) && ValidRows(bluePlayers);
 
@@ -97,7 +101,7 @@ public sealed class MatchHudView : MonoBehaviour
         PopulateRows(bluePlayers, TeamId.Blue, players, localClientId, hasStats);
     }
 
-    public void SetResult(bool finished, MatchResultData result, bool isHost)
+    public void SetResult(bool finished, MatchResultData result, bool isHost, TeamId localTeam)
     {
         resultPanel.SetActive(finished);
         tableHint.SetActive(!finished);
@@ -109,10 +113,7 @@ public sealed class MatchHudView : MonoBehaviour
         }
         principalPanel.SetActive(false);
         SetTableVisible(false);
-        resultTitle.text = result.IsPending ? "Esperando resultado..."
-            : result.IsDraw ? "EMPATE"
-            : $"VICTORIA";
-        winningTeam.text = $"EQUIPO {(result.WinningTeam == TeamId.Red ? "ROJO" : "AZUL")}";
+        SetResultHeader(result, localTeam);
         lobbyButton.interactable = isHost && !result.IsPending;
         leaveButton.interactable = true;
         resultHint.text = isHost ? "Volvé al lobby para configurar la próxima partida."
@@ -121,6 +122,33 @@ public sealed class MatchHudView : MonoBehaviour
         // [COG-599] Si se ganó porque el otro equipo se fue, se aclara.
         if (result.EndReason == MatchEndReason.TeamAbandoned)
             resultHint.text = "El equipo rival abandonó la partida.\n" + resultHint.text;
+    }
+
+    private void SetResultHeader(MatchResultData result, TeamId localTeam)
+    {
+        bool hasWinner = !result.IsPending && !result.IsDraw &&
+            (result.WinningTeam == TeamId.Red || result.WinningTeam == TeamId.Blue);
+
+        winningTeam.gameObject.SetActive(hasWinner);
+        winningTeamFrame.gameObject.SetActive(hasWinner);
+
+        if (result.IsPending)
+            resultTitle.text = "Esperando resultado...";
+        else if (result.IsDraw)
+            resultTitle.text = "EMPATE";
+        else if (hasWinner && (localTeam == TeamId.Red || localTeam == TeamId.Blue))
+            resultTitle.text = result.WinningTeam == localTeam ? "VICTORIA" : "DERROTA";
+        else
+            resultTitle.text = "RESULTADO";
+
+        if (!hasWinner)
+            return;
+
+        bool redWon = result.WinningTeam == TeamId.Red;
+        winningTeam.text = redWon ? "Gana el equipo rojo" : "Gana el equipo azul";
+        Color winnerColor = redWon ? redWinnerColor : blueWinnerColor;
+        winningTeam.color = winnerColor;
+        winningTeamFrame.color = winnerColor;
     }
 
     /// <summary>

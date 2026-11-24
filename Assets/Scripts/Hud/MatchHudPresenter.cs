@@ -40,7 +40,7 @@ public sealed class MatchHudPresenter : MonoBehaviour
     {
         view = GetComponent<MatchHudView>();
         view.SetTableVisible(false);
-        view.SetResult(false, default, false);
+        view.SetResult(false, default, false, TeamId.None);
         view.SetDeathFeed(string.Empty);
     }
 
@@ -219,7 +219,8 @@ public sealed class MatchHudPresenter : MonoBehaviour
     private void OnPhaseChanged(MatchPhase phase)
     {
         bool finished = phase == MatchPhase.Finished;
-        view.SetResult(finished, match.Result, player.IsHost);
+        lobby.TryGetPlayerData(player.OwnerClientId, out LobbyPlayerData localPlayer);
+        view.SetResult(finished, match.Result, player.IsHost, localPlayer.TeamId);
         RefreshScores();
         RefreshClock();
         RefreshPlayers();
