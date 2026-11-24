@@ -19,7 +19,8 @@ using UnityEngine;
 public class NetworkPlayerCombat : NetworkBehaviour
 {
     [Header("Economia provisional")]
-    [SerializeField, Min(0)] private int moneyLostOnDeath = 100;
+    // [PLATA] Lo que cobra un jugador cada vez que lo matan.
+    [SerializeField, Min(0)] private int moneyGainedOnDeath = 100;
 
     // Momento (reloj del servidor) en que termina la recarga. Lo leen todos
     // para el sonido de recarga y el HUD. 0 = no está recargando.
@@ -354,7 +355,7 @@ public class NetworkPlayerCombat : NetworkBehaviour
             return;
 
         deathPenaltyApplied = true;
-        money.Value = Mathf.Max(0, money.Value - moneyLostOnDeath);
+        money.Value += moneyGainedOnDeath; // [PLATA] cobra al morir en vez de perder
     }
 
     public void AddMoneyOnServer(int amount)
