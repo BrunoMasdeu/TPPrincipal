@@ -127,7 +127,8 @@ public sealed class MatchHudPresenter : MonoBehaviour
         if (deaths.RemoveAll(d => d.expiresAt <= Time.unscaledTime) > 0)
             RefreshDeathFeed();
         if (ctf != null && lobby.SelectedGameModeId == GameModeId.CTF)
-            view.SetFlags($"Bandera roja: {FlagLabel(ctf.RedFlag.State)} | Bandera azul: {FlagLabel(ctf.BlueFlag.State)}");
+            view.SetFlags($"Bandera roja: {FlagLabel(TeamId.Red, ctf.RedFlag.State)} | " +
+                $"Bandera azul: {FlagLabel(TeamId.Blue, ctf.BlueFlag.State)}");
     }
 
     private void RefreshConfiguration()
@@ -259,8 +260,17 @@ public sealed class MatchHudPresenter : MonoBehaviour
     }
 
     private void RefreshDeathFeed() => view.SetDeathFeed(string.Join("\n", deaths.ConvertAll(d => d.text)));
-    private static string FlagLabel(FlagState state) => state == FlagState.AtBase ? "en base"
-        : state == FlagState.Carried ? "transportada" : "caída";
+    // [CTF] Estado de una bandera para el HUD. Si está caída, muestra cuántos
+    // segundos faltan para que vuelva sola a su base.
+    private string FlagLabel(TeamId equipo, FlagState state)
+    {
+        if (state == FlagState.AtBase)
+            return "en base";
+        if (state == FlagState.Carried)
+            return "transportada";
+
+        return $"caída (vuelve en {Mathf.CeilToInt(ctf.GetReturnRemaining(equipo))} s)";
+    }
 
     public void ReturnToLobby()
     {
