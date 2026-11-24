@@ -58,6 +58,19 @@ public class Grappling : MonoBehaviour
     public float grapplingCd = 1f;
     private float grapplingCdTimer;
 
+    // [GANCHO AUDIO] Recorrido: suena mientras el gancho vuela hacia la pared.
+    // Fijación: suena una vez cuando el gancho se engancha.
+    [Header("Audio")]
+    public AudioClip sonidoRecorrido;
+    public AudioClip sonidoFijacion;
+    [Range(0f, 1f)] public float volumenRecorrido = 0.8f;
+    [Range(0f, 1f)] public float volumenFijacion = 1f;
+
+    // Una fuente por sonido: así cada uno se puede cortar sin cortar el otro,
+    // y volver a disparar reemplaza el sonido anterior en vez de superponerlo.
+    private AudioSource fuenteRecorrido;
+    private AudioSource fuenteFijacion;
+
     private Rigidbody rb;
     private FirstPersonView vistaPrimeraPersona; // [GANCHO]
     private Vector3 grapplePoint;
@@ -74,6 +87,8 @@ public class Grappling : MonoBehaviour
         rb.constraints |= RigidbodyConstraints.FreezeRotation;
 
         HideGrappleVisuals();
+        fuenteRecorrido = CrearFuenteDeSonido(); // [GANCHO AUDIO]
+        fuenteFijacion = CrearFuenteDeSonido();
         hasStarted = true;
 
         if (equipped)
@@ -202,6 +217,7 @@ public class Grappling : MonoBehaviour
 
             activeHook.transform.SetParent(null, true);
             hookState = HookState.Flying;
+            Reproducir(fuenteRecorrido, sonidoRecorrido, volumenRecorrido); // [GANCHO AUDIO]
             SetLineVisible(true);
             UpdateGrappleVisuals();
         }
@@ -214,6 +230,7 @@ public class Grappling : MonoBehaviour
 
         grappling = false;
         grapplingCdTimer = grapplingCd;
+        CortarRecorrido(); // [GANCHO AUDIO] si se suelta antes de engancharse
 
         if (activeHook != null && cableOrigin != null)
         {
@@ -230,6 +247,7 @@ public class Grappling : MonoBehaviour
     void OnDisable()
     {
         HideGrappleVisuals();
+        CortarRecorrido(); // [GANCHO AUDIO]
 
         if (activeHook != null)
         {
@@ -349,6 +367,10 @@ public class Grappling : MonoBehaviour
             if (hookAnimator != null)
                 hookAnimator.SetTrigger("Grip");
 
+            // [GANCHO AUDIO] Termina el recorrido y suena la fijación.
+            CortarRecorrido();
+            Reproducir(fuenteFijacion, sonidoFijacion, volumenFijacion);
+
             hookState = HookState.Attached;
         }
     }
@@ -449,6 +471,7 @@ public class Grappling : MonoBehaviour
 
     private void FinishHookCycle()
     {
+        CortarRecorrido(); // [GANCHO AUDIO]
         grappling = false;
         hookState = HookState.Idle;
         SetLineVisible(false);
@@ -515,6 +538,7 @@ public class Grappling : MonoBehaviour
     private void HideEquipmentVisuals()
     {
         HideGrappleVisuals();
+        CortarRecorrido(); // [GANCHO AUDIO] al cambiar de arma con el gancho en el aire
 
         if (activeHook != null)
         {
@@ -529,6 +553,38 @@ public class Grappling : MonoBehaviour
 
         hookState = HookState.Idle;
         grappling = false;
+    }
+
+    // =====================================================================
+    // [GANCHO AUDIO]
+    // =====================================================================
+
+    // Sonido 2D: lo escucha el jugador que usa el gancho, igual en los dos oídos.
+    private AudioSource CrearFuenteDeSonido()
+    {
+        AudioSource fuente = gameObject.AddComponent<AudioSource>();
+        fuente.playOnAwake = false;
+        fuente.loop = false;
+        fuente.spatialBlend = 0f;
+        return fuente;
+    }
+
+    // Play() y no PlayOneShot(): si vuelve a sonar, reemplaza al anterior
+    // en vez de sumarse (nunca hay dos copias del mismo sonido a la vez).
+    private static void Reproducir(AudioSource fuente, AudioClip clip, float volumen)
+    {
+        if (fuente == null || clip == null)
+            return;
+
+        fuente.clip = clip;
+        fuente.volume = volumen;
+        fuente.Play();
+    }
+
+    private void CortarRecorrido()
+    {
+        if (fuenteRecorrido != null && fuenteRecorrido.isPlaying)
+            fuenteRecorrido.Stop();
     }
 
     public bool IsEquipped() => equipped;

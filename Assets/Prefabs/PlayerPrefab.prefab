@@ -15875,6 +15875,10 @@ MonoBehaviour:
   grappleForce: 12
   stopDistance: 1
   grapplingCd: 1
+  sonidoRecorrido: {fileID: 8300000, guid: 6d72ad76d9634c16bd6d248e44c14218, type: 3}
+  sonidoFijacion: {fileID: 8300000, guid: a99613203c154190bb0ca15c6d860754, type: 3}
+  volumenRecorrido: 0.8
+  volumenFijacion: 1
 --- !u!114 &370442685910085628
 MonoBehaviour:
   m_ObjectHideFlags: 0
