@@ -58,18 +58,13 @@ public class Grappling : MonoBehaviour
     public float grapplingCd = 1f;
     private float grapplingCdTimer;
 
-    // [GANCHO AUDIO] Recorrido: suena mientras el gancho vuela hacia la pared.
-    // Fijación: suena una vez cuando el gancho se engancha.
+    // [GANCHO AUDIO] Recorrido: suena mientras el gancho vuela hacia la pared
+    // y se corta cuando se engancha.
     [Header("Audio")]
     public AudioClip sonidoRecorrido;
-    public AudioClip sonidoFijacion;
     [Range(0f, 1f)] public float volumenRecorrido = 0.8f;
-    [Range(0f, 1f)] public float volumenFijacion = 1f;
 
-    // Una fuente por sonido: así cada uno se puede cortar sin cortar el otro,
-    // y volver a disparar reemplaza el sonido anterior en vez de superponerlo.
     private AudioSource fuenteRecorrido;
-    private AudioSource fuenteFijacion;
 
     private Rigidbody rb;
     private FirstPersonView vistaPrimeraPersona; // [GANCHO]
@@ -88,7 +83,6 @@ public class Grappling : MonoBehaviour
 
         HideGrappleVisuals();
         fuenteRecorrido = CrearFuenteDeSonido(); // [GANCHO AUDIO]
-        fuenteFijacion = CrearFuenteDeSonido();
         hasStarted = true;
 
         if (equipped)
@@ -367,9 +361,7 @@ public class Grappling : MonoBehaviour
             if (hookAnimator != null)
                 hookAnimator.SetTrigger("Grip");
 
-            // [GANCHO AUDIO] Termina el recorrido y suena la fijación.
-            CortarRecorrido();
-            Reproducir(fuenteFijacion, sonidoFijacion, volumenFijacion);
+            CortarRecorrido(); // [GANCHO AUDIO] llegó a la pared
 
             hookState = HookState.Attached;
         }
