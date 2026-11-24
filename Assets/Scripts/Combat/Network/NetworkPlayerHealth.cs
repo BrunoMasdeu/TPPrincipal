@@ -14,6 +14,8 @@ public class NetworkPlayerHealth : NetworkBehaviour
 {
     [SerializeField, Min(1)] private int maxHealth = 100;
     [SerializeField, Min(0f)] private float respawnDelaySeconds = 5f;
+    // [PROTECCION] Segundos que el jugador no recibe daño después de reaparecer.
+    [SerializeField, Min(0f)] private float spawnProtectionSeconds = 3f;
 
     private readonly NetworkVariable<int> currentHealth = new(
         100, NetworkVariableReadPermission.Everyone,
@@ -35,6 +37,8 @@ public class NetworkPlayerHealth : NetworkBehaviour
     private NetworkPlayerInventory inventory;
     private bool combatMode;
     private ulong respawnSequence;
+    // [PROTECCION] Hasta cuándo (reloj del servidor) está protegido. Solo lo usa el servidor.
+    private double protegidoHasta;
 
     public event Action<int> HealthChanged;
     public event Action<PlayerLifeState> LifeStateChanged;
@@ -45,6 +49,13 @@ public class NetworkPlayerHealth : NetworkBehaviour
     public bool IsCombatActive => combatMode;
     public PlayerLifeState LifeState => life.Value.State;
     public ulong LastDeathEventId => lastDeathEventId.Value;
+    /// <summary>[PROTECCION] True mientras dura la protección después de reaparecer.</summary>
+    public bool EstaProtegido => IsServer && NetworkManager != null &&
+        NetworkManager.ServerTime.Time < protegidoHasta;
+
+    /// <summary>[PROTECCION] El jugador atacó: pierde la protección en el acto.</summary>
+    public void CortarProteccion() => protegidoHasta = 0d;
+
     public float RespawnRemaining => respawnAt.Value > 0d && NetworkManager != null
         ? Mathf.Max(0f, (float)(respawnAt.Value - NetworkManager.ServerTime.Time))
         : 0f;
@@ -159,6 +170,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
 
         if (!combatMode || !IsServer || !IsSpawned ||
             LifeState != PlayerLifeState.Alive ||
+            EstaProtegido || // [PROTECCION] recién reapareció: no recibe daño
             match == null || match.Phase != MatchPhase.Playing ||
             lobby == null ||
             !lobby.TryGetPlayerData(attackerClientId, out LobbyPlayerData attacker) ||
@@ -235,6 +247,7 @@ public class NetworkPlayerHealth : NetworkBehaviour
             return;
 
         currentHealth.Value = maxHealth;
+        protegidoHasta = NetworkManager.ServerTime.Time + spawnProtectionSeconds; // [PROTECCION]
         combat?.ResetForRespawn();
         grenades?.ResetForRespawnOnServer();
         crouch?.ForceStandingOnServer();

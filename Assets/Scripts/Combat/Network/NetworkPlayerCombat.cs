@@ -225,7 +225,10 @@ public class NetworkPlayerCombat : NetworkBehaviour
         RpcParams rpcParams = default)
     {
         if (rpcParams.Receive.SenderClientId == OwnerClientId && CanAttackOnServer())
+        {
+            health?.CortarProteccion(); // [PROTECCION] si ataca, deja de estar protegido
             PresentAttackRpc(weaponId, attackType, hitTarget);
+        }
     }
 
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone)]
