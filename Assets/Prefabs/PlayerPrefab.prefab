@@ -15889,7 +15889,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 377557317
+  GlobalObjectIdHash: 3814868959
   InScenePlacedSourceGlobalObjectIdHash: 377557317
   m_InScenePlacedDisabledByDefault: 0
   DeferredDespawnTick: 0
@@ -19457,6 +19457,11 @@ MonoBehaviour:
   secondaryIcon: {fileID: 5632344039241574577}
   primaryIcon: {fileID: 5075855286461531720}
   utilityIcon: {fileID: 9036894671434918197}
+  bindArmaPrincipal: {fileID: 8879209687637676247}
+  bindArmaSecundaria: {fileID: 664769042672779167}
+  bindUtility: {fileID: 8050933397615316397}
+  bindArmaMelee: {fileID: 6400190770193789645}
+  bindGancho: {fileID: 4230894471184411373}
   normalHealthColor: {r: 1, g: 1, b: 1, a: 1}
   lowHealthColor: {r: 1, g: 0.25, b: 0.25, a: 1}
 --- !u!114 &5112235509646908768

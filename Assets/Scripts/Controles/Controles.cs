@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -37,6 +38,8 @@ public enum Accion
 /// </summary>
 public static class Controles
 {
+    public static event Action TeclasCambiadas;
+
     // Las teclas de siempre. Se usan la primera vez y al restaurar.
     private static readonly Dictionary<Accion, Key> teclasPorDefecto = new Dictionary<Accion, Key>
     {
@@ -92,6 +95,7 @@ public static class Controles
             PlayerPrefs.SetInt(Clave(par.Key), (int)par.Value);
 
         PlayerPrefs.Save();
+        TeclasCambiadas?.Invoke();
     }
 
     /// <summary>La acción que ya usa esa tecla, o null si está libre.</summary>
@@ -127,6 +131,7 @@ public static class Controles
             PlayerPrefs.DeleteKey(Clave(accion));
 
         PlayerPrefs.Save();
+        TeclasCambiadas?.Invoke();
     }
 
     /// <summary>El nombre que se muestra en el panel ("Espacio", "Ctrl", "W"...).</summary>

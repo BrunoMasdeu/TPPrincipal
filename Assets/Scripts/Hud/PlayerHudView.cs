@@ -22,6 +22,13 @@ public sealed class PlayerHudView : MonoBehaviour
     [SerializeField] private Image primaryIcon;
     [SerializeField] private Image utilityIcon;
 
+    [Header("Controles de armas")]
+    [SerializeField] private TMP_Text bindArmaPrincipal;
+    [SerializeField] private TMP_Text bindArmaSecundaria;
+    [SerializeField] private TMP_Text bindUtility;
+    [SerializeField] private TMP_Text bindArmaMelee;
+    [SerializeField] private TMP_Text bindGancho;
+
     [Header("Presentacion")]
     [SerializeField] private Color normalHealthColor = Color.white;
     [SerializeField] private Color lowHealthColor = new(1f, 0.25f, 0.25f, 1f);
@@ -49,6 +56,31 @@ public sealed class PlayerHudView : MonoBehaviour
     private void Awake()
     {
         ResolveReferences();
+    }
+
+    private void OnEnable()
+    {
+        Controles.TeclasCambiadas += ActualizarTeclas;
+        ActualizarTeclas();
+    }
+
+    private void OnDisable()
+    {
+        Controles.TeclasCambiadas -= ActualizarTeclas;
+    }
+
+    private void ActualizarTeclas()
+    {
+        if (bindArmaPrincipal != null)
+            bindArmaPrincipal.text = Controles.Nombre(Controles.Tecla(Accion.ArmaPrincipal));
+        if (bindArmaSecundaria != null)
+            bindArmaSecundaria.text = Controles.Nombre(Controles.Tecla(Accion.ArmaSecundaria));
+        if (bindUtility != null)
+            bindUtility.text = Controles.Nombre(Controles.Tecla(Accion.Tienda));
+        if (bindArmaMelee != null)
+            bindArmaMelee.text = Controles.Nombre(Controles.Tecla(Accion.Cuchillo));
+        if (bindGancho != null)
+            bindGancho.text = Controles.Nombre(Controles.Tecla(Accion.Gancho));
     }
 
     private void OnValidate()
